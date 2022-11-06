@@ -1,0 +1,15 @@
+
+EPOCH 1:
+/home/sheina/tsai/dataset.py:77: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  epoch_idxs_ordered = np.where(self.indexes_all[1,:] == epoch_idx * self.win_len)
+Python 3.8.13 (default, Mar 28 2022, 11:38:47)
+Type 'copyright', 'credits' or 'license' for more information
+IPython 8.4.0 -- An enhanced Interactive Python. Type '?' for help.
+PyDev console: using IPython 8.4.0
+Out[2]: 1
+Traceback (most recent call last):
+  File "/home/sheina/tsai/OSrnn/TDMs.py", line 170, in <module>
+    avg_loss, tp_e, lp_e = train_one_epoch(epoch)
+  File "/home/sheina/tsai/OSrnn/TDMs.py", line 104, in train_one_epoch
+    sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=0.5)
+KeyboardInterrupt

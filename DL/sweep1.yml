@@ -1,0 +1,56 @@
+method: grid
+metric:
+  goal: maximize
+  name: val AUROC
+parameters:
+
+  device:
+    distribution: categorical
+    values:
+      - cuda
+  epochs:
+    distribution: categorical
+    values:
+      - 3
+  gpu:
+    distribution: categorical
+    values:
+      - "0"
+  batch_size:
+    distribution: categorical
+    values:
+      - 0
+  loss:
+    distribution: categorical
+    values:
+      - AUCMLoss
+  lr:
+    distribution: categorical
+    values:
+      - 0.1
+      - 1e-3
+      - 1e-4
+  model:
+    distribution: categorical
+    values:
+      - TCN
+      - XceptionTime
+  optimizer:
+    distribution: categorical
+    values:
+      - PESG
+  seed:
+    distribution: categorical
+    values:
+      - 1
+  win_len:
+    distribution: categorical
+    values:
+      - 1
+      - 6
+      - 30
+      - 60
+      - 180
+      - 360
+program: train_modelS.py
+

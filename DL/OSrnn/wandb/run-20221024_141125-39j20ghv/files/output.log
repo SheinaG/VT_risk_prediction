@@ -1,0 +1,15 @@
+
+EPOCH 1:
+Traceback (most recent call last):
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 530, in __next__
+    data = self._next_data()
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 569, in _next_data
+    index = self._next_index()  # may raise StopIteration
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 521, in _next_index
+    return next(self._sampler_iter)  # may raise StopIteration
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/sampler.py", line 226, in __iter__
+    for idx in self.sampler:
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/libauc/sampler/sampler.py", line 210, in __iter__
+    self.sampled = np.concatenate(self.sampled)
+  File "<__array_function__ internals>", line 180, in concatenate
+ValueError: need at least one array to concatenate

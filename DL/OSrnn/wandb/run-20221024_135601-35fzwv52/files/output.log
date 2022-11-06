@@ -1,0 +1,16 @@
+
+EPOCH 1:
+/home/sheina/tsai/dataset.py:76: FutureWarning: elementwise comparison failed; returning scalar instead, but in the future will perform elementwise comparison
+  epoch_idxs_ordered = np.where(self.indexes_all[1,:] == epoch_idx * self.win_len)
+Traceback (most recent call last):
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 530, in __next__
+    data = self._next_data()
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/dataloader.py", line 570, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 49, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/utils/data/_utils/fetch.py", line 49, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/home/sheina/tsai/dataset.py", line 69, in __getitem__
+    label = self.targets[idx]
+IndexError: index 616933 is out of bounds for axis 0 with size 1

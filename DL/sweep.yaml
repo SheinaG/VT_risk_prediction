@@ -1,0 +1,57 @@
+method: grid
+metric:
+  goal: maximize
+  name: val AUROC
+parameters:
+
+  device:
+    distribution: categorical
+    values:
+      - cuda
+  epochs:
+    distribution: categorical
+    values:
+      - 500
+  gpu:
+    distribution: categorical
+    values:
+      - "0"
+  batch_size:
+    distribution: categorical
+    values:
+      - 0
+  loss:
+    distribution: categorical
+    values:
+      - AUCMLoss
+  lr:
+    distribution: categorical
+    values:
+      - 1e-3
+      - 0.1
+  model:
+    distribution: categorical
+    values:
+      - XceptionTime
+      - TCN
+  optimizer:
+    distribution: categorical
+    values:
+      - PESG
+  use_sampler:
+    distribution: categorical
+    values:
+      - True
+  seed:
+    distribution: categorical
+    values:
+      - 1
+  win_len:
+    distribution: categorical
+    values:
+      - 1
+      - 6
+      - 30
+      - 60
+      - 180
+program: TDMs.py

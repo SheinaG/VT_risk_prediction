@@ -1,0 +1,942 @@
+
+EPOCH 1:
+evaluating
+EPOCH 2:
+evaluating
+EPOCH 3:
+evaluating
+EPOCH 4:
+evaluating
+EPOCH 5:
+evaluating
+EPOCH 6:
+evaluating
+EPOCH 7:
+evaluating
+EPOCH 8:
+evaluating
+EPOCH 9:
+evaluating
+EPOCH 10:
+evaluating
+EPOCH 11:
+evaluating
+EPOCH 12:
+evaluating
+EPOCH 13:
+evaluating
+EPOCH 14:
+evaluating
+EPOCH 15:
+evaluating
+EPOCH 16:
+evaluating
+EPOCH 17:
+evaluating
+EPOCH 18:
+evaluating
+EPOCH 19:
+evaluating
+EPOCH 20:
+evaluating
+EPOCH 21:
+evaluating
+EPOCH 22:
+evaluating
+EPOCH 23:
+evaluating
+EPOCH 24:
+evaluating
+EPOCH 25:
+evaluating
+EPOCH 26:
+evaluating
+EPOCH 27:
+evaluating
+EPOCH 28:
+evaluating
+EPOCH 29:
+evaluating
+EPOCH 30:
+evaluating
+EPOCH 31:
+evaluating
+EPOCH 32:
+evaluating
+EPOCH 33:
+evaluating
+EPOCH 34:
+evaluating
+EPOCH 35:
+evaluating
+EPOCH 36:
+evaluating
+EPOCH 37:
+evaluating
+EPOCH 38:
+evaluating
+EPOCH 39:
+evaluating
+EPOCH 40:
+evaluating
+EPOCH 41:
+evaluating
+EPOCH 42:
+evaluating
+EPOCH 43:
+evaluating
+EPOCH 44:
+evaluating
+EPOCH 45:
+evaluating
+EPOCH 46:
+evaluating
+EPOCH 47:
+evaluating
+EPOCH 48:
+evaluating
+EPOCH 49:
+evaluating
+EPOCH 50:
+evaluating
+EPOCH 51:
+evaluating
+EPOCH 52:
+evaluating
+EPOCH 53:
+evaluating
+EPOCH 54:
+evaluating
+EPOCH 55:
+evaluating
+EPOCH 56:
+evaluating
+EPOCH 57:
+evaluating
+EPOCH 58:
+evaluating
+EPOCH 59:
+evaluating
+EPOCH 60:
+evaluating
+EPOCH 61:
+evaluating
+EPOCH 62:
+evaluating
+EPOCH 63:
+evaluating
+EPOCH 64:
+evaluating
+EPOCH 65:
+evaluating
+EPOCH 66:
+evaluating
+EPOCH 67:
+evaluating
+EPOCH 68:
+evaluating
+EPOCH 69:
+evaluating
+EPOCH 70:
+evaluating
+EPOCH 71:
+evaluating
+EPOCH 72:
+evaluating
+EPOCH 73:
+evaluating
+EPOCH 74:
+evaluating
+EPOCH 75:
+evaluating
+EPOCH 76:
+evaluating
+EPOCH 77:
+evaluating
+EPOCH 78:
+evaluating
+EPOCH 79:
+evaluating
+EPOCH 80:
+evaluating
+EPOCH 81:
+evaluating
+EPOCH 82:
+evaluating
+EPOCH 83:
+evaluating
+EPOCH 84:
+evaluating
+EPOCH 85:
+evaluating
+EPOCH 86:
+evaluating
+EPOCH 87:
+evaluating
+EPOCH 88:
+evaluating
+EPOCH 89:
+evaluating
+EPOCH 90:
+evaluating
+EPOCH 91:
+evaluating
+EPOCH 92:
+evaluating
+EPOCH 93:
+evaluating
+EPOCH 94:
+evaluating
+EPOCH 95:
+evaluating
+EPOCH 96:
+evaluating
+EPOCH 97:
+evaluating
+EPOCH 98:
+evaluating
+EPOCH 99:
+evaluating
+EPOCH 100:
+evaluating
+EPOCH 101:
+evaluating
+EPOCH 102:
+evaluating
+EPOCH 103:
+evaluating
+EPOCH 104:
+evaluating
+EPOCH 105:
+evaluating
+EPOCH 106:
+evaluating
+EPOCH 107:
+evaluating
+EPOCH 108:
+evaluating
+EPOCH 109:
+evaluating
+EPOCH 110:
+evaluating
+EPOCH 111:
+evaluating
+EPOCH 112:
+evaluating
+EPOCH 113:
+evaluating
+EPOCH 114:
+evaluating
+EPOCH 115:
+evaluating
+EPOCH 116:
+evaluating
+EPOCH 117:
+evaluating
+EPOCH 118:
+evaluating
+EPOCH 119:
+evaluating
+EPOCH 120:
+evaluating
+EPOCH 121:
+evaluating
+EPOCH 122:
+evaluating
+EPOCH 123:
+evaluating
+EPOCH 124:
+evaluating
+EPOCH 125:
+evaluating
+EPOCH 126:
+evaluating
+EPOCH 127:
+evaluating
+EPOCH 128:
+evaluating
+EPOCH 129:
+evaluating
+EPOCH 130:
+evaluating
+EPOCH 131:
+evaluating
+EPOCH 132:
+evaluating
+EPOCH 133:
+evaluating
+EPOCH 134:
+evaluating
+EPOCH 135:
+evaluating
+EPOCH 136:
+evaluating
+EPOCH 137:
+evaluating
+EPOCH 138:
+evaluating
+EPOCH 139:
+evaluating
+EPOCH 140:
+evaluating
+EPOCH 141:
+evaluating
+EPOCH 142:
+evaluating
+EPOCH 143:
+evaluating
+EPOCH 144:
+evaluating
+EPOCH 145:
+evaluating
+EPOCH 146:
+evaluating
+EPOCH 147:
+evaluating
+EPOCH 148:
+evaluating
+EPOCH 149:
+evaluating
+EPOCH 150:
+evaluating
+EPOCH 151:
+evaluating
+EPOCH 152:
+evaluating
+EPOCH 153:
+evaluating
+EPOCH 154:
+evaluating
+EPOCH 155:
+evaluating
+EPOCH 156:
+evaluating
+EPOCH 157:
+evaluating
+EPOCH 158:
+evaluating
+EPOCH 159:
+evaluating
+EPOCH 160:
+evaluating
+EPOCH 161:
+evaluating
+EPOCH 162:
+evaluating
+EPOCH 163:
+evaluating
+EPOCH 164:
+evaluating
+EPOCH 165:
+evaluating
+EPOCH 166:
+evaluating
+EPOCH 167:
+evaluating
+EPOCH 168:
+evaluating
+EPOCH 169:
+evaluating
+EPOCH 170:
+evaluating
+EPOCH 171:
+evaluating
+EPOCH 172:
+evaluating
+EPOCH 173:
+evaluating
+EPOCH 174:
+evaluating
+EPOCH 175:
+evaluating
+EPOCH 176:
+evaluating
+EPOCH 177:
+evaluating
+EPOCH 178:
+evaluating
+EPOCH 179:
+evaluating
+EPOCH 180:
+evaluating
+EPOCH 181:
+evaluating
+EPOCH 182:
+evaluating
+EPOCH 183:
+evaluating
+EPOCH 184:
+evaluating
+EPOCH 185:
+evaluating
+EPOCH 186:
+evaluating
+EPOCH 187:
+evaluating
+EPOCH 188:
+evaluating
+EPOCH 189:
+evaluating
+EPOCH 190:
+evaluating
+EPOCH 191:
+evaluating
+EPOCH 192:
+evaluating
+EPOCH 193:
+evaluating
+EPOCH 194:
+evaluating
+EPOCH 195:
+evaluating
+EPOCH 196:
+evaluating
+EPOCH 197:
+evaluating
+EPOCH 198:
+evaluating
+EPOCH 199:
+evaluating
+EPOCH 200:
+evaluating
+EPOCH 201:
+evaluating
+EPOCH 202:
+evaluating
+EPOCH 203:
+evaluating
+EPOCH 204:
+evaluating
+EPOCH 205:
+evaluating
+EPOCH 206:
+evaluating
+EPOCH 207:
+evaluating
+EPOCH 208:
+evaluating
+EPOCH 209:
+evaluating
+EPOCH 210:
+evaluating
+EPOCH 211:
+evaluating
+EPOCH 212:
+evaluating
+EPOCH 213:
+evaluating
+EPOCH 214:
+evaluating
+EPOCH 215:
+evaluating
+EPOCH 216:
+evaluating
+EPOCH 217:
+evaluating
+EPOCH 218:
+evaluating
+EPOCH 219:
+evaluating
+EPOCH 220:
+evaluating
+EPOCH 221:
+evaluating
+EPOCH 222:
+evaluating
+EPOCH 223:
+evaluating
+EPOCH 224:
+evaluating
+EPOCH 225:
+evaluating
+EPOCH 226:
+evaluating
+EPOCH 227:
+evaluating
+EPOCH 228:
+evaluating
+EPOCH 229:
+evaluating
+EPOCH 230:
+evaluating
+EPOCH 231:
+evaluating
+EPOCH 232:
+evaluating
+EPOCH 233:
+evaluating
+EPOCH 234:
+evaluating
+EPOCH 235:
+evaluating
+EPOCH 236:
+evaluating
+EPOCH 237:
+evaluating
+EPOCH 238:
+evaluating
+EPOCH 239:
+evaluating
+EPOCH 240:
+evaluating
+EPOCH 241:
+evaluating
+EPOCH 242:
+evaluating
+EPOCH 243:
+evaluating
+EPOCH 244:
+evaluating
+EPOCH 245:
+evaluating
+EPOCH 246:
+evaluating
+EPOCH 247:
+evaluating
+EPOCH 248:
+evaluating
+EPOCH 249:
+evaluating
+EPOCH 250:
+evaluating
+EPOCH 251:
+evaluating
+EPOCH 252:
+evaluating
+EPOCH 253:
+evaluating
+EPOCH 254:
+evaluating
+EPOCH 255:
+evaluating
+EPOCH 256:
+evaluating
+EPOCH 257:
+evaluating
+EPOCH 258:
+evaluating
+EPOCH 259:
+evaluating
+EPOCH 260:
+evaluating
+EPOCH 261:
+evaluating
+EPOCH 262:
+evaluating
+EPOCH 263:
+evaluating
+EPOCH 264:
+evaluating
+EPOCH 265:
+evaluating
+EPOCH 266:
+evaluating
+EPOCH 267:
+evaluating
+EPOCH 268:
+evaluating
+EPOCH 269:
+evaluating
+EPOCH 270:
+evaluating
+EPOCH 271:
+evaluating
+EPOCH 272:
+evaluating
+EPOCH 273:
+evaluating
+EPOCH 274:
+evaluating
+EPOCH 275:
+evaluating
+EPOCH 276:
+evaluating
+EPOCH 277:
+evaluating
+EPOCH 278:
+evaluating
+EPOCH 279:
+evaluating
+EPOCH 280:
+evaluating
+EPOCH 281:
+evaluating
+EPOCH 282:
+evaluating
+EPOCH 283:
+evaluating
+EPOCH 284:
+evaluating
+EPOCH 285:
+evaluating
+EPOCH 286:
+evaluating
+EPOCH 287:
+evaluating
+EPOCH 288:
+evaluating
+EPOCH 289:
+evaluating
+EPOCH 290:
+evaluating
+EPOCH 291:
+evaluating
+EPOCH 292:
+evaluating
+EPOCH 293:
+evaluating
+EPOCH 294:
+evaluating
+EPOCH 295:
+evaluating
+EPOCH 296:
+evaluating
+EPOCH 297:
+evaluating
+EPOCH 298:
+evaluating
+EPOCH 299:
+evaluating
+EPOCH 300:
+evaluating
+EPOCH 301:
+evaluating
+EPOCH 302:
+evaluating
+EPOCH 303:
+evaluating
+EPOCH 304:
+evaluating
+EPOCH 305:
+evaluating
+EPOCH 306:
+evaluating
+EPOCH 307:
+evaluating
+EPOCH 308:
+evaluating
+EPOCH 309:
+evaluating
+EPOCH 310:
+evaluating
+EPOCH 311:
+evaluating
+EPOCH 312:
+evaluating
+EPOCH 313:
+evaluating
+EPOCH 314:
+evaluating
+EPOCH 315:
+evaluating
+EPOCH 316:
+evaluating
+EPOCH 317:
+evaluating
+EPOCH 318:
+evaluating
+EPOCH 319:
+evaluating
+EPOCH 320:
+evaluating
+EPOCH 321:
+evaluating
+EPOCH 322:
+evaluating
+EPOCH 323:
+evaluating
+EPOCH 324:
+evaluating
+EPOCH 325:
+evaluating
+EPOCH 326:
+evaluating
+EPOCH 327:
+evaluating
+EPOCH 328:
+evaluating
+EPOCH 329:
+evaluating
+EPOCH 330:
+evaluating
+EPOCH 331:
+evaluating
+EPOCH 332:
+evaluating
+EPOCH 333:
+evaluating
+EPOCH 334:
+evaluating
+EPOCH 335:
+evaluating
+EPOCH 336:
+evaluating
+EPOCH 337:
+evaluating
+EPOCH 338:
+evaluating
+EPOCH 339:
+evaluating
+EPOCH 340:
+evaluating
+EPOCH 341:
+evaluating
+EPOCH 342:
+evaluating
+EPOCH 343:
+evaluating
+EPOCH 344:
+evaluating
+EPOCH 345:
+evaluating
+EPOCH 346:
+evaluating
+EPOCH 347:
+evaluating
+EPOCH 348:
+evaluating
+EPOCH 349:
+evaluating
+EPOCH 350:
+evaluating
+EPOCH 351:
+evaluating
+EPOCH 352:
+evaluating
+EPOCH 353:
+evaluating
+EPOCH 354:
+evaluating
+EPOCH 355:
+evaluating
+EPOCH 356:
+evaluating
+EPOCH 357:
+evaluating
+EPOCH 358:
+evaluating
+EPOCH 359:
+evaluating
+EPOCH 360:
+evaluating
+EPOCH 361:
+evaluating
+EPOCH 362:
+evaluating
+EPOCH 363:
+evaluating
+EPOCH 364:
+evaluating
+EPOCH 365:
+evaluating
+EPOCH 366:
+evaluating
+EPOCH 367:
+evaluating
+EPOCH 368:
+evaluating
+EPOCH 369:
+evaluating
+EPOCH 370:
+evaluating
+EPOCH 371:
+evaluating
+EPOCH 372:
+evaluating
+EPOCH 373:
+evaluating
+EPOCH 374:
+evaluating
+EPOCH 375:
+evaluating
+EPOCH 376:
+evaluating
+EPOCH 377:
+evaluating
+EPOCH 378:
+evaluating
+EPOCH 379:
+evaluating
+EPOCH 380:
+evaluating
+EPOCH 381:
+evaluating
+EPOCH 382:
+evaluating
+EPOCH 383:
+evaluating
+EPOCH 384:
+evaluating
+EPOCH 385:
+evaluating
+EPOCH 386:
+evaluating
+EPOCH 387:
+evaluating
+EPOCH 388:
+evaluating
+EPOCH 389:
+evaluating
+EPOCH 390:
+evaluating
+EPOCH 391:
+evaluating
+EPOCH 392:
+evaluating
+EPOCH 393:
+evaluating
+EPOCH 394:
+evaluating
+EPOCH 395:
+evaluating
+EPOCH 396:
+evaluating
+EPOCH 397:
+evaluating
+EPOCH 398:
+evaluating
+EPOCH 399:
+evaluating
+EPOCH 400:
+evaluating
+EPOCH 401:
+evaluating
+EPOCH 402:
+evaluating
+EPOCH 403:
+evaluating
+EPOCH 404:
+evaluating
+EPOCH 405:
+evaluating
+EPOCH 406:
+evaluating
+EPOCH 407:
+evaluating
+EPOCH 408:
+evaluating
+EPOCH 409:
+evaluating
+EPOCH 410:
+evaluating
+EPOCH 411:
+evaluating
+EPOCH 412:
+evaluating
+EPOCH 413:
+evaluating
+EPOCH 414:
+evaluating
+EPOCH 415:
+evaluating
+EPOCH 416:
+evaluating
+EPOCH 417:
+evaluating
+EPOCH 418:
+evaluating
+EPOCH 419:
+evaluating
+EPOCH 420:
+evaluating
+EPOCH 421:
+evaluating
+EPOCH 422:
+evaluating
+EPOCH 423:
+evaluating
+EPOCH 424:
+evaluating
+EPOCH 425:
+evaluating
+EPOCH 426:
+evaluating
+EPOCH 427:
+evaluating
+EPOCH 428:
+evaluating
+EPOCH 429:
+evaluating
+EPOCH 430:
+evaluating
+EPOCH 431:
+evaluating
+EPOCH 432:
+evaluating
+EPOCH 433:
+evaluating
+EPOCH 434:
+evaluating
+EPOCH 435:
+evaluating
+EPOCH 436:
+evaluating
+EPOCH 437:
+evaluating
+EPOCH 438:
+evaluating
+EPOCH 439:
+evaluating
+EPOCH 440:
+evaluating
+EPOCH 441:
+evaluating
+EPOCH 442:
+evaluating
+EPOCH 443:
+evaluating
+EPOCH 444:
+evaluating
+EPOCH 445:
+evaluating
+EPOCH 446:
+evaluating
+EPOCH 447:
+evaluating
+EPOCH 448:
+evaluating
+EPOCH 449:
+evaluating
+EPOCH 450:
+evaluating
+EPOCH 451:
+evaluating
+EPOCH 452:
+evaluating
+EPOCH 453:
+evaluating
+EPOCH 454:
+evaluating
+EPOCH 455:
+evaluating
+EPOCH 456:
+evaluating
+EPOCH 457:
+Traceback (most recent call last):
+  File "/home/sheina/tsai/OSrnn/TDMs.py", line 170, in <module>
+    avg_loss, tp_e, lp_e = train_one_epoch(epoch)
+  File "/home/sheina/tsai/OSrnn/TDMs.py", line 131, in train_one_epoch
+    outputs = model(inputs)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/sheina/tsai/OSrnn/TCNs.py", line 64, in forward
+    x = self.tcn(x)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/sheina/tsai/OSrnn/TCNs.py", line 39, in forward
+    out = self.net(x)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1110, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/container.py", line 141, in forward
+    input = module(input)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1128, in _call_impl
+    result = forward_call(*input, **kwargs)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 302, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "/home/sheina/anaconda3/envs/tsai_env/lib/python3.8/site-packages/torch/nn/modules/conv.py", line 298, in _conv_forward
+    return F.conv1d(input, weight, bias, self.stride,
+KeyboardInterrupt
