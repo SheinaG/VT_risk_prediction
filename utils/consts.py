@@ -36,6 +36,8 @@ bad_bsqi = ['1021', 'H8208813', '2A21F10e', 'F520H114', 'L620D996', 'M918Ccc4', 
 duplicated_ids = ['8520F416', 'H520818b']
 
 num_features_model = [2, 23, 110, 133, 135]
+num_selected_features_model = [2, 5, 10, 15, 15]
+NM = 5
 
 class_funcs = {
     'RF': RandomForestClassifier,
@@ -62,6 +64,7 @@ PARSING_PROJECT_DIR = REPO_DIR_POSIX / "parsing"
 IDS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "IDS"
 RESULTS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "results"
 MODELS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "models"
+ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 colors_six = ['#307DA6', '#A65730', '#6F30A6', '#A6304F', '#A69E30', '#30A640']
 light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0']
@@ -69,3 +72,25 @@ light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0'
 EPLTD_FS = 200
 rhythms_head = '_ecg_start_0_end_3_n_leads_3_rhythms.txt'
 HDF5_DATASET = 'VT_DL'
+
+search_spaces_RF = {
+    'model__n_estimators': Integer(10, 300),
+    'model__criterion': ['gini', 'entropy'],
+    'model__max_depth': Integer(2, 50),
+    'model__min_samples_leaf': Integer(1, 100),
+    'model__max_features': [0.05, 0.1, 0.3, 0.5, 0.8, 1],
+    # 'model__max_leaf_nodes': [None],
+    #    'model__max_samples': Real(0.3, 0.99),
+}
+search_spaces_XGB = {
+    'model__n_estimators': Integer(10, 300),
+    'model__max_depth': Integer(2, 200),
+    'model__reg_alpha': Integer(40, 400),
+    'model__reg_lambda': [0, 1],
+    'model__eta': [0, 0.01, 0.02, 0.05, 0.08, 0.1, 0.15, 0.2, 0.3, 0.5, 0.8, 1],
+    'model__gamma': [0, 1, 10, 30, 50, 80, 100],
+    'model__min_child_weight': [1, 10, 30, 50, 80, 100, 200, 300, 500, 800],
+    'model__colsample_bytree': [0.05, 0.1, 0.3, 0.5, 0.8, 1],
+    'model__subsample': [0.05, 0.1, 0.3, 0.5, 0.8, 1],
+    'model__scale_pos_weight': [0, 1, 10, 30, 50, 80, 100, 200, 300, 500, 800],
+}
