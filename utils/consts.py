@@ -37,6 +37,7 @@ duplicated_ids = ['8520F416', 'H520818b']
 
 num_features_model = [2, 23, 110, 133, 135]
 num_selected_features_model = [2, 5, 10, 15, 15]
+
 NM = 5
 
 class_funcs = {
@@ -94,3 +95,9 @@ search_spaces_XGB = {
     'model__subsample': [0.05, 0.1, 0.3, 0.5, 0.8, 1],
     'model__scale_pos_weight': [0, 1, 10, 30, 50, 80, 100, 200, 300, 500, 800],
 }
+
+hyp_list = {'XGB': ['colsample_bytree', 'eta', 'gamma', 'max_depth', 'min_child_weight', 'n_estimators', 'reg_alpha',
+                    'reg_lambda',
+                    'scale_pos_weight', 'subsample'],
+            'RF': ['criterion', 'max_depth', 'max_features', 'min_samples_leaf', 'n_estimators']}
+MAX_WIN = 55
