@@ -1,16 +1,10 @@
-import pathlib
-
+import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import sheina.bayesiansearch as bs
-import sheina.consts as cts
 from scipy.stats import mannwhitneyu
-from train_model import create_dataset
 
-build_model = 0
-
-features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/normalized/')
+from ML.ML_utils import *
 
 
 def handel_strings(in_string):
@@ -105,7 +99,7 @@ def perform_statistical_test():
 
     sample_features_xl = pd.read_excel(cts.VTdb_path + 'normalized/1020D818/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(sample_features_xl.columns[1:])
-    features_list = bs.choose_right_features(np.expand_dims(features_arr, axis=0))
+    features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
     statistical_test_print = pd.DataFrame(columns=['mannwhitneyu', 'VT', 'Non-VT'], index=features_list[0])
     statistical_test_alz = pd.DataFrame(columns=['mannwhitneyu'], index=features_list[0])
 
@@ -136,9 +130,9 @@ def perform_statistical_test():
 def analyze_statistical_test():
     stat_test_df = pd.read_excel(cts.VTdb_path + 'stat_test_norm/statistical_test_alz.xlsx', engine='openpyxl')
     p_values = np.asarray(stat_test_df['mannwhitneyu'])
-    # p_values = bs.choose_right_features(np.transpose(np.expand_dims(p_values, axis = 1)))
+    # p_values = choose_right_features(np.transpose(np.expand_dims(p_values, axis = 1)))
     features_arrey = np.asarray(stat_test_df['Unnamed: 0'])
-    # features_arrey = bs.choose_right_features(np.transpose(np.expand_dims(features_arrey, axis=1)))
+    # features_arrey = choose_right_features(np.transpose(np.expand_dims(features_arrey, axis=1)))
     idx = np.argsort(p_values).squeeze()
     best_features = features_arrey[idx]
 

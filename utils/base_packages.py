@@ -5,10 +5,15 @@
 
 import sys
 
+sys.path.append("/home/sheina/VT_risk_prediction/")
+
+# General
+
+
 # Machine Learning
 
 
-# os.environ["CUDA_VISIBLE_DEVICES"]="1,2"
-sys.path.append("/home/sheina/sheina_repo/")
+# Deep Learning
+
 
 # warnings.filterwarnings('ignore')
