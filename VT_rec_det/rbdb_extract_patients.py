@@ -211,16 +211,18 @@ def append_rhythms_array(self, pat, new_line, arr):
 
 
 if __name__ == '__main__':
-    db = VtParser()
-    segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
-    j = 0
-    for id in cts.ids_rbdb_VT:
-        rhythm_df = db.parse_reference_rhythm(id)
-        for i in rhythm_df.index:
-            segments_array.loc[j] = 0
-            segments_array.loc[j]['holter_id'] = id
-            segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
-            segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
-            segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
-            j = j + 1
-    a = 5
+    # db = VtParser()
+    # segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
+    # j = 0
+    # for id in cts.ids_rbdb_VT:
+    #     rhythm_df = db.parse_reference_rhythm(id)
+    #     for i in rhythm_df.index:
+    #         segments_array.loc[j] = 0
+    #         segments_array.loc[j]['holter_id'] = id
+    #         segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
+    #         segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
+    #         segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
+    #         j = j + 1
+    # a = 5
+
+    rbdb_new_dem(ids)
