@@ -1,5 +1,3 @@
-import numpy as np
-
 from utils import consts as cts
 from utils.base_packages import *
 

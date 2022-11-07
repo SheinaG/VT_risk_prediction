@@ -1,3 +1,4 @@
+import ML.bayesiansearch as bs
 from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
@@ -64,14 +65,14 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
         with open((path / 'StSC.pkl'), 'wb') as f:
             joblib.dump(StSc_fit, f)
         X_df = pd.DataFrame(X_stsc_train, columns=features_model)
-        X_train_m, features_new = train_model.feature_selection(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
+        X_train_m, features_new = feature_selection(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
         print(features_new)
         x_train = X_train_m
         with open((path / 'features.pkl'), 'wb') as f:
             joblib.dump(features_new, f)
-        x_test = train_model.features_mrmr(x_test, list(features_model), list(features_new))
+        x_test = features_mrmr(x_test, list(features_model), list(features_new))
 
-    path = bs.set_path(algo, dataset, model_type, results_dir)
+    path = set_path(algo, dataset, model_type, results_dir)
     opt = bs.vt_bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
                            weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
