@@ -13,7 +13,7 @@ import os
 import os.path
 import numpy as np
 import joblib
-import patlib
+import pathlib
 import matplotlib.pyplot as plt
 import pylab as pl
 import pickle
@@ -40,10 +40,15 @@ from sklearn.model_selection import train_test_split
 from scipy.stats import mannwhitneyu
 from sklearn.feature_selection import RFE
 from sklearn.metrics import roc_auc_score
-from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import LeaveOneGroupOut
 from skopt.plots import plot_objective
 import pymrmr
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from skopt import BayesSearchCV
+from skopt.space import Real, Categorical, Integer
+import joblib
+from skopt.plots import plot_objective, plot_histogram
 
 # Deep Learning
 

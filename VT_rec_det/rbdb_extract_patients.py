@@ -1,5 +1,7 @@
+import pandas as pd
+
 import utils.consts as cts
-from parsing.base_VT_parser import VtParser
+# from parsing.base_VT_parser import VtParser
 from utils.base_packages import *
 
 
@@ -179,14 +181,46 @@ def rbdb_new_dem(ids):
         # find his patiant id:
         ids_db.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
 
-    ids_db = list(set(ids_db))
+    n_ids_db = len(list(set(ids_db)))
 
     main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info_mdclone.xlsx'
     rbdb_mdclone = pd.read_excel(main_path, engine='openpyxl')
-    # rbdb_mdclone['holter_id'] = rbdb_mdclone['holter_id'].astype(str)
+    new_features = ['bmi', 'smoking', 'pacemaker', 'ablation']
+    dem_holters = pd.DataFrame(columns=['holter id'] + new_features)
+    # all_features = rbdb_mdclone.columns
+    # interesting_features = ['weight-result numeric','height-result numeric','smoking-diagnosis', 'pacemaker-procedure date', 'history of ablation ever-event date']
+    for i, id_ in enumerate(ids):
+        holter_date = rbdb_info[rbdb_info['holter_id'] == id_]['recording_date'].values[0]
+        ablation_date = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['history of ablation ever-event date'].values[
+            0]
+        if ablation_date:
+            if ablation_date < holter_date:
+                ablation = 1
+            else:
+                ablation = 0
 
-    all_features = rbdb_mdclone.columns()
-    interesting_features = []
+        pacemaker_date = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['pacemaker-procedure date'].values[0]
+
+        if pacemaker_date:
+            if pacemaker_date < holter_date:
+                pacemaker = 1
+            else:
+                pacemaker = 0
+        weight = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['weight-result numeric'].values[0]
+        height = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['height-result numeric'].values[0]
+
+        if weight & height:
+            bmi = weight / (height / 100) ^ 2
+
+        smoking_diagnosis = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['smoking-diagnosis'].values[0]
+
+        if smoking_diagnosis:
+            smoking = 1
+        else:
+            smoking = 0
+
+        dem_holters = dem_holters.append([id_, bmi, smoking, pacemaker, ablation])
+    a = 5
 
     return
 
@@ -225,4 +259,10 @@ if __name__ == '__main__':
     #         j = j + 1
     # a = 5
 
-    rbdb_new_dem(ids)
+    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
+    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
+    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
+    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
+    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
+
+    rbdb_new_dem(ids_tn + ids_sn + ids_tp + ids_sp + ids_vn)

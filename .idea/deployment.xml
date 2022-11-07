@@ -33,7 +33,7 @@
       <paths name="sheina@bm@orion02:22 password">
         <serverdata>
           <mappings>
-            <mapping deploy="/home/sheina/VT_risk_prediction" local="$PROJECT_DIR$" />
+            <mapping local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
@@ -41,6 +41,20 @@
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="sheina@bm@orion02:22 password (10)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/sheina/VT_risk_prediction" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="sheina@bm@orion02:22 password (11)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/sheina/VT_risk_prediction" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
@@ -87,6 +101,13 @@
         </serverdata>
       </paths>
       <paths name="sheina@bm@orion02:22 password (8)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="sheina@bm@orion02:22 password (9)">
         <serverdata>
           <mappings>
             <mapping local="$PROJECT_DIR$" web="/" />

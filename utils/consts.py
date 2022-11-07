@@ -1,11 +1,10 @@
 import pathlib
 
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LogisticRegression
+from utils.base_packages import *
 from xgboost import XGBClassifier
 
-import metrics
+from utils import metrics
 
 # male ==1
 
