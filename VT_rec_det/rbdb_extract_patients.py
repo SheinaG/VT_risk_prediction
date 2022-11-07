@@ -1,8 +1,52 @@
-import numpy as np
-import pandas as pd
-import sheina.consts as cts
-
+import utils.consts as cts
 from parsing.base_VT_parser import VtParser
+from utils.base_packages import *
+
+
+def create_segments_array(plot=1):
+    db = RBAFDB_Parser(load_on_start=True)
+    segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
+    j = 0
+    fs = 200
+    ids_rbdb_VT = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
+    for id in ids_rbdb_VT:
+        rhythm_df = db.parse_reference_rhythm(id)
+        for i in rhythm_df.index:
+            segments_array.loc[j] = 0
+            segments_array.loc[j]['holter_id'] = id
+            segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
+            segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
+            segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
+            j = j + 1
+    a = 5
+    segments_array.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/segments_array_rbdb.xlsx')
+    if plot:
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][1], start=0, end=-1, type='epltd0', lead=1)
+        raw_lead1 = raw_ecg[0]
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][1], start=0, end=-1, type='epltd0', lead=2)
+        raw_lead2 = raw_ecg[0]
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][1], start=0, end=-1, type='epltd0', lead=3)
+        raw_lead3 = raw_ecg[0]
+        raw_lead = np.stack([raw_lead1, raw_lead2, raw_lead3], axis=0)
+        start_samp, end_samp = int(segments_array['start'][1] * fs), int(segments_array['end'][1] * fs)
+        part_to_plot = raw_lead[:, start_samp: end_samp]
+        plot_ecg_fig_MD(part_to_plot, ['Ch. 1', 'Ch. 2', 'Ch. 3'], title='', row_height=8)
+        plt.savefig('/MLAIM/AIMLab/Sheina/databases/VTdb/figures/1419Fc22_seg_2.png', dpi=400, transperant=True)
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][4], start=0, end=-1, type='epltd0', lead=1)
+        raw_lead1 = raw_ecg[0]
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][4], start=0, end=-1, type='epltd0', lead=2)
+        raw_lead2 = raw_ecg[0]
+        raw_ecg = db.parse_raw_ecg(segments_array['holter_id'][4], start=0, end=-1, type='epltd0', lead=3)
+        raw_lead3 = raw_ecg[0]
+        raw_lead = np.stack([raw_lead1, raw_lead2, raw_lead3], axis=0)
+        start_samp, end_samp = int(segments_array['start'][4] * fs), int(segments_array['end'][4] * fs)
+        part_to_plot = raw_lead[:, start_samp - 600: end_samp + 600]
+        plot_ecg_fig_MD(part_to_plot, ['Ch. 1', 'Ch. 2', 'Ch. 3'], title='', row_height=4)
+        plt.savefig('/MLAIM/AIMLab/Sheina/databases/VTdb/figures/1318A93a_seg_1.png', dpi=400, transperant=True)
+
+        part_to_plot = raw_lead[:, start_samp - 600: end_samp + 600]
+        plot_ecg_fig_MD(part_to_plot, ['Ch. 1', 'Ch. 2', 'Ch. 3'], title='', row_height=4)
+        plt.savefig('/MLAIM/AIMLab/Sheina/databases/VTdb/figures/1318A93a_seg_1.png', dpi=400, transperant=True)
 
 
 def export_patient_ids():
@@ -12,6 +56,8 @@ def export_patient_ids():
     test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
     train_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
     VT_Holters = test_vt + train_vt
+    no_VT_Holters = []
+    md_test = []
 
     xl_info = pd.read_excel(path_rbdb_info, engine='openpyxl')
     xl_aa = pd.read_excel(path_rbdb_ann, engine='openpyxl')
@@ -32,13 +78,20 @@ def export_patient_ids():
     excel_sheet_no_VT = pd.DataFrame(columns=xl_info.columns)
     excel_patients = pd.DataFrame(columns=xl_info.columns)
 
-    for id in VT_Holters:
-        excel_sheet_VT = excel_sheet_VT.append(xl_info[xl_info["holter_id"] == id])
-        xl_info = xl_info.drop(xl_info[xl_info["holter_id"] == id].index.values)
-        if id in h_work:
-            xl_work = xl_work.drop(xl_work[xl_work["holter_id"] == id].index.values)
+    all_sus_VT = xl_aa[xl_aa['VT'] == 1]
+    all_VTs = list(all_sus_VT['Holter_id']) + VT_Holters
+    all_VTs = list(set(all_VTs))
+
+    for id_ in all_VTs:
+        excel_sheet_VT = excel_sheet_VT.append(xl_info[xl_info["holter_id"] == id_])
+        xl_info = xl_info.drop(xl_info[xl_info["holter_id"] == id_].index.values)
+        if id_ in h_work:
+            xl_work = xl_work.drop(xl_work[xl_work["holter_id"] == id_].index.values)
+        if id_ not in VT_Holters:
+            md_test.append(id_)
+
         patient_list.append(
-            excel_sheet_VT["db_id"][excel_sheet_VT[excel_sheet_VT["holter_id"] == id].index.values].values[0])
+            excel_sheet_VT["db_id"][excel_sheet_VT[excel_sheet_VT["holter_id"] == id_].index.values].values[0])
 
     patient_list = list(set(patient_list))
 
@@ -49,10 +102,18 @@ def export_patient_ids():
             xl_work = xl_work.drop(xl_work[xl_work["db_id"] == patient].index.values)
     print(xl_info.shape)
 
+    # ids_vt_aa = xl_aa["Holter_id"][xl_aa["VT"] ==1]
+    #
+    # for id in ids_vt_aa:
+    #     row_n = xl_work[xl_work["db_id"] == id].index.values
+    #     xl_work = xl_work.drop(row_n)
+    # print(xl_work.shape)
+
     excel_sheet_VT = excel_sheet_VT.append(excel_patients)
     # duplicated_ids:
     excel_sheet_VT = excel_sheet_VT.drop(excel_sheet_VT[excel_sheet_VT["holter_id"] == 'H520818b'].index.values)
     excel_sheet_VT = excel_sheet_VT.drop(excel_sheet_VT[excel_sheet_VT["holter_id"] == '8520F416'].index.values)
+    md_test.remove('H520818b')
 
     data = excel_sheet_VT["age_at_recording"]
     data[np.isnan(data)] = np.median(data[~np.isnan(data)])
@@ -66,21 +127,68 @@ def export_patient_ids():
     excel_sheet_VT.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/excel_sheet_VT_rbdb.xlsx')
 
 
-if __name__ == '__main__':
-    db = VtParser()
-    segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
-    j = 0
-    for id in cts.ids_rbdb_VT:
-        rhythm_df = db.parse_reference_rhythm(id)
-        for i in rhythm_df.index:
-            segments_array.loc[j] = 0
-            segments_array.loc[j]['holter_id'] = id
-            segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
-            segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
-            segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
-            j = j + 1
+def recording_len(PATH_TO_DICT, ids_='all'):
+    with open(PATH_TO_DICT / 'len_dict.pkl', 'rb') as f:
+        data = pickle.load(f)
+    if ids_ == 'all':
+        len_array = np.asarray(list(data.values()))
+        median = np.median(len_array)
+        m, s = divmod(median, 60)
+        h, m = divmod(m, 60)
+        p75 = np.percentile(len_array, 75)
+        p25 = np.percentile(len_array, 25)
+        m75, s75 = divmod(p75, 60)
+        h75, m75 = divmod(m75, 60)
+        m25, s25 = divmod(p25, 60)
+        h25, m25 = divmod(m25, 60)
+        print(f'{h:.0f}:{m:.0f}:{s:.0f}')
+        print(f'{h75:.0f}:{m75:.0f}:{s75:.0f}')
+        print(f'{h25:.0f}:{m25:.0f}:{s25:.0f}')
+
+
+def train_val_test_split():
+    xl_no_vt = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/excel_sheet_no_VT_rbdb.xlsx', engine='openpyxl')
+    xl_no_vt = xl_no_vt.drop_duplicates(subset='holter_id')
+    print(xl_no_vt.shape)
+    test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
+    for id_ in test_no_vt:
+        if not xl_no_vt[xl_no_vt["holter_id"] == id_].index.values:
+            test_no_vt.remove(id_)
+            print(id_)
+        xl_no_vt = xl_no_vt.drop(xl_no_vt[xl_no_vt["holter_id"] == id_].index.values)
+    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy', test_no_vt)
+    xl_no_vt = xl_no_vt.sort_values('db_id')
+    db_ids_val = list(set(list(xl_no_vt["db_id"])))[:165]
+    xl_val = pd.DataFrame(columns=xl_no_vt.columns)
+    for id_ in db_ids_val:
+        xl_val = xl_val.append(xl_no_vt[xl_no_vt["db_id"] == id_])
+        xl_no_vt = xl_no_vt.drop(xl_no_vt[xl_no_vt["db_id"] == id_].index.values)
+    val_no_vt_h = list(xl_val['holter_id'])
+    train_val_no_vt_h = list(xl_no_vt['holter_id'])
+    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy', val_no_vt_h)
+    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy', train_val_no_vt_h)
     a = 5
 
+
+def rbdb_new_dem(ids):
+    main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
+    rbdb_info = pd.read_excel(main_path, engine='openpyxl')
+    rbdb_info['holter_id'] = rbdb_info['holter_id'].astype(str)
+    ids_db = []
+    for id_ in ids:
+        # find his patiant id:
+        ids_db.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
+
+    ids_db = list(set(ids_db))
+
+    main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info_mdclone.xlsx'
+    rbdb_mdclone = pd.read_excel(main_path, engine='openpyxl')
+    # rbdb_mdclone['holter_id'] = rbdb_mdclone['holter_id'].astype(str)
+
+    all_features = rbdb_mdclone.columns()
+    interesting_features = []
+
+    return
 
 def append_rhythms_array(self, pat, new_line, arr):
     start = 0
@@ -100,3 +208,19 @@ def append_rhythms_array(self, pat, new_line, arr):
     for i in range(len(start_events)):
         arr[new_line + i, :] = [pat, start_events, end_events, end_events - start_events]
     return arr, new_line + i + 1
+
+
+if __name__ == '__main__':
+    db = VtParser()
+    segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
+    j = 0
+    for id in cts.ids_rbdb_VT:
+        rhythm_df = db.parse_reference_rhythm(id)
+        for i in rhythm_df.index:
+            segments_array.loc[j] = 0
+            segments_array.loc[j]['holter_id'] = id
+            segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
+            segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
+            segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
+            j = j + 1
+    a = 5

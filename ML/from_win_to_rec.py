@@ -1,10 +1,3 @@
-
-from sklearn.linear_model import LogisticRegression as LR
-from sklearn.metrics import roc_auc_score, roc_curve
-from sklearn.model_selection import LeaveOneGroupOut, GridSearchCV
-from sklearn.preprocessing import StandardScaler
-
-import utils.consts as cts
 from ML.ML_utils import *
 
 exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1601/features.xlsx', engine='openpyxl')

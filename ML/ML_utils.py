@@ -1,9 +1,5 @@
-import pathlib
-
 import numpy as np
 import pandas as pd
-import sheina.bayesiansearch as bs
-import sheina.consts as cts
 from numpy import matlib
 from scipy.stats import mannwhitneyu
 from sklearn.cluster import KMeans
@@ -17,25 +13,64 @@ multiply = 1
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 
-def create_dataset(ids, y=[], path=ML_path, model=0):
+def create_part_dataset(ids, y=[], path='', model=0):
+    if model == 0:
+        add_path = 'features_n.xlsx'
+    elif model == 1:
+        add_path = 'vt_wins/features_n.xlsx'
     ids_group = []
-    for i, id in enumerate(ids):
-        new_p = np.array(pd.read_excel(path / id / 'features.xlsx', engine='openpyxl'))
+    n_win = []
+    for i, id_ in enumerate(ids):
+        if id_ in cts.bad_bsqi:
+            j = 0
+            continue
+        new_p = np.array(pd.read_excel((path / id_ / add_path), engine='openpyxl'))
 
         if multiply:
-            if id in cts.ids_VT:
+            if id_ in cts.ids_VT:
                 new_p = matlib.repmat(new_p, multiply, 1)
 
         new_p = new_p[:, 1:]
         new_p = bs.choose_right_features(new_p)
         new_y = matlib.repmat(y[i], 1, new_p.shape[0])
-        ids_group.append([id] * new_p.shape[0])
-        if i == 0:
+        ids_group.append([id_] * new_p.shape[0])
+        if (i == 0) or ((i == 1) and (j == 0)):
             dataset = new_p
             y_d = new_y
-        else:
+            j = 1
+
+        if i > 0:
+            if 'dataset' not in locals():
+                a = 5
             dataset = np.concatenate([dataset, new_p], axis=0)
             y_d = np.concatenate([y_d, new_y], axis=1)
+        n_win = n_win + [new_p.shape[0]]
+    return dataset, y_d, ids_group, n_win
+
+
+def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10):
+    pool = multiprocessing.Pool(n_pools)
+    in_pool = (len(ids) // n_pools) + 1
+    ids_pool, y_pool, pathes, models = [], [], [], []
+
+    for j in range(n_pools):
+        ids_pool += [ids[j * in_pool:min((j + 1) * in_pool, len(ids))]]
+        y_pool += [y[j * in_pool:min((j + 1) * in_pool, len(ids))]]
+        pathes += [path]
+        models += [model]
+    res = pool.starmap(create_part_dataset, zip(ids_pool, y_pool, pathes, models))
+    for i, res_i in enumerate(res):
+        if i == 0:
+            dataset = res_i[0]
+            y_d = res_i[1]
+            ids_group = res_i[2]
+            n_win = res_i[3]
+        else:
+            dataset = np.concatenate([dataset, res_i[0]], axis=0)
+            y_d = np.concatenate([y_d, res_i[1]], axis=1)
+            ids_group += res_i[2]
+            n_win += res_i[3]
+    pool.close()
     # if model ! = 0: #coose just the columns that you want the model to have
     # else
     np_dataset = dataset
@@ -44,19 +79,40 @@ def create_dataset(ids, y=[], path=ML_path, model=0):
         for j in np.arange(0, np_dataset.shape[1]):
             np_dataset[i, j] = float('%.2f' % (np_dataset[i, j]))
     ids_group = [item for sublist in ids_group for item in sublist]
+    if return_num:
+        return np_dataset, y_d.squeeze(), ids_group, n_win
+    else:
+        return np_dataset, y_d.squeeze(), ids_group
 
-    return np_dataset, y_d.squeeze(), ids_group
 
+def model_features(X, model_type, with_pvc=False):
+    if with_pvc:
+        if (model_type == 1) or (model_type == 21):  # just_hrv
+            X_out = X[:, 110:133]
+        if (model_type == 2) or (model_type == 22):  # just_morph
+            X_out = np.concatenate([X[:, :110], X[:, 133:138]], axis=1)
+        if (model_type == 23) or (model_type == 3):  # morph and hrv
+            X_out = X[:, :-2]
+        if (model_type == 4) or (model_type == 24):  # all
+            X_out = X
+        if (model_type == 5) or (model_type == 25):  # Dem
+            X_out = X[:, -2:]
+        if model_type == 14:  # Dem
+            X_out = np.concatenate([X[:, :133], X[:, -2:]], axis=1)
+        if model_type == 13:  # Dem
+            X_out = X[:, :133]
+    else:
+        if (model_type == 1) or (model_type == 11):  # just_hrv
+            X_out = X[:, 110:133]
+        if (model_type == 2) or (model_type == 12):  # just_morph
+            X_out = X[:, :110]
+        if (model_type == 3) or (model_type == 13):  # morph and hrv
+            X_out = X[:, :-2]
+        if model_type == 4:  # all
+            X_out = X
+        if model_type == 5:  # Dem
+            X_out = X[:, -2:]
 
-def model_features(X, model_type):
-    if model_type == 1:  # just_hrv
-        X_out = X[:, 110:-2]
-    if model_type == 2:  # just_morph
-        X_out = X[:, :110]
-    if model_type == 3:  # morph and hrv
-        X_out = X[:, :-2]
-    if model_type == 4:  # all
-        X_out = X
     return X_out
 
 

@@ -1,24 +1,11 @@
-import sys
-
-sys.path.append("/home/sheina/armand_repo/")
-sys.path.append("/home/sheina/armand_repo/sheina")
-
-import numpy as np
-import pandas as pd
-import sheina.bayesiansearch as bs
-import train_model
-import os
-import utils.consts as cts
-import pathlib
-from sklearn.preprocessing import StandardScaler
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
-import joblib
+from ML.ML_utils import *
+from utils import consts as cts
+from utils.base_packages import *
 
 # exmp_features = pd.read_excel( cts.VTdb_path + 'ML_model/1601/features.xlsx', engine='openpyxl')
 exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/V720H339/features_n.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
-features_list = bs.choose_right_features(np.expand_dims(features_arr, axis=0))
+features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 
 def train_by_V_ratio():
@@ -32,10 +19,10 @@ def train_by_V_ratio():
     y_test = np.concatenate([np.ones([1, len(ids_sp)]), np.zeros([1, len(ids_sn)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = train_model.create_dataset(ids_tp + ids_tn + ids_vn, y_train, path=DATA_PATH,
-                                                                    model=0)
+    x_train, y_train, train_ids_groups = create_dataset(ids_tp + ids_tn + ids_vn, y_train, path=DATA_PATH,
+                                                        model=0)
     v_train = x_train[:, -5]
-    x_test, y_test, test_ids_groups = train_model.create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH, model=0)
+    x_test, y_test, test_ids_groups = create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH, model=0)
     v_test = x_test[:, -5]
 
 
@@ -60,16 +47,16 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     y_test = np.concatenate([np.ones([1, len(ids_sp)]), np.zeros([1, len(ids_sn)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = train_model.create_dataset(ids_tp + ids_tn + ids_vn, y_train, path=DATA_PATH,
-                                                                    model=0)
-    x_train = train_model.model_features(x_train, model_type, with_pvc=True)
-    train_groups = bs.split_to_group(train_ids_groups, ids_tp, ids_tn + ids_vn, n_vt=12)
-    x_test, y_test, test_ids_groups = train_model.create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH, model=0)
-    x_test = train_model.model_features(x_test, model_type, with_pvc=True)
+    x_train, y_train, train_ids_groups = create_dataset(ids_tp + ids_tn + ids_vn, y_train, path=DATA_PATH,
+                                                        model=0)
+    x_train = model_features(x_train, model_type, with_pvc=True)
+    train_groups = split_to_group(train_ids_groups, ids_tp, ids_tn + ids_vn, n_vt=12)
+    x_test, y_test, test_ids_groups = create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH, model=0)
+    x_test = model_features(x_test, model_type, with_pvc=True)
 
     if feature_selection:
         dataset = dataset + '_' + method
-        path = bs.set_path(algo, dataset, model_type, results_dir)
+        path = set_path(algo, dataset, model_type, results_dir)
         StSC = StandardScaler()
         StSc_fit = StSC.fit(x_train)
         x_test = StSc_fit.transform(x_test)
