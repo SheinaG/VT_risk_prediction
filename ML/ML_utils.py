@@ -1,9 +1,4 @@
 import numpy as np
-import pandas as pd
-from numpy import matlib
-from scipy.stats import mannwhitneyu
-from sklearn.cluster import KMeans
-from sklearn.feature_selection import SelectKBest, chi2, f_classif, mutual_info_classif
 
 from utils import consts as cts
 from utils.base_packages import *
