@@ -31,7 +31,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     algo = 'RF'
     n_jobs = 10
     feature_selection = 0
-    features_model = list(train_model.model_features(features_list, model_type, with_pvc=True)[0])
+    features_model = list(model_features(features_list, model_type, with_pvc=True)[0])
 
     if method == 'RFE':
         f_n = cts.num_selected_features_model[model_type - 1]

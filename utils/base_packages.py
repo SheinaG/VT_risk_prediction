@@ -8,7 +8,7 @@ import sys
 sys.path.append("/home/sheina/VT_risk_prediction/")
 
 # General
-
+import numpy as np
 
 # Machine Learning
 
