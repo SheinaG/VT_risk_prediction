@@ -1,11 +1,6 @@
-import sys
-import pandas as pd
-import sheina.consts as cts
-from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import Pipeline
-from skopt import BayesSearchCV
-import matplotlib.pyplot as plt
-from sklearn.model_selection import LeaveOneGroupOut
+from ML.ML_utils import *
+from utils import consts as cts
+from utils.base_packages import *
 
 
 def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=False,
@@ -21,9 +16,9 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
     ])
     logo = LeaveOneGroupOut()
     if algo == 'RF':
-        search_space = search_spaces_RF
+        search_space = cts.search_spaces_RF
     elif algo == 'XGB':
-        search_space = search_spaces_XGB
+        search_space = cts.search_spaces_XGB
     opt = BayesSearchCV(
         pipe,
         search_spaces=search_space,

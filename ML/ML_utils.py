@@ -8,9 +8,9 @@ ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 def create_part_dataset(ids, y=[], path='', model=0):
     if model == 0:
-        add_path = 'features_n.xlsx'
+        add_path = 'features_nd.xlsx'
     elif model == 1:
-        add_path = 'vt_wins/features_n.xlsx'
+        add_path = 'vt_wins/features_nd.xlsx'
     ids_group = []
     n_win = []
     for i, id_ in enumerate(ids):
@@ -24,7 +24,7 @@ def create_part_dataset(ids, y=[], path='', model=0):
                 new_p = matlib.repmat(new_p, multiply, 1)
 
         new_p = new_p[:, 1:]
-        new_p = bs.choose_right_features(new_p)
+        new_p = choose_right_features(new_p)
         new_y = matlib.repmat(y[i], 1, new_p.shape[0])
         ids_group.append([id_] * new_p.shape[0])
         if (i == 0) or ((i == 1) and (j == 0)):
@@ -80,31 +80,27 @@ def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10):
 
 def model_features(X, model_type, with_pvc=False):
     if with_pvc:
-        if (model_type == 1) or (model_type == 21):  # just_hrv
+        if model_type == 2:  # just_hrv
             X_out = X[:, 110:133]
-        if (model_type == 2) or (model_type == 22):  # just_morph
+        if model_type == 3:  # just_morph
             X_out = np.concatenate([X[:, :110], X[:, 133:138]], axis=1)
-        if (model_type == 23) or (model_type == 3):  # morph and hrv
-            X_out = X[:, :-2]
-        if (model_type == 4) or (model_type == 24):  # all
+        if model_type == 4:  # morph and hrv
+            X_out = X[:, :-6]
+        if model_type == 5:  # all
             X_out = X
-        if (model_type == 5) or (model_type == 25):  # Dem
-            X_out = X[:, -2:]
-        if model_type == 14:  # Dem
-            X_out = np.concatenate([X[:, :133], X[:, -2:]], axis=1)
-        if model_type == 13:  # Dem
-            X_out = X[:, :133]
+        if model_type == 1:  # Dem
+            X_out = X[:, -6:]
     else:
-        if (model_type == 1) or (model_type == 11):  # just_hrv
+        if model_type == 2:  # just_hrv
             X_out = X[:, 110:133]
-        if (model_type == 2) or (model_type == 12):  # just_morph
+        if model_type == 3:  # just_morph
             X_out = X[:, :110]
-        if (model_type == 3) or (model_type == 13):  # morph and hrv
-            X_out = X[:, :-2]
-        if model_type == 4:  # all
+        if model_type == 4:  # morph and hrv
+            X_out = X[:, :-6]
+        if model_type == 5:  # all
             X_out = X
-        if model_type == 5:  # Dem
-            X_out = X[:, -2:]
+        if model_type == 1:  # Dem
+            X_out = X[:, -6:]
 
     return X_out
 
@@ -156,30 +152,7 @@ def features_mrmr(X, features_model, features_mrmr):
     return X_mrmr
 
 
-def feature_selection(method, X, y):
-    if method == 'chi2':
-        df_X = pd.DataFrame(columns=X.columns)
-        for j, feature_s in enumerate(X.columns):
-            feature = X[feature_s]
-            feature_c = feature[feature != -1]
-            feature_c = np.expand_dims(feature_c, axis=1)
-            kmeans = KMeans(n_clusters=2, random_state=0).fit(feature_c)
-            df_X[feature_s] = kmeans.predict(np.expand_dims(feature, axis=1))
-        SB = SelectKBest(chi2, k=10)
-        X_new = SB.fit_transform(df_X, y)
-        jj = np.argsort(SB.scores_)
-        b_features = list(X.columns[jj][0:10])
-    if method == 'f_c':
-        X_new = SelectKBest(f_classif, k=10).fit_transform(X, y)
-    if method == 'mi':
-        SB = SelectKBest(mutual_info_classif, k=10)
-        X_new = SB.fit_transform(X, y)
-        jj = np.argsort(SB.scores_)
-        b_features = list(X.columns[jj][0:10])
-    return X_new, b_features
-
-
-def stat_selection(stat_t, x, y):
+def stat_selection(stat_t, x, y, f_n):
     features = x.columns
     p_values = np.ones([len(features), ])
     if stat_t == 'mannw':
@@ -193,8 +166,8 @@ def stat_selection(stat_t, x, y):
                 p_values[i] = 1
         idx = np.argsort(p_values).squeeze()
         best_features = np.asarray(features)[idx]
-        x_new = x[best_features[:10]]
-    return x_new, best_features[:10]
+        x_new = x[best_features[:f_n]]
+    return x_new, best_features[:f_n]
 
 
 def rc_scorer(estimator, X, y):
@@ -224,7 +197,7 @@ def RFE_func(X, y, n_jobs, num):
     return X_new, b_features  # , selector.
 
 
-def feature_selection(X_train_df, y_train, method='mrmr_MID', n_jobs=10, num=10):
+def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, num=10):
     if method == 'RFE':
         X_new, features = RFE_func(X_train_df, y_train, n_jobs, num)
     if method == 'mrmr_MID':
