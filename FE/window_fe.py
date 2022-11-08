@@ -1,13 +1,3 @@
-import os.path
-from itertools import repeat
-
-import joblib
-import pandas as pd
-from pebm import Preprocessing as Pre
-from pebm.ebm import Biomarkers as Obm
-from pebm.ebm import FiducialPoints as Fp
-from scipy.io import loadmat
-
 import utils.feature_comp as fc
 from ML.ML_utils import *
 from parsing.base_VT_parser import *
@@ -94,8 +84,8 @@ def preprocess_ecg(ids, fs, dataset, save_path, plot=0):
             fft_fsig_c = np.abs(fftshift(fft(raw_lead)))
             plt.figure()
             plt.style.use('bmh')
-            plt.plot(f_axis, fft_signal_c, color=colors_six[0], label='Raw signal')
-            plt.plot(f_axis, fft_fsig_c, color=colors_six[1], linewidth=1, label='Filtered signal')
+            plt.plot(f_axis, fft_signal_c, color=cts.colors[0], label='Raw signal')
+            plt.plot(f_axis, fft_fsig_c, color=cts.colors[1], linewidth=1, label='Filtered signal')
             plt.legend(prop={'size': 14})
             plt.xlabel('f[Hz]')
             plt.ylabel('mV')
@@ -456,8 +446,8 @@ def df_replace_nans(path_df, name_df, manner):
 
 def run_on_dir(ids):
     for id_ in ids:
-        p_dir = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/1/' + id_)  # ML_model
-        df_replace_nans(p_dir, 'features_n.xlsx', 'mean')
+        p_dir = pathlib.PurePath(cts.ML_path / id_)  # ML_model
+        df_replace_nans(p_dir, 'features_nd.xlsx', 'mean')
 
 
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
@@ -477,19 +467,13 @@ def calculate_fiducials_per_rec(ids, ecg_path, dataset):
 
 
 if __name__ == '__main__':
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-
     UVAF_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
     UVAF_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
 
     # calculate_pvc_features(md_test, 30)
-    four_pvc_in_a_row(ids_tp + ids_sp)
-    # run_on_dir(ids_sn+ids_sp+ids_tp+ids_vn+ids_tn)
+    # four_pvc_in_a_row(ids_tp + ids_sp)
+    run_on_dir(cts.ids_sn + cts.ids_sp + cts.ids_tp + cts.ids_vn + cts.ids_tn)
 # calculate_pvc_features(['1021Cd9d'], win_len = 1)
 # fe_dataset(ids_tn, dataset='rbdb', n_pools =10, win_len =1)
 # fe_process(aa, dataset='rbdb', win_len=1)

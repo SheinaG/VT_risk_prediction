@@ -62,7 +62,8 @@ MATLAB_TEST_VECTORS_DIR = DATA_DIR / "Matlab_test_vectors"
 WQRS_PROG_DIR = pathlib.PurePath('/usr/local/bin/wqrs')
 PARSING_PROJECT_DIR = REPO_DIR_POSIX / "parsing"
 IDS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "IDS"
-RESULTS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "results"
+ML_RESULTS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "results"
+DL_RESULTS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "results"
 MODELS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "models"
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 

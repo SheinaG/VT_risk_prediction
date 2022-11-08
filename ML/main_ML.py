@@ -10,21 +10,15 @@ features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 
 def train_by_V_ratio():
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
+    y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
+                             axis=1).squeeze()
+    y_test = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
 
-    y_train = np.concatenate([np.ones([1, len(ids_tp)]), np.zeros([1, len(ids_tn + ids_vn)])], axis=1).squeeze()
-    y_test = np.concatenate([np.ones([1, len(ids_sp)]), np.zeros([1, len(ids_sn)])], axis=1).squeeze()
-
-    # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = create_dataset(ids_tp + ids_tn + ids_vn, y_train, path=DATA_PATH,
+    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=cts.ML_path,
                                                         model=0)
-    v_train = x_train[:, -5]
-    x_test, y_test, test_ids_groups = create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH, model=0)
-    v_test = x_test[:, -5]
+    x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=cts.ML_path, model=0)
+    v_train = x_train[:, -10]
+    v_test = x_test[:, -10]
 
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method=''):
@@ -32,7 +26,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     n_jobs = 4
     feature_selection = 1
     features_model = list(model_features(features_list, model_type, with_pvc=True)[0])
-
     f_n = cts.num_selected_features_model[model_type - 1]
 
     y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
@@ -77,9 +70,8 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 
 
 if __name__ == "__main__":
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    results_dir = cts.RESULTS_DIR
-    train_prediction_model(DATA_PATH, results_dir, model_type=2, dataset='22_10', method='manww')
+    # train_by_V_ratio()
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='mrmr_MIQ')
     # train_prediction_model(DATA_PATH, results_dir, model_type=2, dataset='rbdb_10', method = 'RFE')
     # train_prediction_model(DATA_PATH, results_dir, model_type=3, dataset='rbdb_10', method = 'RFE')
     # train_prediction_model(DATA_PATH, results_dir, model_type=4, dataset='rbdb_10', method = 'RFE')

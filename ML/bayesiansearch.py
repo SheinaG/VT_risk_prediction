@@ -4,7 +4,7 @@ from utils.base_packages import *
 
 
 def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=False,
-               weighting=True, n_jobs=20, typ=1, dataset='both', results_dir=cts.RESULTS_DIR):
+               weighting=True, n_jobs=20, typ=1, dataset='both', results_dir=cts.ML_RESULTS_DIR):
     if weighting:
         clf = cts.class_funcs[algo](class_weight='balanced', n_jobs=n_jobs)
     else:
@@ -48,7 +48,7 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         results_c.loc[results_c.shape[0]] = [res.x_iters[-1], res.func_vals[-1]]
         results_c.to_csv(path / 'results.csv')
 
-    opt.fit(train_pat_features, train_pat_labels, eval_metric='auc')  # callback=on_step
+    opt.fit(train_pat_features, train_pat_labels)  # callback=on_step
     delattr(opt, 'cv')
     # save your model or results
     path = set_path(algo, dataset, typ, results_dir)

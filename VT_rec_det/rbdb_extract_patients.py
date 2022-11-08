@@ -1,8 +1,10 @@
 from utils.base_packages import *
+from parsing.base_VT_parser import *
+from utils.plot_ecg import plot_ecg_fig_MD
 
 
 def create_segments_array(plot=1):
-    db = RBAFDB_Parser(load_on_start=True)
+    db = VtParser()
     segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
     j = 0
     fs = 200
