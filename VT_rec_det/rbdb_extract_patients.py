@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 import utils.consts as cts
@@ -193,33 +194,59 @@ def rbdb_new_dem(ids):
         holter_date = rbdb_info[rbdb_info['holter_id'] == id_]['recording_date'].values[0]
         ablation_date = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['history of ablation ever-event date'].values[
             0]
-        if ablation_date:
+        if not (np.isnat(ablation_date)):
             if ablation_date < holter_date:
                 ablation = 1
             else:
                 ablation = 0
 
+        else:
+            ablation = 0
+
         pacemaker_date = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['pacemaker-procedure date'].values[0]
 
-        if pacemaker_date:
+        if not (np.isnat(pacemaker_date)):
             if pacemaker_date < holter_date:
                 pacemaker = 1
             else:
                 pacemaker = 0
+        else:
+            pacemaker = 0
+
         weight = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['weight-result numeric'].values[0]
         height = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['height-result numeric'].values[0]
 
-        if weight & height:
-            bmi = weight / (height / 100) ^ 2
+        if (np.isnan(weight)) or (np.isnan(height)):
+            bmi = 0
+        elif height < 3:
+            bmi = weight / np.power(height, 2)
+        elif height < 100:
+            bmi = 0
+        elif height < weight:
+            bmi = height / np.power(weight / 100, 2)
+        else:
+            bmi = weight / np.power(height / 100, 2)
+
+        if bmi > 100:
+            a = 5
 
         smoking_diagnosis = rbdb_mdclone[rbdb_mdclone['db_id'] == ids_db[i]]['smoking-diagnosis'].values[0]
 
-        if smoking_diagnosis:
-            smoking = 1
-        else:
+        try:
+            np.isnan(smoking_diagnosis)
             smoking = 0
+        except:
+            smoking = 1
 
-        dem_holters = dem_holters.append([id_, bmi, smoking, pacemaker, ablation])
+        dem_holters_i = pd.DataFrame([[id_, bmi, smoking, pacemaker, ablation]], columns=['holter id'] + new_features,
+                                     index=[i])
+        dem_holters = dem_holters.append(dem_holters_i)
+
+    n_no_bmi = len(dem_holters[dem_holters['bmi'] == 0])
+    mean_bmi = np.sum(dem_holters[dem_holters['bmi'] != 0]['bmi'].values)
+
+    dem_holters.loc[dem_holters['bmi'] == 0, 'bmi'] = mean_bmi / len(dem_holters[dem_holters['bmi'] != 0])
+    dem_holters.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/new_dem.xlsx')
     a = 5
 
     return

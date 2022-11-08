@@ -55,12 +55,12 @@ def plot_violin(data, leg_str_arr, title, save_path):
 
 
 def vt_segments(ids):
-    x_vt, y_vt, ids = train_model.create_dataset(ids, np.ones([len(ids), ]), path=DATA_PATH, model=1, n_pools=1)
+    x_vt, y_vt, ids = create_dataset(ids, np.ones([len(ids), ]), path=DATA_PATH, model=1, n_pools=1)
     return x_vt
 
 
 def sus_vt(ids):
-    x_vt, y_vt, ids = train_model.create_dataset(ids, np.zeros([len(ids), ]), path=DATA_PATH, model=0, n_pools=4)
+    x_vt, y_vt, ids = create_dataset(ids, np.zeros([len(ids), ]), path=DATA_PATH, model=0, n_pools=4)
     return x_vt
 
 

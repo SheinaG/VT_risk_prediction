@@ -38,7 +38,7 @@ def parse_hyperparameters(PATH, algo):
     opt = joblib.load(PATH / 'opt.pkl')
     params = list(opt.best_params_.values())
     params_dict = {}
-    for i, hyp in enumerate(hyp_list[algo]):
+    for i, hyp in enumerate(cts.hyp_list[algo]):
         params_dict[hyp] = params[i]
     return params_dict
 
