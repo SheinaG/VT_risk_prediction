@@ -472,8 +472,9 @@ if __name__ == '__main__':
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
 
     # calculate_pvc_features(md_test, 30)
-    # four_pvc_in_a_row(ids_tp + ids_sp)
-    run_on_dir(cts.ids_sn + cts.ids_sp + cts.ids_tp + cts.ids_vn + cts.ids_tn)
+    calculate_fiducials_per_rec([cts.ids_sp[0]],
+                                pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/'), 'rbdb')
+    # run_on_dir(cts.ids_sn + cts.ids_sp + cts.ids_tp + cts.ids_vn + cts.ids_tn)
 # calculate_pvc_features(['1021Cd9d'], win_len = 1)
 # fe_dataset(ids_tn, dataset='rbdb', n_pools =10, win_len =1)
 # fe_process(aa, dataset='rbdb', win_len=1)

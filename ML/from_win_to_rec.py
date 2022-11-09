@@ -57,7 +57,7 @@ def tev_LR(x, y, hyp_path, task):
                     },
     if task == 'train':
         # hyperparameters search
-        lr = LR(random_state=42, class_weight='balanced')
+        lr = LogisticRegression(random_state=42, class_weight='balanced')
         clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=10)
         clf.fit(x, y)
         prob = clf.predict_proba(x)[:, 1]
@@ -95,11 +95,11 @@ def split_and_collect(x_train, y_train, y_train_p, train_groups, n_win, hyp_path
     return proba
 
 
-def opt_thresh(proba, y_true_p, save_path, task='train', model_type=1, algo='RF'):
-    # the policy is finding the best thresh with Sp>=0.9
+def opt_thresh_sp(proba, y_true_p, save_path, min_sp, task='train'):
+    # the policy is finding the best thresh with Sp >= (min_sp)
     proba0 = proba[y_true_p == 0]
     if task == 'train':
-        thresh = np.percentile(proba0, 90)
+        thresh = np.percentile(proba0, min_sp)
         np.save(save_path / 'thresh.npy', thresh)
     if task == 'test' or task == 'ext_test':
         thresh = np.load(save_path / 'thresh.npy')
@@ -125,9 +125,9 @@ def plot_results(prob, y_true, title, save_path, algo):
         AUROC[i] = roc_auc_score(y_true, prob[i, :])
         th, Sp_, Se_ = opt_thresh(prob[i, :].T, y_true, save_path, task=title, model_type=i + 1, algo=algo)
         tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i, :])
-        plt.plot(tpr_rf, fpr_rf, colors_six[i], label='model ' + str(i + 1) + ' (' + str(np.round(AUROC[i], 2)) + ')')
+        plt.plot(tpr_rf, fpr_rf, cts.colors[i], label='model ' + str(i + 1) + ' (' + str(np.round(AUROC[i], 2)) + ')')
         ind_th = np.argsort(abs(ths - th))[0]
-        plt.plot(tpr_rf[ind_th], fpr_rf[ind_th], colors_six[i], marker="+", markersize=15)
+        plt.plot(tpr_rf[ind_th], fpr_rf[ind_th], cts.colors[i], marker="+", markersize=15)
         plt.plot(tpr_rf, tpr_rf, 'k')
         plt.xlabel('1-Sp')
         plt.ylabel('Se')

@@ -29,6 +29,8 @@ from pebm import Preprocessing as Pre
 from pebm.ebm import FiducialPoints as Fp
 from pebm.ebm import Biomarkers as Obm
 from scipy.io import loadmat
+from scipy.stats import norm
+import random
 
 # Machine Learning
 
@@ -39,8 +41,8 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from scipy.stats import mannwhitneyu
 from sklearn.feature_selection import RFE
-from sklearn.metrics import roc_auc_score
-from sklearn.model_selection import LeaveOneGroupOut
+from sklearn.metrics import roc_auc_score, roc_curve, precision_recall_curve
+from sklearn.model_selection import LeaveOneGroupOut, GridSearchCV
 from skopt.plots import plot_objective
 import pymrmr
 from sklearn.preprocessing import StandardScaler

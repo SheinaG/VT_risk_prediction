@@ -53,7 +53,7 @@ opt_thresh_policies = {
 METRICS = np.array(['Accuracy', 'F1-Score', 'Se', 'Sp', 'PPV', 'NPV', 'AUROC'])
 
 # Paths definition
-REPO_DIR_POSIX = pathlib.PurePath('/MLAIM/AIMLab/home/sheina/VT_risk_prediction/')
+REPO_DIR_POSIX = pathlib.PurePath('home/sheina/VT_risk_prediction/')
 BASE_DIR = pathlib.PurePath('/MLAIM/AIMLab/')
 DATA_DIR = BASE_DIR / "Sheina" / "databases"
 TRAIN_DL_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "train"

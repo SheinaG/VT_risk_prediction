@@ -23,7 +23,7 @@ def train_by_V_ratio():
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method=''):
     algo = 'RF'
-    n_jobs = 4
+    n_jobs = 10
     feature_selection = 1
     features_model = list(model_features(features_list, model_type, with_pvc=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
@@ -71,7 +71,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='mrmr_MIQ')
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', method='mrmr_MIQ')
     # train_prediction_model(DATA_PATH, results_dir, model_type=2, dataset='rbdb_10', method = 'RFE')
     # train_prediction_model(DATA_PATH, results_dir, model_type=3, dataset='rbdb_10', method = 'RFE')
     # train_prediction_model(DATA_PATH, results_dir, model_type=4, dataset='rbdb_10', method = 'RFE')

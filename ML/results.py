@@ -1,20 +1,8 @@
-import sys
-import numpy as np
+import random
 
-sys.path.append("/home/sheina/VT_risk_prediction/")
-import train_model
-import sheina.consts as cts
-import pathlib
-import sheina.bayesiansearch as bs
-import joblib
-from sklearn.metrics import roc_curve
-import matplotlib.pyplot as plt
-from metrics import eval
-import pandas as pd
-
-algo = 'RF'
-N_model = [23, 110, 133, 135]
-NM = 5
+from ML.ML_utils import *
+from utils import consts as cts
+from utils.base_packages import *
 
 # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 # path_all = cts.RESULTS_DIR/"logo_cv" / algo
@@ -22,6 +10,26 @@ NM = 5
 colors_six = ['#307DA6', '#A65730', '#6F30A6', '#A6304F', '#A69E30', '#30A640']
 light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0']
 DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+
+
+def calc_confidence_interval_of_array(x, confidence=0.95):
+    m = x.mean()
+    s = x.std()
+    confidence = confidence
+    crit = np.abs(norm.ppf((1 - confidence) / 2))
+    return m - s * crit / np.sqrt(len(x)), m + s * crit / np.sqrt(len(x))
+
+
+def test_samples(x_test, y_test, n_iter):
+    pos_ind = np.where(y_test == 1)[0]
+    neg_ind = np.where(y_test == 0)[0]
+    pos_len = len(pos_ind)
+    neg_len = len(neg_ind)
+    for i in n_iter:
+        # choose randomly 80 present of the positive and negative windows:
+        random.seed(i)
+        pos_part = random.sample(pos_ind, (pos_len * 0.8))
+        neg_part = random.sample(neg_ind, (neg_len * 0.8))
 
 
 def plot_violin(data, leg_str_arr, title, save_path):
@@ -87,7 +95,7 @@ def intrp_model(path, features_model, results_dir, feature_selection):
 
 def hyper_model(opt_d, path):
     hyp_pd = pd.DataFrame(columns=opt_d[1].best_params_.keys())
-    for i in range(1, NM + 1):
+    for i in range(1, cts.NM + 1):
         best_hyp = pd.DataFrame(opt_d[i].best_params_, columns=opt_d[i].best_params_.keys(), index=[i])
         hyp_pd = hyp_pd.append(best_hyp)
     hyp_pd.to_excel(path / 'hyperparameters.xlsx')
@@ -98,13 +106,13 @@ def ext_test_set(opt_d, model_path, features, features_selection, features_model
     ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
     y_ext = np.concatenate([np.ones([1, len(ext_test_vt)]), np.zeros([1, len(ext_test_no_vt)])], axis=1).squeeze()
 
-    x_ext, y_ext, ext_ids_groups = train_model.create_dataset(ext_test_vt + ext_test_no_vt, y_ext, path=DATA_PATH,
-                                                              model=0, n_pools=1)
+    x_ext, y_ext, ext_ids_groups = create_dataset(ext_test_vt + ext_test_no_vt, y_ext, path=DATA_PATH,
+                                                  model=0, n_pools=1)
     results_ext = {}
-    for i in range(1, NM + 1):
-        x_ext_i = train_model.model_features(x_ext, i)
+    for i in range(1, cts.NM + 1):
+        x_ext_i = model_features(x_ext, i)
         if features_selection:
-            x_ext_i = train_model.features_mrmr(x_ext_i, list(features_model[i][0]), list(features[i]))
+            x_ext_i = features_mrmr(x_ext_i, list(features_model[i][0]), list(features[i]))
         results_ext[i] = eval(opt_d[i], x_ext_i, y_ext)
     results = pd.DataFrame.from_dict(results_ext)
     results = results.transpose()
@@ -120,11 +128,11 @@ def clac_probs(x_test, y_test, opt, model_path):
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
 
     # create datasets
-    for i in range(1, NM + 1):
+    for i in range(1, cts.NM + 1):
         X_vt = vt_segments(ids_sp)
-        X_vt = train_model.model_features(X_vt, i, with_pvc=True)
+        X_vt = model_features(X_vt, i, with_pvc=True)
         X_vt_sus_p = sus_vt(md_test)
-        X_vt_sus_p = train_model.model_features(X_vt_sus_p, i, with_pvc=True)
+        X_vt_sus_p = model_features(X_vt_sus_p, i, with_pvc=True)
         X_vt_p = x_test[i][y_test[i] == 1, :]
         X_non_vt_p = x_test[i][y_test[i] == 0, :]
 
@@ -156,22 +164,13 @@ def all_models(model_path, results_dir=cts.RESULTS_DIR, dataset='rbdb_10', algo=
     exmp_features = pd.read_excel(cts.VTdb_path + 'normalized/1020D818/features.xlsx', engine='openpyxl')
     # exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1419Ec09/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(exmp_features.columns[1:])
-    features_list = bs.choose_right_features(np.expand_dims(features_arr, axis=0))
+    features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
-    ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
-    ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-    y_test = np.concatenate([np.ones([1, len(ids_sp)]), np.zeros([1, len(ids_sn)])], axis=1).squeeze()
-
-    for i in range(1, NM + 1):
+    for i in range(1, cts.NM + 1):
         if feature_selection:
             dataset_n = dataset + method
         path_d[i] = pathlib.PurePath(model_path / str('RF_' + str(i)))
-        features_model[i] = train_model.model_features(features_list, i, with_pvc=True)
+        features_model[i] = model_features(features_list, i, with_pvc=True)
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
                                                                                       results_dir, feature_selection)
 
@@ -197,12 +196,12 @@ def all_models(model_path, results_dir=cts.RESULTS_DIR, dataset='rbdb_10', algo=
     AUROC = [results_d[1][6], results_d[2][6], results_d[3][6], results_d[4][6]]  # , results_d[5][6]]
     if with_ext_test:
         AUROC_ext = [results_ext[1][6], results_ext[2][6], results_ext[3][6], results_ext[4][6], results_ext[5][6]]
-    x_axis = np.arange(NM)
+    x_axis = np.arange(cts.NM)
     plt.bar(x_axis - 0.2, AUROC, 0.4, color=(colors_six[0]), label='RBDB test set')
     if with_ext_test:
         plt.bar(x_axis + 0.2, AUROC_ext, 0.4, color=(light_colors[0]), label='UVAF dataset')
-    stic_list = range(1, NM + 1)
-    plt.xticks(range(NM), stic_list, fontsize='small')
+    stic_list = range(1, cts.NM + 1)
+    plt.xticks(range(cts.NM), stic_list, fontsize='small')
     min_auc = np.min(AUROC)
     if with_ext_test:
         min_auc = np.min(AUROC + AUROC_ext)
@@ -256,7 +255,7 @@ def all_models(model_path, results_dir=cts.RESULTS_DIR, dataset='rbdb_10', algo=
     prob_rf = {}
     prob_rf_train = {}
 
-    for i in range(1, NM + 1):
+    for i in range(1, cts.NM + 1):
         prob_rf[i] = opt_d[i].predict_proba(x_test_d[i])
         # prob_rf_ext[i] = opt_d[i].predict_proba(x_test_d[i])
         # train_val_data_d[i] = train_validation_results(opt_d[i], i)
@@ -266,7 +265,7 @@ def all_models(model_path, results_dir=cts.RESULTS_DIR, dataset='rbdb_10', algo=
     rf_plot_all = []
     rf_point_all = []
 
-    for i in range(1, NM + 1):
+    for i in range(1, cts.NM + 1):
         tpr_rf, fpr_rf, th = roc_curve(y_test_d[i], prob_rf[i][:, 1])
         rf_plot, = plt.plot(tpr_rf, fpr_rf, colors_six[i - 1])  ## add labels
         # rf_point, =plt.plot((1-results_d[i][3]).astype(float), (results_d[i][2]).astype(float), colors_six[i-1],marker="+",markersize=15)
@@ -321,6 +320,6 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    # eval_one_model(cts.RESULTS_DIR, 'logo_cv/22_10_XGB/XGB_4/')
+    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_3/')
 
-    all_models(model_path=cts.RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')
+    # all_models(model_path=cts.RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')
