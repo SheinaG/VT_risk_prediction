@@ -8,9 +8,9 @@ ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 def create_part_dataset(ids, y=[], path='', model=0):
     if model == 0:
-        add_path = 'features_nd.xlsx'
+        add_path = 'features_n.xlsx'
     elif model == 1:
-        add_path = 'vt_wins/features_nd.xlsx'
+        add_path = 'vt_wins/features_n.xlsx'
     ids_group = []
     n_win = []
     for i, id_ in enumerate(ids):
@@ -78,8 +78,8 @@ def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10):
         return np_dataset, y_d.squeeze(), ids_group
 
 
-def model_features(X, model_type, with_pvc=False):
-    if with_pvc:
+def model_features(X, model_type, with_dems=False):
+    if with_dems:
         if model_type == 2:  # just_hrv
             X_out = X[:, 110:133]
         if model_type == 3:  # just_morph
@@ -91,16 +91,16 @@ def model_features(X, model_type, with_pvc=False):
         if model_type == 1:  # Dem
             X_out = X[:, -6:]
     else:
-        if model_type == 2:  # just_hrv
+        if model_type == 1:  # just_hrv
             X_out = X[:, 110:133]
-        if model_type == 3:  # just_morph
-            X_out = X[:, :110]
-        if model_type == 4:  # morph and hrv
-            X_out = X[:, :-6]
-        if model_type == 5:  # all
+        if model_type == 2:  # just_morph
+            X_out = np.concatenate([X[:, :110], X[:, 133:138]], axis=1)
+        if model_type == 3:  # morph and hrv
+            X_out = X[:, :-2]
+        if model_type == 4:  # all
             X_out = X
-        if model_type == 1:  # Dem
-            X_out = X[:, -6:]
+        if model_type == 5:  # Dem
+            X_out = X[:, -2:]
 
     return X_out
 
@@ -273,3 +273,11 @@ def maximize_Se_plus_Sp(probas, y_true, beta=1):
     se, sp = tpr, 1 - fpr
     best_th = thresholds[np.argmin(np.abs(se - sp))]
     return best_th
+
+
+def calc_confidence_interval_of_array(x, confidence=0.95):
+    m = x.mean()
+    s = x.std()
+    confidence = confidence
+    crit = np.abs(norm.ppf((1 - confidence) / 2))
+    return m - s * crit / np.sqrt(len(x)), m + s * crit / np.sqrt(len(x))

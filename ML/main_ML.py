@@ -9,6 +9,15 @@ features_arr = np.asarray(exmp_features.columns[1:])
 features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 
+def rebuild_clf(x_train, y_train, x_test, y_test, params_dict, algo):
+    clf = cts.class_funcs[algo](**params_dict, class_weight='balanced',
+                                n_jobs=10)  # RandomForestClassifier(**params_dict, n_jobs=10, class_weight='balanced')
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict_proba(x_test)[:, 1]
+    results_ts = eval(clf, x_test, y_test)
+    return y_pred
+
+
 def train_by_V_ratio():
     y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                              axis=1).squeeze()

@@ -1,10 +1,6 @@
 from utils.base_packages import *
-from utils.consts import *
-
-font = {'weight': 'normal',
-        # 'family' : 'normal',
-        'size': 22}
-matplotlib.rc('font', **font)
+import utils.consts as cts
+from ML.ML_utils import *
 
 
 def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', majority_vote=False, soft_lines=False):
@@ -15,7 +11,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     for i in range(K_test):
         # Plot of a ROC curve:
         y_true = y_tests[i]
-        y_score = y_preds[i][:, 1]
+        y_score = y_preds[i]
         fpr, tpr, THs = roc_curve(y_true.ravel(), y_score.ravel())
         fprs.append(fpr)
         tprs.append(tpr)
@@ -49,6 +45,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     plt.ylabel('Se')
     plt.title(title)
     plt.legend(loc="lower right")
+    plt.tight_layout()
 
 
 def majority_roc(THs, augmentation, y_score, y_true):
@@ -95,26 +92,48 @@ def get_K_rocs(K_test, fprs, tprs):
         tprs_interp[i, :] = f(fpr_all)
 
     mean_tpr = np.mean(tprs_interp, axis=0)
-    max_tpr = np.max(tprs_interp, axis=0)
-    min_tpr = np.min(tprs_interp, axis=0)
+    high_tpr = np.zeros([len(fpr_all), ])
+    low_tpr = np.zeros([len(fpr_all), ])
+    for i in range(len(fpr_all)):
+        low_tpr[i], high_tpr[i] = calc_confidence_interval_of_array(tprs_interp[:, i], confidence=0.95)
 
-    return fpr_all, mean_tpr, max_tpr, min_tpr
+    return fpr_all, mean_tpr, low_tpr, high_tpr
+
+
+def plot_BS(opt_d, path_d, algo):
+    for i in range(1, cts.NM + 1):
+        _ = plot_objective(opt_d[i].optimizer_results_[0],
+                           dimensions=cts.hyp_list[algo],
+                           n_minimum_search=int(1e8))
+        plt.savefig(path_d[i] / str(str(i) + algo + '.png'))
+        plt.show()
+
+
+def train_val(opt_d, model_path):
+    columns = ['AUROC train', 'AUROC validation']
+    train_val = pd.DataFrame(columns=columns, index=range(1, len(opt_d) + 1))
+    for j in opt_d:
+        opt = opt_d[j]
+        be = opt.best_index_
+        mean_test = np.around(opt.cv_results_['mean_test_score'][be], 2)
+        std_test = np.around(opt.cv_results_['std_test_score'][be], 2)
+        mean_train = np.around(opt.cv_results_['mean_train_score'][be], 2)
+        std_train = np.around(opt.cv_results_['std_train_score'][be], 2)
+        train_ms = str(mean_train) + '±' + str(std_train)
+        val_ms = str(mean_test) + '±' + str(std_test)
+        train_val['AUROC train'][j] = train_ms
+        train_val['AUROC validation'][j] = val_ms
+
+    train_val.to_excel(model_path / 'all_model_train_val.xlsx')
+
+
+def hyper_model(opt_d, path):
+    hyp_pd = pd.DataFrame(columns=opt_d[1].best_params_.keys())
+    for i in range(1, cts.NM + 1):
+        best_hyp = pd.DataFrame(opt_d[i].best_params_, columns=opt_d[i].best_params_.keys(), index=[i])
+        hyp_pd = hyp_pd.append(best_hyp)
+    hyp_pd.to_excel(path / 'hyperparameters.xlsx')
 
 
 if __name__ == '__main__':
-
-    plot_input()
-    exit()
-    score = 'Fb-Score'
-    db_list = ['UVAF train', 'UVAF test']
-    models = ['ResNet']  # , 'CRNN(noHT)', "CRNN+DA(noHT)"]  # Not sure about CRNN results, be wary
-    db_metrics = ['metrics_train', 'metrics_test_UVAFDB']
-    data = dict(zip(db_metrics, db_list))
-    metric_dict = {}
-    for model in models:
-        path = path_models[model]
-        model_dict = model_utils.load_model(path, algo=model)
-        metric_dict[model] = list(map(model_dict.get, db_metrics))
-    # plot_performance_bars(models, path_models, db_metrics, db_list, score, savefig=True, savedir=args.fig_path/'performance/')
-    # plot_performance_dot(models, db_metrics=db_metrics, db_list=db_list, db_list_plot=['UVAF train', 'UVAF test'], score=score, savefig=True, savedir=args.fig_path/'performance/')
-    simple_plot_from_list(score_values, score, savefig=True, savedir=path_save_figs)
+    a = 5

@@ -67,8 +67,9 @@ DL_RESULTS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "results"
 MODELS_DIR = BASE_DIR / "Sheina" / "databases" / "VTdb" / "DL" / "models"
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
-colors_six = ['#307DA6', '#A65730', '#6F30A6', '#A6304F', '#A69E30', '#30A640']
+colors = ['#307DA6', '#A65730', '#6F30A6', '#A6304F', '#A69E30', '#30A640']
 light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0']
+violin_colors = ['dodgerblue', 'blue', 'darkcyan', 'royalblue']
 
 EPLTD_FS = 200
 rhythms_head = '_ecg_start_0_end_3_n_leads_3_rhythms.txt'

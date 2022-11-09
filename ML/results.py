@@ -2,6 +2,7 @@ from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
 from utils.metrics import *
+from utils.plots import *
 
 # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 # path_all = cts.RESULTS_DIR/"logo_cv" / algo
@@ -11,12 +12,13 @@ light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0'
 DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 
-def calc_confidence_interval_of_array(x, confidence=0.95):
-    m = x.mean()
-    s = x.std()
-    confidence = confidence
-    crit = np.abs(norm.ppf((1 - confidence) / 2))
-    return m - s * crit / np.sqrt(len(x)), m + s * crit / np.sqrt(len(x))
+def rebuild_clf(x_train, y_train, x_test, y_test, params_dict, algo):
+    clf = cts.class_funcs[algo](**params_dict, class_weight='balanced',
+                                n_jobs=10)  # RandomForestClassifier(**params_dict, n_jobs=10, class_weight='balanced')
+    clf.fit(x_train, y_train)
+    y_pred = clf.predict_proba(x_test)[:, 1]
+    results_ts = eval(clf, x_test, y_test)
+    return y_pred
 
 
 def test_samples(y_pred, y_test, n_iter):
@@ -24,22 +26,27 @@ def test_samples(y_pred, y_test, n_iter):
     neg_ind = list(np.where(y_test == 0)[0])
     pos_len = len(pos_ind)
     neg_len = len(neg_ind)
-    auroc_list = []
-    for i in n_iter:
+
+    y_pred_list = []
+    y_test_list = []
+    for i in range(n_iter):
         # choose randomly 80 present of the positive and negative windows:
         random.seed(i)
-        pos_part = random.sample(pos_ind, (pos_len * 0.8))
-        neg_part = random.sample(neg_ind, (neg_len * 0.8))
+        pos_part = random.sample(pos_ind, int(pos_len * 0.8))
+        neg_part = random.sample(neg_ind, int(neg_len * 0.8))
         y_pred_part = y_pred[pos_part + neg_part]
         y_test_part = y_test[pos_part + neg_part]
-        auroc_list.append(roc_auc_score(y_test_part, y_pred_part))
+
+        y_pred_list.append(y_pred_part)
+        y_test_list.append(y_test_part)
+    return y_test_list, y_pred_list
 
 
-def plot_violin(data, leg_str_arr, title, save_path):
+def plot_violin(data, leg_str_arr, title, labels, save_path):
     plt.style.use('bmh')
     plt.rcParams.update({'font.size': 16})
     color = 'steelblue'
-    colors = ['dodgerblue', 'blue', 'darkcyan', 'royalblue']
+    colors = cts.violin_colors
     fig, axe = plt.subplots(nrows=1, ncols=1, figsize=(8, 8))
     violins = axe.violinplot(data, showmeans=False, showmedians=True, showextrema=True)
     for i, vp in enumerate(violins['bodies']):
@@ -49,17 +56,20 @@ def plot_violin(data, leg_str_arr, title, save_path):
         vp = violins[partname]
         vp.set_edgecolor(color)
     axe.set_xlabel(title)
-    quartile11, medians1, quartile31 = np.percentile(data[0], [25, 50, 75])
-    quartile12, medians2, quartile32 = np.percentile(data[1], [25, 50, 75])
-    quartile13, medians3, quartile33 = np.percentile(data[2], [25, 50, 75])
-    quartile14, medians4, quartile34 = np.percentile(data[3], [25, 50, 75])
+    quartile1 = []
+    medians = []
+    quartile3 = []
+    for i in range(len(data)):
+        quartile1_i, medians_i, quartile3_i = np.percentile(data[i], [25, 50, 75])
+        quartile1.append(quartile1_i)
+        medians.append(medians_i)
+        quartile3.append(quartile3_i)
     inds = range(1, 5)
-    axe.scatter(inds, [medians1, medians2, medians3, medians4], marker='o', color='white', s=30, zorder=3)
-    axe.vlines(inds, [quartile11, quartile12, quartile13, quartile14], [quartile31, quartile32, quartile33, quartile34],
-               color=color, linestyle='-', lw=5)
+    axe.scatter(inds, medians, marker='o', color='white', s=30, zorder=3)
+    axe.vlines(inds, quartile1, quartile3, color=color, linestyle='-', lw=5)
     axe.set_ylabel(r'$probability\ density$')
     axe.legend(leg_str_arr)
-    # labels = [r'$C_0$', r'$C_1$']
+
     plt.tight_layout()
     plt.savefig(save_path / str(title + '.png'))
     plt.show()
@@ -69,10 +79,6 @@ def vt_segments(ids):
     x_vt, y_vt, ids = create_dataset(ids, np.ones([len(ids), ]), path=DATA_PATH, model=1, n_pools=1)
     return x_vt
 
-
-def sus_vt(ids):
-    x_vt, y_vt, ids = create_dataset(ids, np.zeros([len(ids), ]), path=DATA_PATH, model=0, n_pools=4)
-    return x_vt
 
 
 f2 = lambda x: list(map('{:.2f}'.format, x))
@@ -90,18 +96,9 @@ def intrp_model(path, features_model, results_dir, feature_selection):
 
     if feature_selection:
         features = joblib.load(path / 'features.pkl')
-    #     x_test = train_model.features_mrmr(x_test, list(features_model[0]), list(features))
     results_ts = eval(opt, x_test, y_test)
 
     return opt, results_ts, x_test, y_test, features
-
-
-def hyper_model(opt_d, path):
-    hyp_pd = pd.DataFrame(columns=opt_d[1].best_params_.keys())
-    for i in range(1, cts.NM + 1):
-        best_hyp = pd.DataFrame(opt_d[i].best_params_, columns=opt_d[i].best_params_.keys(), index=[i])
-        hyp_pd = hyp_pd.append(best_hyp)
-    hyp_pd.to_excel(path / 'hyperparameters.xlsx')
 
 
 def ext_test_set(opt_d, model_path, features, features_selection, features_model):
@@ -128,27 +125,24 @@ def ext_test_set(opt_d, model_path, features, features_selection, features_model
 def clac_probs(x_test, y_test, opt, model_path):
     # load ids
     ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
 
     # create datasets
     for i in range(1, cts.NM + 1):
         X_vt = vt_segments(ids_sp)
         X_vt = model_features(X_vt, i, with_pvc=True)
-        X_vt_sus_p = sus_vt(md_test)
-        X_vt_sus_p = model_features(X_vt_sus_p, i, with_pvc=True)
         X_vt_p = x_test[i][y_test[i] == 1, :]
         X_non_vt_p = x_test[i][y_test[i] == 0, :]
 
         # calc probabilities
         p_vt = opt[i].predict_proba(X_vt)[:, 1]
-        p_vt_sus_p = opt[i].predict_proba(X_vt_sus_p)[:, 1]
         p_vt_p = opt[i].predict_proba(X_vt_p)[:, 1]
         p_non_vt_p = opt[i].predict_proba(X_non_vt_p)[:, 1]
 
-        p_all = np.concatenate([p_vt, p_vt_p, p_vt_sus_p, p_non_vt_p])
-        plot_violin([p_vt, p_vt_p, p_vt_sus_p, p_non_vt_p],
-                    ['VT segments', 'VT patients', 'Suspected as VT patients', 'Non VT patients'], 'model ' + str(i),
+        p_all = np.concatenate([p_vt, p_vt_p, p_non_vt_p])
+        plot_violin([p_vt, p_vt_p, p_non_vt_p],
+                    ['VT segments', 'VT patients', 'Non VT patients'], 'model ' + str(i),
                     model_path)
+
 
 
 def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF'):
@@ -164,7 +158,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     method = '_RFE'
     dataset_n = dataset
     with_ext_test = False
-    exmp_features = pd.read_excel(cts.VTdb_path + 'normalized/1020D818/features.xlsx', engine='openpyxl')
+    exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/1020D818/features_n.xlsx', engine='openpyxl')
     # exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1419Ec09/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(exmp_features.columns[1:])
     features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
@@ -177,15 +171,9 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
                                                                                       results_dir, feature_selection)
 
-    # for i in range(1, 5):
-    #     _ = plot_objective(opt_d[i].optimizer_results_[0],
-    #                        dimensions=['criterion', 'max_depth','max_features','min_samples_leaf', 'n_estimators'],
-    #                        n_minimum_search=int(1e8))
-    #     plt.savefig(path_d[i] /str(str(i) + 'RF.png'))
-    #     plt.show()
     train_val(opt_d, model_path)
     hyper_model(opt_d, model_path)
-    clac_probs(x_test_d, y_test_d, opt_d, model_path)
+    # clac_probs(x_test_d, y_test_d, opt_d, model_path)
     if with_ext_test:
         results_ext = ext_test_set(opt_d, model_path, features_d, feature_selection, features_model)
     results = pd.DataFrame.from_dict(results_d)
@@ -269,19 +257,19 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     rf_point_all = []
 
     for i in range(1, cts.NM + 1):
-        tpr_rf, fpr_rf, th = roc_curve(y_test_d[i], prob_rf[i][:, 1])
-        rf_plot, = plt.plot(tpr_rf, fpr_rf, colors_six[i - 1])  ## add labels
-        # rf_point, =plt.plot((1-results_d[i][3]).astype(float), (results_d[i][2]).astype(float), colors_six[i-1],marker="+",markersize=15)
-        rf_plot_all.append(rf_plot)
-        # rf_point_all.append(rf_point)
-        plt.plot(tpr_rf, tpr_rf, 'k')
-    plt.legend((rf_plot_all),
-               ('RF model 1 (' + str(np.round(AUROC[0], 2)) + ')',
-                'RF model 2 (' + str(np.round(AUROC[1], 2)) + ')',
-                'RF model 3 (' + str(np.round(AUROC[2], 2)) + ')',
-                'RF model 4 (' + str(np.round(AUROC[3], 2)) + ')',)
-               # 'RF model 5 ('+str(np.round(AUROC[4], 2))+')')
-               , facecolor='white', framealpha=0.8, loc=4)
+        y_test_list, y_pred_list = test_samples(y_test_d[i], prob_rf[i][:, 1], 100)
+        roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i, title='model ' + str(i),
+                          majority_vote=False, soft_lines=True)
+        # rf_plot_all.append(rf_plot)
+
+        # plt.plot(tpr_rf, tpr_rf, 'k')
+    plt.legend(
+        ('RF model 1 (' + str(np.round(AUROC[0], 2)) + ')',
+         'RF model 2 (' + str(np.round(AUROC[1], 2)) + ')',
+         'RF model 3 (' + str(np.round(AUROC[2], 2)) + ')',
+         'RF model 4 (' + str(np.round(AUROC[3], 2)) + ')',)
+        # 'RF model 5 ('+str(np.round(AUROC[4], 2))+')')
+        , facecolor='white', framealpha=0.8, loc=4)
 
     plt.title('Receiving operating curve')
     plt.xlabel('1-Sp')
@@ -293,36 +281,16 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     plt.show()
 
 
-def train_val(opt_d, model_path):
-    columns = ['AUROC train', 'AUROC validation']
-    train_val = pd.DataFrame(columns=columns, index=range(1, len(opt_d) + 1))
-    for j in opt_d:
-        opt = opt_d[j]
-        be = opt.best_index_
-        mean_test = np.around(opt.cv_results_['mean_test_score'][be], 2)
-        std_test = np.around(opt.cv_results_['std_test_score'][be], 2)
-        mean_train = np.around(opt.cv_results_['mean_train_score'][be], 2)
-        std_train = np.around(opt.cv_results_['std_train_score'][be], 2)
-        train_ms = str(mean_train) + '±' + str(std_train)
-        val_ms = str(mean_test) + '±' + str(std_test)
-        train_val['AUROC train'][j] = train_ms
-        train_val['AUROC validation'][j] = val_ms
-
-    train_val.to_excel(model_path / 'all_model_train_val.xlsx')
-
-
 def eval_one_model(results_dir, path):
     opt = joblib.load(results_dir / path / 'opt.pkl')
     x_test = joblib.load(results_dir / path / 'X_test.pkl')
     y_test = joblib.load(results_dir / path / 'y_test.pkl')
-    # features = joblib.load(results_dir / path / 'features.pkl')
-    # x_test = train_model.features_mrmr(x_test, list(features_list), list(features))
     results_ts = eval(opt, x_test, y_test)
+    return results_ts
 
-    a = 5
 
 
 if __name__ == '__main__':
-    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_4/')
+    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_4/')
 
-    # all_models(model_path=cts.RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')

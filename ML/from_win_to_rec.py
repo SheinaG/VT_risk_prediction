@@ -113,7 +113,7 @@ def plot_results(prob, y_true, title, save_path, algo):
     plt.figure()
     plt.style.use('bmh')
     Se, Sp, AUROC = {}, {}, {}
-    columns = ['Se', 'Sp', 'AUROC']
+    # columns = ['Se', 'Sp', 'AUROC']
     res = {}
     if title == 'train':
         str_t = 'Roc curve for RBDB validation'
@@ -123,16 +123,16 @@ def plot_results(prob, y_true, title, save_path, algo):
         str_t = 'Roc curve for UVAF test'
     for i in range(NM):
         AUROC[i] = roc_auc_score(y_true, prob[i, :])
-        th, Sp_, Se_ = opt_thresh(prob[i, :].T, y_true, save_path, task=title, model_type=i + 1, algo=algo)
+        # th, Sp_, Se_ = opt_thresh(prob[i, :].T, y_true, save_path, task=title, model_type=i + 1, algo=algo)
         tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i, :])
         plt.plot(tpr_rf, fpr_rf, cts.colors[i], label='model ' + str(i + 1) + ' (' + str(np.round(AUROC[i], 2)) + ')')
-        ind_th = np.argsort(abs(ths - th))[0]
-        plt.plot(tpr_rf[ind_th], fpr_rf[ind_th], cts.colors[i], marker="+", markersize=15)
+        # ind_th = np.argsort(abs(ths - th))[0]
+        # plt.plot(tpr_rf[ind_th], fpr_rf[ind_th], cts.colors[i], marker="+", markersize=15)
         plt.plot(tpr_rf, tpr_rf, 'k')
         plt.xlabel('1-Sp')
         plt.ylabel('Se')
-        Se[i] = Se_
-        Sp[i] = Sp_
+        # Se[i] = Se_
+        # Sp[i] = Sp_
 
     plt.legend(facecolor='white', framealpha=0.8, loc=4)
     plt.xlim([0, 1])
@@ -140,13 +140,11 @@ def plot_results(prob, y_true, title, save_path, algo):
     plt.title(str_t)
     plt.savefig(save_path / str(title + '.png'), dpi=400, transparent=True)
     plt.show()
-    res['Se'] = Se
-    res['Sp'] = Sp
+    # res['Se'] = Se
+    # res['Sp'] = Sp
     res['AUROC'] = AUROC
 
     results = pd.DataFrame.from_dict(res)
-    # results = results.transpose()
-    # results = results.set_axis(columns, axis= 1)
     results = results.apply(f2)
     results.to_excel(save_path / str(title + '_results.xlsx'))
     return res
@@ -161,12 +159,12 @@ def run_all_models(dataset, DATA_PATH, algo):
     train_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
     y_train_p = np.concatenate([np.ones([1, len(train_vt)]), np.zeros([1, len(train_no_vt + val_no_vt)])],
                                axis=1).squeeze()
-    x_train, y_train, train_ids_groups, n_win = train_model.create_dataset(train_vt + train_no_vt + val_no_vt,
-                                                                           y_train_p,
-                                                                           path=DATA_PATH, model=0, return_num=True)
-    train_groups = bs.split_to_group(train_ids_groups, train_vt, train_no_vt + val_no_vt, n_vt=12)
+    x_train, y_train, train_ids_groups, n_win = create_dataset(train_vt + train_no_vt + val_no_vt,
+                                                               y_train_p,
+                                                               path=DATA_PATH, model=0, return_num=True)
+    train_groups = split_to_group(train_ids_groups, train_vt, train_no_vt + val_no_vt, n_vt=12)
     for i in range(NM):
-        x_train_model = train_model.model_features(x_train, i + 1)
+        x_train_model = model_features(x_train, i + 1)
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
         prob = split_and_collect(x_train_model, y_train, y_train_p, train_groups, n_win, hyp_path, algo)
