@@ -14,6 +14,7 @@ import os.path
 import numpy as np
 import joblib
 import pathlib
+import matplotlib
 import matplotlib.pyplot as plt
 import pylab as pl
 import pickle
@@ -31,6 +32,7 @@ from pebm.ebm import Biomarkers as Obm
 from scipy.io import loadmat
 from scipy.stats import norm
 import random
+from scipy.interpolate import interp1d
 
 # Machine Learning
 

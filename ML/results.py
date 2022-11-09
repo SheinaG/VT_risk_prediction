@@ -1,8 +1,7 @@
-import random
-
 from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
+from utils.metrics import *
 
 # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 # path_all = cts.RESULTS_DIR/"logo_cv" / algo
@@ -20,16 +19,20 @@ def calc_confidence_interval_of_array(x, confidence=0.95):
     return m - s * crit / np.sqrt(len(x)), m + s * crit / np.sqrt(len(x))
 
 
-def test_samples(x_test, y_test, n_iter):
-    pos_ind = np.where(y_test == 1)[0]
-    neg_ind = np.where(y_test == 0)[0]
+def test_samples(y_pred, y_test, n_iter):
+    pos_ind = list(np.where(y_test == 1)[0])
+    neg_ind = list(np.where(y_test == 0)[0])
     pos_len = len(pos_ind)
     neg_len = len(neg_ind)
+    auroc_list = []
     for i in n_iter:
         # choose randomly 80 present of the positive and negative windows:
         random.seed(i)
         pos_part = random.sample(pos_ind, (pos_len * 0.8))
         neg_part = random.sample(neg_ind, (neg_len * 0.8))
+        y_pred_part = y_pred[pos_part + neg_part]
+        y_test_part = y_test[pos_part + neg_part]
+        auroc_list.append(roc_auc_score(y_test_part, y_pred_part))
 
 
 def plot_violin(data, leg_str_arr, title, save_path):
@@ -148,7 +151,7 @@ def clac_probs(x_test, y_test, opt, model_path):
                     model_path)
 
 
-def all_models(model_path, results_dir=cts.RESULTS_DIR, dataset='rbdb_10', algo='RF'):
+def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF'):
     opt_d = {}
     results_d = {}
     path_d = {}
@@ -320,6 +323,6 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_3/')
+    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_4/')
 
     # all_models(model_path=cts.RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')

@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import train_model
 from metrics import eval
-from scipy.interpolate import interp1d
+
 from sklearn.metrics import roc_auc_score, confusion_matrix, roc_curve, \
     auc
 
