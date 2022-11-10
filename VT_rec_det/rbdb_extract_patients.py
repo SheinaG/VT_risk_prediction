@@ -170,6 +170,53 @@ def train_val_test_split():
     a = 5
 
 
+def split_train_to_k_folders(k_folders=4):
+    """
+
+    """
+    VT_ids = cts.ids_tp
+    non_VT_ids = cts.ids_tn + cts.ids_vn
+    main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
+    rbdb_info = pd.read_excel(main_path, engine='openpyxl')
+    ids_db_VT = []
+    ids_db_non_VT = []
+    for id_ in VT_ids:
+        ids_db_VT.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
+    for id_ in non_VT_ids:
+        ids_db_non_VT.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
+    ids_db_VT = list(set(ids_db_VT))
+    ids_db_VT.sort()
+    VT_g1, VT_g2, VT_g3, VT_g4 = ids_db_VT[:10], ids_db_VT[10:18] + ids_db_VT[26:28], ids_db_VT[18:26], ids_db_VT[28:]
+
+    ids_db_non_VT = list(set(ids_db_non_VT))
+    ids_db_non_VT.sort()
+    nVT_g1, nVT_g2, nVT_g3, nVT_g4 = ids_db_non_VT[:371], ids_db_non_VT[371:742], ids_db_non_VT[
+                                                                                  742:1113], ids_db_non_VT[1113:]
+
+    groups = []
+    groups.append(VT_g1 + nVT_g1)
+    groups.append(VT_g2 + nVT_g2)
+    groups.append(VT_g3 + nVT_g3)
+    groups.append(VT_g4 + nVT_g4)
+
+    groups_ids = []
+
+    for group in groups:
+        group_id = []
+        for id_ in group:
+            group_id.append(list(rbdb_info[rbdb_info['db_id'] == id_]['holter_id']))
+        group_id_flat = [item for sublist in group_id for item in sublist]
+        for id_ in group_id_flat:
+            if id_ not in VT_ids + non_VT_ids:
+                group_id_flat.remove(id_)
+        print(len(group_id_flat))
+        groups_ids.append(group_id_flat)
+
+    np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups.npy', groups_ids)
+
+    a = 5
+
+
 def rbdb_new_dem(ids):
     main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
     rbdb_info = pd.read_excel(main_path, engine='openpyxl')
@@ -248,6 +295,7 @@ def rbdb_new_dem(ids):
 
     return
 
+
 def append_rhythms_array(self, pat, new_line, arr):
     start = 0
     end = -1
@@ -282,11 +330,5 @@ if __name__ == '__main__':
     #         segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
     #         j = j + 1
     # a = 5
-
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-
-    rbdb_new_dem(ids_tn + ids_sn + ids_tp + ids_sp + ids_vn)
+    split_train_to_k_folders(k_folders=4)
+    # rbdb_new_dem(cts.ids_tn + cts.ids_sn + cts.ids_tp + cts.ids_sp + cts.ids_vn)

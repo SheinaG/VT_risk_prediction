@@ -1,3 +1,5 @@
+import pandas as pd
+
 from utils import consts as cts
 from utils.base_packages import *
 
@@ -144,12 +146,17 @@ def split_ids(tr_uv_p, tr_uv_n):
     return ids_train, ids_test, y_train, y_test
 
 
-def features_mrmr(X, features_model, features_mrmr):
-    X_mrmr = np.zeros([X.shape[0], len(features_mrmr)])
-    for i, featuer_s in enumerate(features_mrmr):
-        index = features_model.index(featuer_s)
-        X_mrmr[:, i] = X[:, index]
-    return X_mrmr
+def features_mrmr(X, features_model, features_mrmr, remove=0):
+    if not remove:
+        X_mrmr = np.zeros([X.shape[0], len(features_mrmr)])
+        for i, featuer_s in enumerate(features_mrmr):
+            index = features_model.index(featuer_s)
+            X_mrmr[:, i] = X[:, index]
+        return X_mrmr
+    else:
+        X_mrmr = pd.DataFrame(X, columns=features_model)
+        X_mrmr = X_mrmr.drop(features_mrmr)
+        return X_mrmr
 
 
 def stat_selection(stat_t, x, y, f_n):
@@ -194,7 +201,28 @@ def RFE_func(X, y, n_jobs, num):
     selector = selector.fit(X, y)
     b_features = list(features[selector.support_])
     X_new = selector.transform(X)
-    return X_new, b_features  # , selector.
+    return X_new, b_features
+
+
+def remove_not_significant(x, y):
+    features = x.columns
+    p_values = np.ones([len(features), ])
+    drop_list = []
+
+    for i, feature in enumerate(features):
+        x1 = np.asarray(x)[y == 1, i]
+        x2 = np.asarray(x)[y == 0, i]
+        try:
+            stat, p = mannwhitneyu(x1, x2)
+            p_values[i] = p
+        except:
+            p_values[i] = 1
+        if p_values[i] >= 0.05:
+            drop_list.append(features[i])
+
+    x = x.drop(labels=drop_list, axis=1)
+
+    return x, drop_list
 
 
 def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, num=10):
@@ -209,22 +237,13 @@ def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, nu
     return X_new, features
 
 
-def split_to_group(ids_group, list_ids_vt, list_ids_no_VT, n_vt=2):
+def split_to_group(ids_group):
+    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups.npy', allow_pickle=True)
     cv_groups = []
-    ratio = len(list_ids_no_VT) // len(list_ids_vt)
-    max_ind = ratio * len(list_ids_vt)
-    for id in ids_group:
-        if id in list_ids_vt:
-            indx = list_ids_vt.index(id)
-            cv_groups.append(np.floor(indx / n_vt))
-        if id in list_ids_no_VT:
-            indx = list_ids_no_VT.index(id)
-            if indx < max_ind:
-                indx = np.floor(indx / (ratio * n_vt))
-                cv_groups.append(indx)
-            else:
-                indx = np.floor((indx - max_ind) / n_vt)
-                cv_groups.append(indx)
+    for id_ in ids_group:
+        for i, group in enumerate(groups):
+            if id_ in group:
+                cv_groups.append(i)
     return cv_groups
 
 
@@ -252,14 +271,6 @@ def maximize_f_beta(probas, y_true, beta=1):
         fbeta[np.isnan(fbeta)] = sys.float_info.epsilon
     best_th = thresholds[np.argmax(fbeta)]
     return best_th
-
-
-def rc_scorer(estimator, X, y):
-    y_hat = estimator.predict(X)
-    if len(np.unique(y_hat)) == 2:
-        return roc_auc_score(y, y_hat)
-    else:
-        return 0
 
 
 def maximize_Se_plus_Sp(probas, y_true, beta=1):

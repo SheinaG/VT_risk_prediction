@@ -3,6 +3,7 @@ from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
 
+
 # exmp_features = pd.read_excel( cts.VTdb_path + 'ML_model/1601/features.xlsx', engine='openpyxl')
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
@@ -30,10 +31,8 @@ def train_by_V_ratio():
     v_test = x_test[:, -10]
 
 
-def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method=''):
-    algo = 'RF'
-    n_jobs = 3
-    feature_selection = 1
+def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='', feature_selection=0, n_jobs=10,
+                           algo='RF', not_significant=1):
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
@@ -45,21 +44,34 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
                                                         model=0)
     x_train = model_features(x_train, model_type, with_dems=True)
-    train_groups = split_to_group(train_ids_groups, cts.ids_tp, cts.ids_tn + cts.ids_vn, n_vt=12)
+    train_groups = split_to_group(train_ids_groups)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0)
     x_test = model_features(x_test, model_type, with_dems=True)
 
-    if feature_selection:
-        dataset = dataset + '_' + method
-        path = set_path(algo, dataset, model_type, results_dir)
+    if not_significant:
         StSC = StandardScaler()
         StSc_fit = StSC.fit(x_train)
-        x_test = StSc_fit.transform(x_test)
         X_stsc_train = StSc_fit.transform(x_train)
+        x_test = StSc_fit.transform(x_test)
+        path = set_path(algo, dataset, model_type, results_dir)
         with open((path / 'StSC.pkl'), 'wb') as f:
             joblib.dump(StSc_fit, f)
         X_df = pd.DataFrame(X_stsc_train, columns=features_model)
-        X_train_m, features_new = feature_selection_func(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
+        X_train, removed_features = remove_not_significant(X_df, y_train)
+        print('removed features: ', removed_features)
+        x_test = features_mrmr(x_test, list(features_model), list(removed_features), remove=1)
+    if feature_selection:
+        if not not_significant:
+            dataset = dataset + '_' + method
+            path = set_path(algo, dataset, model_type, results_dir)
+            StSC = StandardScaler()
+            StSc_fit = StSC.fit(x_train)
+            x_test = StSc_fit.transform(x_test)
+            X_stsc_train = StSc_fit.transform(x_train)
+            with open((path / 'StSC.pkl'), 'wb') as f:
+                joblib.dump(StSc_fit, f)
+            X_train = pd.DataFrame(X_stsc_train, columns=features_model)
+        X_train_m, features_new = feature_selection_func(X_train, y_train, method, n_jobs=n_jobs, num=f_n)
         print(features_new)
         x_train = X_train_m
         with open((path / 'features.pkl'), 'wb') as f:
@@ -80,7 +92,9 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', method='mrmr_MID')
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='mrmr_MID')
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=3, dataset='new_dem', method='mrmr_MID')
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=2, dataset='new_dem', method='mrmr_MID')
+
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', n_jobs=3)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='', n_jobs=3)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=3, dataset='new_dem', method='', n_jobs=3)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=2, dataset='new_dem', method='', n_jobs=3)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=1, dataset='new_dem', method='', n_jobs=3)
