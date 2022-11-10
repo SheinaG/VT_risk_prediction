@@ -32,9 +32,9 @@ def train_by_V_ratio():
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method=''):
     algo = 'RF'
-    n_jobs = 10
+    n_jobs = 3
     feature_selection = 1
-    features_model = list(model_features(features_list, model_type, with_pvc=True)[0])
+    features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
     y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
@@ -44,10 +44,10 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     # create dataset ( VT each grop)
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
                                                         model=0)
-    x_train = model_features(x_train, model_type, with_pvc=True)
+    x_train = model_features(x_train, model_type, with_dems=True)
     train_groups = split_to_group(train_ids_groups, cts.ids_tp, cts.ids_tn + cts.ids_vn, n_vt=12)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0)
-    x_test = model_features(x_test, model_type, with_pvc=True)
+    x_test = model_features(x_test, model_type, with_dems=True)
 
     if feature_selection:
         dataset = dataset + '_' + method
@@ -80,7 +80,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', method='mrmr_MIQ')
-    # train_prediction_model(DATA_PATH, results_dir, model_type=2, dataset='rbdb_10', method = 'RFE')
-    # train_prediction_model(DATA_PATH, results_dir, model_type=3, dataset='rbdb_10', method = 'RFE')
-    # train_prediction_model(DATA_PATH, results_dir, model_type=4, dataset='rbdb_10', method = 'RFE')
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', method='mrmr_MID')
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='mrmr_MID')
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=3, dataset='new_dem', method='mrmr_MID')
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=2, dataset='new_dem', method='mrmr_MID')

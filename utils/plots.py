@@ -35,6 +35,8 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     plt.plot(fpr_all, mean_tpr, lw=2, color=color, label='model ' + str(typ))
     # label = f'K={K_test}; (AUROC = {round(roc_auc, 3)})'
     plt.fill_between(fpr_all, min_tpr, max_tpr, color=fill_color)
+    low_auroc = auc(fpr_all, min_tpr)
+    high_auroc = auc(fpr_all, max_tpr)
 
     # Add coin flipping line:
     plt.plot([0, 1], [0, 1], color='black', lw=2, linestyle='--')
@@ -46,6 +48,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     plt.title(title)
     plt.legend(loc="lower right")
     plt.tight_layout()
+    return low_auroc, high_auroc
 
 
 def majority_roc(THs, augmentation, y_score, y_true):

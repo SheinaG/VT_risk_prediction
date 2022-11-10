@@ -34,8 +34,8 @@ bad_bsqi = ['1021', 'H8208813', '2A21F10e', 'F520H114', 'L620D996', 'M918Ccc4', 
 
 duplicated_ids = ['8520F416', 'H520818b']
 
-num_features_model = [2, 23, 110, 133, 135]
-num_selected_features_model = [2, 5, 10, 15, 15]
+num_features_model = [6, 23, 110, 133, 135]
+num_selected_features_model = [6, 5, 10, 15, 15]
 
 NM = 5
 

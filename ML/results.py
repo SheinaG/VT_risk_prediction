@@ -95,7 +95,10 @@ def intrp_model(path, features_model, results_dir, feature_selection):
     # create test set:
 
     if feature_selection:
-        features = joblib.load(path / 'features.pkl')
+        try:
+            features = joblib.load(path / 'features.pkl')
+        except FileNotFoundError:
+            features = features_model[0]
     results_ts = eval(opt, x_test, y_test)
 
     return opt, results_ts, x_test, y_test, features
@@ -129,7 +132,7 @@ def clac_probs(x_test, y_test, opt, model_path):
     # create datasets
     for i in range(1, cts.NM + 1):
         X_vt = vt_segments(ids_sp)
-        X_vt = model_features(X_vt, i, with_pvc=True)
+        X_vt = model_features(X_vt, i, with_dems=True)
         X_vt_p = x_test[i][y_test[i] == 1, :]
         X_non_vt_p = x_test[i][y_test[i] == 0, :]
 
@@ -144,8 +147,7 @@ def clac_probs(x_test, y_test, opt, model_path):
                     model_path)
 
 
-
-def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF'):
+def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF', feature_selection=0):
     opt_d = {}
     results_d = {}
     path_d = {}
@@ -154,20 +156,17 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     features_d = {}
     train_val_data_d = {}
     y_test_d = {}
-    feature_selection = 0
-    method = '_RFE'
+
     dataset_n = dataset
     with_ext_test = False
-    exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/1020D818/features_n.xlsx', engine='openpyxl')
+    exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/1020D818/features_nd.xlsx', engine='openpyxl')
     # exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1419Ec09/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(exmp_features.columns[1:])
     features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
     for i in range(1, cts.NM + 1):
-        if feature_selection:
-            dataset_n = dataset + method
         path_d[i] = pathlib.PurePath(model_path / str('RF_' + str(i)))
-        features_model[i] = model_features(features_list, i, with_pvc=True)
+        features_model[i] = model_features(features_list, i, with_dems=True)
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
                                                                                       results_dir, feature_selection)
 
@@ -184,7 +183,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
 
     plt.style.use('bmh')
     fig = plt.plot([1])
-    AUROC = [results_d[1][6], results_d[2][6], results_d[3][6], results_d[4][6]]  # , results_d[5][6]]
+    AUROC = [results_d[1][6], results_d[2][6], results_d[3][6], results_d[4][6], results_d[5][6]]
     if with_ext_test:
         AUROC_ext = [results_ext[1][6], results_ext[2][6], results_ext[3][6], results_ext[4][6], results_ext[5][6]]
     x_axis = np.arange(cts.NM)
@@ -210,12 +209,12 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     # feture importance
 
     n_F_max = 10
-    fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(14, 20))
+    fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(30, 8))
 
-    for i in range(1, 5):
+    for i in range(1, cts.NM + 1):
         importance_array = np.zeros([len(features_model[i][0]), ])
-        # axi = axes[i-1]
-        axi = axes[int((i - 1) / 2), (i - 1) % 2]
+        axi = axes[i - 1]
+        # axi = axes[int((i - 1) / 2), (i - 1) % 2]
         if feature_selection:
             n_F = np.minimum(n_F_max, len(features_d[i]))
             features = list(features_d[i])
@@ -255,20 +254,28 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     plt.style.use('bmh')
     rf_plot_all = []
     rf_point_all = []
+    low_auroc = []
+    high_auroc = []
 
     for i in range(1, cts.NM + 1):
-        y_test_list, y_pred_list = test_samples(y_test_d[i], prob_rf[i][:, 1], 100)
-        roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i, title='model ' + str(i),
-                          majority_vote=False, soft_lines=True)
-        # rf_plot_all.append(rf_plot)
-
+        y_test_list, y_pred_list = test_samples(prob_rf[i][:, 1], y_test_d[i], 100)
+        low_auroc_i, high_auroc_i = roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i,
+                                                      title='model ' + str(i),
+                                                      majority_vote=False, soft_lines=True)
+        low_auroc.append(low_auroc_i)
+        high_auroc.append(high_auroc_i)
         # plt.plot(tpr_rf, tpr_rf, 'k')
     plt.legend(
-        ('RF model 1 (' + str(np.round(AUROC[0], 2)) + ')',
-         'RF model 2 (' + str(np.round(AUROC[1], 2)) + ')',
-         'RF model 3 (' + str(np.round(AUROC[2], 2)) + ')',
-         'RF model 4 (' + str(np.round(AUROC[3], 2)) + ')',)
-        # 'RF model 5 ('+str(np.round(AUROC[4], 2))+')')
+        ('RF model 1 ' + str(np.round(AUROC[0], 2)) + '(' + str(np.round(low_auroc[0], 3)) + ',' + str(
+            np.round(high_auroc[0], 3)) + ')',
+         'RF model 2 ' + str(np.round(AUROC[1], 2)) + '(' + str(np.round(low_auroc[1], 3)) + ',' + str(
+             np.round(high_auroc[1], 3)) + ')',
+         'RF model 3 ' + str(np.round(AUROC[2], 2)) + '(' + str(np.round(low_auroc[2], 3)) + ',' + str(
+             np.round(high_auroc[2], 3)) + ')',
+         'RF model 4 ' + str(np.round(AUROC[3], 2)) + '(' + str(np.round(low_auroc[3], 3)) + ',' + str(
+             np.round(high_auroc[3], 3)) + ')',
+         'RF model 5 ' + str(np.round(AUROC[4], 2)) + '(' + str(np.round(low_auroc[4], 3)) + ',' + str(
+             np.round(high_auroc[4], 3)) + ')')
         , facecolor='white', framealpha=0.8, loc=4)
 
     plt.title('Receiving operating curve')
@@ -291,6 +298,7 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/22_10_mannw/RF_4/')
+    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem_mrmr_MIQ/RF_2/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / '10_22', dataset='10_22')
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / '22_10_mannw', dataset='new_dem_mrmr_MIQ',
+               feature_selection=1)
