@@ -170,7 +170,7 @@ def train_val_test_split():
     a = 5
 
 
-def split_train_to_k_folders(k_folders=4):
+def split_train_to_k_folders(k_folders=4, split_way=1):
     """
 
     """
@@ -186,21 +186,30 @@ def split_train_to_k_folders(k_folders=4):
         ids_db_non_VT.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
     ids_db_VT = list(set(ids_db_VT))
     ids_db_VT.sort()
-    VT_g1, VT_g2, VT_g3, VT_g4 = ids_db_VT[:10], ids_db_VT[10:18] + ids_db_VT[26:28], ids_db_VT[18:26], ids_db_VT[28:]
-
     ids_db_non_VT = list(set(ids_db_non_VT))
     ids_db_non_VT.sort()
-    nVT_g1, nVT_g2, nVT_g3, nVT_g4 = ids_db_non_VT[:371], ids_db_non_VT[371:742], ids_db_non_VT[
-                                                                                  742:1113], ids_db_non_VT[1113:]
+    if split_way == 1:
+        VT_g1, VT_g2, VT_g3, VT_g4 = ids_db_VT[:10], ids_db_VT[10:18] + ids_db_VT[26:28], ids_db_VT[18:26], ids_db_VT[
+                                                                                                            28:]
+        nVT_g1, nVT_g2, nVT_g3, nVT_g4 = ids_db_non_VT[:371], ids_db_non_VT[371:742], ids_db_non_VT[
+                                                                                      742:1113], ids_db_non_VT[1113:]
+        groups = []
+        groups.append(VT_g1 + nVT_g1)
+        groups.append(VT_g2 + nVT_g2)
+        groups.append(VT_g3 + nVT_g3)
+        groups.append(VT_g4 + nVT_g4)
 
-    groups = []
-    groups.append(VT_g1 + nVT_g1)
-    groups.append(VT_g2 + nVT_g2)
-    groups.append(VT_g3 + nVT_g3)
-    groups.append(VT_g4 + nVT_g4)
+    if split_way == 2:
+        groups = []
+        for i in range(k_folders):
+            groups.append([])
+        all_dbs = ids_db_VT + ids_db_non_VT
+        for id_ in all_dbs:
+            ind = all_dbs.index(id_)
+            j = int(ind % 4)
+            groups[j].append(id_)
 
     groups_ids = []
-
     for group in groups:
         group_id = []
         for id_ in group:
@@ -212,7 +221,7 @@ def split_train_to_k_folders(k_folders=4):
         print(len(group_id_flat))
         groups_ids.append(group_id_flat)
 
-    np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups.npy', groups_ids)
+    np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups2.npy', groups_ids)
 
     a = 5
 
@@ -330,5 +339,5 @@ if __name__ == '__main__':
     #         segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
     #         j = j + 1
     # a = 5
-    split_train_to_k_folders(k_folders=4)
+    split_train_to_k_folders(k_folders=4, split_way=2)
     # rbdb_new_dem(cts.ids_tn + cts.ids_sn + cts.ids_tp + cts.ids_sp + cts.ids_vn)

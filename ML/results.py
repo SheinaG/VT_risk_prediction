@@ -223,7 +223,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
                 index = list(features_model[i][0]).index(features[j])
                 importance_array[index] = importance_arrayi[j]
         else:
-            n_F = n_F_max
+            n_F = np.minimum(n_F_max, len(features_model[i][0]))
             importance_array = opt_d[i].best_estimator_.named_steps.model.feature_importances_
 
         indices = np.argsort(importance_array)[::-1]
@@ -300,5 +300,5 @@ def eval_one_model(results_dir, path):
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem_mrmr_MIQ/RF_2/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / '22_10_mannw', dataset='new_dem_mrmr_MIQ',
-               feature_selection=1)
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem', dataset='new_dem',
+               feature_selection=0)

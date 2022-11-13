@@ -3,6 +3,7 @@ import pandas as pd
 from utils import consts as cts
 from utils.base_packages import *
 
+
 multiply = 1
 
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
@@ -234,11 +235,13 @@ def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, nu
         X_new, features = mrmr(X_train_df, y_train, 'MIQ', num)
     if method == 'mannw':
         X_new, features = stat_selection('mannw', X_train_df, y_train, num)
+    if method == 'mrmr':
+        X_new, features = mrmr_from_matlab(np.asarray(X_train_df), y_train)
     return X_new, features
 
 
 def split_to_group(ids_group):
-    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups.npy', allow_pickle=True)
+    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups2.npy', allow_pickle=True)
     cv_groups = []
     for id_ in ids_group:
         for i, group in enumerate(groups):
@@ -292,3 +295,11 @@ def calc_confidence_interval_of_array(x, confidence=0.95):
     confidence = confidence
     crit = np.abs(norm.ppf((1 - confidence) / 2))
     return m - s * crit / np.sqrt(len(x)), m + s * crit / np.sqrt(len(x))
+
+
+def mrmr_from_matlab(x_train, y_train):
+    import matlab.engine
+    eng = matlab.engine.start_matlab()
+    eng.cd(r'/home/sheina/VT_risk_prediction/ML/', nargout=0)
+    idx, scores = eng.matlab_mrmr(x_train, y_train)
+    a = 5
