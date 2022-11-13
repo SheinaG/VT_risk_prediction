@@ -155,7 +155,7 @@ def features_mrmr(X, features_model, features_mrmr, remove=0):
         return X_mrmr
     else:
         X_mrmr = pd.DataFrame(X, columns=features_model)
-        X_mrmr = X_mrmr.drop(features_mrmr)
+        X_mrmr = X_mrmr.drop(labels=features_mrmr, axis=1)
         return X_mrmr
 
 

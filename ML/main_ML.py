@@ -1,8 +1,10 @@
+import sys
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
 import ML.bayesiansearch as bs
 from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
-
 
 # exmp_features = pd.read_excel( cts.VTdb_path + 'ML_model/1601/features.xlsx', engine='openpyxl')
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
@@ -49,36 +51,37 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     x_test = model_features(x_test, model_type, with_dems=True)
 
     if not_significant:
+        dataset = dataset + 'ns'
         StSC = StandardScaler()
         StSc_fit = StSC.fit(x_train)
         X_stsc_train = StSc_fit.transform(x_train)
         x_test = StSc_fit.transform(x_test)
-        path = set_path(algo, dataset, model_type, results_dir)
-        with open((path / 'StSC.pkl'), 'wb') as f:
-            joblib.dump(StSc_fit, f)
         X_df = pd.DataFrame(X_stsc_train, columns=features_model)
-        X_train, removed_features = remove_not_significant(X_df, y_train)
+        x_train, removed_features = remove_not_significant(X_df, y_train)
         print('removed features: ', removed_features)
         x_test = features_mrmr(x_test, list(features_model), list(removed_features), remove=1)
+
     if feature_selection:
+        dataset = dataset + '_' + method
+        path = set_path(algo, dataset, model_type, results_dir)
+
         if not not_significant:
-            dataset = dataset + '_' + method
-            path = set_path(algo, dataset, model_type, results_dir)
             StSC = StandardScaler()
             StSc_fit = StSC.fit(x_train)
             x_test = StSc_fit.transform(x_test)
             X_stsc_train = StSc_fit.transform(x_train)
-            with open((path / 'StSC.pkl'), 'wb') as f:
-                joblib.dump(StSc_fit, f)
-            X_train = pd.DataFrame(X_stsc_train, columns=features_model)
-        X_train_m, features_new = feature_selection_func(X_train, y_train, method, n_jobs=n_jobs, num=f_n)
+            x_train = pd.DataFrame(X_stsc_train, columns=features_model)
+        x_train, features_new = feature_selection_func(x_train, y_train, method, n_jobs=n_jobs, num=f_n)
         print(features_new)
-        x_train = X_train_m
         with open((path / 'features.pkl'), 'wb') as f:
             joblib.dump(features_new, f)
         x_test = features_mrmr(x_test, list(features_model), list(features_new))
 
     path = set_path(algo, dataset, model_type, results_dir)
+
+    if feature_selection or not_significant:
+        with open((path / 'StSC.pkl'), 'wb') as f:
+            joblib.dump(StSc_fit, f)
     opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
@@ -93,8 +96,8 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 if __name__ == "__main__":
     # train_by_V_ratio()
 
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', n_jobs=3)
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='', n_jobs=3)
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=3, dataset='new_dem', method='', n_jobs=3)
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=2, dataset='new_dem', method='', n_jobs=3)
-    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=1, dataset='new_dem', method='', n_jobs=3)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=5, dataset='new_dem', n_jobs=8)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=4, dataset='new_dem', method='', n_jobs=8)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=3, dataset='new_dem', method='', n_jobs=8)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=2, dataset='new_dem', method='', n_jobs=8)
+    train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=1, dataset='new_dem', method='', n_jobs=8)
