@@ -32,8 +32,8 @@ def train_by_V_ratio():
     v_test = x_test[:, -10]
 
 
-def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='', feature_selection=0, n_jobs=10,
-                           algo='RF', not_significant=1):
+def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods='', feature_selection=0, n_jobs=10,
+                           algo='RF'):
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
@@ -49,38 +49,30 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0)
     x_test = model_features(x_test, model_type, with_dems=True)
 
-    if not_significant:
-        dataset = dataset + 'ns'
+    if feature_selection:
+        dataset = dataset + '_' + '_'.join(methods)
         StSC = StandardScaler()
         StSc_fit = StSC.fit(x_train)
         X_stsc_train = StSc_fit.transform(x_train)
         x_test = StSc_fit.transform(x_test)
         X_df = pd.DataFrame(X_stsc_train, columns=features_model)
-        x_train, removed_features = remove_not_significant(X_df, y_train)
-        print('removed features: ', removed_features)
-        x_test = features_mrmr(x_test, list(features_model), list(removed_features), remove=1)
-
-    if feature_selection:
-        dataset = dataset + '_' + method
-        path = set_path(algo, dataset, model_type, results_dir)
-
-        if not not_significant:
-            StSC = StandardScaler()
-            StSc_fit = StSC.fit(x_train)
-            x_test = StSc_fit.transform(x_test)
-            X_stsc_train = StSc_fit.transform(x_train)
-            x_train = pd.DataFrame(X_stsc_train, columns=features_model)
-        x_train, features_new = feature_selection_func(x_train, y_train, method, n_jobs=n_jobs, num=f_n)
-        print(features_new)
-        with open((path / 'features.pkl'), 'wb') as f:
-            joblib.dump(features_new, f)
-        x_test = features_mrmr(x_test, list(features_model), list(features_new))
-
-    path = set_path(algo, dataset, model_type, results_dir)
-
-    if feature_selection or not_significant:
+        features_all = features_model
+        for method in methods:
+            if method == 'ns':
+                x_df, features_new = remove_not_significant(X_df, y_train)
+                x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=1)
+            else:
+                x_train, features_new = feature_selection_func(x_train, y_train, method, n_jobs=n_jobs, num=f_n)
+                x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=0)
+            path = set_path(algo, dataset, model_type, results_dir)
+            with open((path / str('features' + method + '.pkl')), 'wb') as f:
+                joblib.dump(features_new, f)
+            features_all = features_new
         with open((path / 'StSC.pkl'), 'wb') as f:
             joblib.dump(StSc_fit, f)
+        print(features_new)
+
+    path = set_path(algo, dataset, model_type, results_dir)
     opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
@@ -94,6 +86,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, method='
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem2', method='mrmr',
-                               n_jobs=8, feature_selection=1, not_significant=0)
+    for i in range(1, cts.NM + 1):
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem53', methods='',
+                               n_jobs=10, feature_selection=0)

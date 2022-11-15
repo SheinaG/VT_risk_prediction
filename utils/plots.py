@@ -8,6 +8,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     tprs = []
     fprs_major = []
     tprs_major = []
+
     for i in range(K_test):
         # Plot of a ROC curve:
         y_true = y_tests[i]
@@ -32,14 +33,17 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
         fpr_all, mean_tpr, max_tpr, min_tpr = get_K_rocs(K_test, fprs, tprs)
 
     roc_auc = auc(fpr_all, mean_tpr)
-    plt.plot(fpr_all, mean_tpr, lw=2, color=color, label='model ' + str(typ))
-    # label = f'K={K_test}; (AUROC = {round(roc_auc, 3)})'
-    plt.fill_between(fpr_all, min_tpr, max_tpr, color=fill_color)
     low_auroc = auc(fpr_all, min_tpr)
     high_auroc = auc(fpr_all, max_tpr)
+    legend_i = 'RF model ' + str(typ) + ' ' + str(np.round(roc_auc, 2)) + '(' + str(
+        np.round(low_auroc, 3)) + ',' + str(
+        np.round(high_auroc, 3)) + ')'
+    plt.plot(fpr_all, mean_tpr, lw=2, color=color, label=legend_i)
+    # label = f'K={K_test}; (AUROC = {round(roc_auc, 3)})'
+    plt.fill_between(fpr_all, min_tpr, max_tpr, color=fill_color)
 
     # Add coin flipping line:
-    plt.plot([0, 1], [0, 1], color='black', lw=2, linestyle='--')
+    plt.plot([0, 1], [0, 1], color='black', lw=1, linestyle='--')
 
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])

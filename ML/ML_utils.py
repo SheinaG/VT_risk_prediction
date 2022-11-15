@@ -148,6 +148,7 @@ def split_ids(tr_uv_p, tr_uv_n):
     return ids_train, ids_test, y_train, y_test
 
 
+
 def features_mrmr(X, features_model, features_mrmr, remove=0):
     if not remove:
         X_mrmr = np.zeros([X.shape[0], len(features_mrmr)])
@@ -242,12 +243,31 @@ def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, nu
 
 
 def split_to_group(ids_group):
-    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups2.npy', allow_pickle=True)
+    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups53.npy', allow_pickle=True)
     cv_groups = []
     for id_ in ids_group:
         for i, group in enumerate(groups):
             if id_ in group:
                 cv_groups.append(i)
+    return cv_groups
+
+
+def split_to_group_old(ids_group, list_ids_vt=cts.ids_tp, list_ids_no_VT=cts.ids_tn + cts.ids_vn, n_vt=12):
+    cv_groups = []
+    ratio = len(list_ids_no_VT) // len(list_ids_vt)
+    max_ind = ratio * len(list_ids_vt)
+    for id in ids_group:
+        if id in list_ids_vt:
+            indx = list_ids_vt.index(id)
+            cv_groups.append(np.floor(indx / n_vt))
+        if id in list_ids_no_VT:
+            indx = list_ids_no_VT.index(id)
+            if indx < max_ind:
+                indx = np.floor(indx / (ratio * n_vt))
+                cv_groups.append(indx)
+            else:
+                indx = np.floor((indx - max_ind) / n_vt)
+                cv_groups.append(indx)
     return cv_groups
 
 

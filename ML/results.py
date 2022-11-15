@@ -259,24 +259,15 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
 
     for i in range(1, cts.NM + 1):
         y_test_list, y_pred_list = test_samples(prob_rf[i][:, 1], y_test_d[i], 100)
+
         low_auroc_i, high_auroc_i = roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i,
                                                       title='model ' + str(i),
-                                                      majority_vote=False, soft_lines=True)
+                                                      majority_vote=False, soft_lines=False)
+
         low_auroc.append(low_auroc_i)
         high_auroc.append(high_auroc_i)
         # plt.plot(tpr_rf, tpr_rf, 'k')
-    plt.legend(
-        ('RF model 1 ' + str(np.round(AUROC[0], 2)) + '(' + str(np.round(low_auroc[0], 3)) + ',' + str(
-            np.round(high_auroc[0], 3)) + ')',
-         'RF model 2 ' + str(np.round(AUROC[1], 2)) + '(' + str(np.round(low_auroc[1], 3)) + ',' + str(
-             np.round(high_auroc[1], 3)) + ')',
-         'RF model 3 ' + str(np.round(AUROC[2], 2)) + '(' + str(np.round(low_auroc[2], 3)) + ',' + str(
-             np.round(high_auroc[2], 3)) + ')',
-         'RF model 4 ' + str(np.round(AUROC[3], 2)) + '(' + str(np.round(low_auroc[3], 3)) + ',' + str(
-             np.round(high_auroc[3], 3)) + ')',
-         'RF model 5 ' + str(np.round(AUROC[4], 2)) + '(' + str(np.round(low_auroc[4], 3)) + ',' + str(
-             np.round(high_auroc[4], 3)) + ')')
-        , facecolor='white', framealpha=0.8, loc=4)
+    plt.legend(facecolor='white', framealpha=0.8, loc=4)
 
     plt.title('Receiving operating curve')
     plt.xlabel('1-Sp')
@@ -298,7 +289,6 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem_mrmr_MIQ/RF_2/')
+    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem_mrmr_MIQ/RF_3/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem', dataset='new_dem',
-               feature_selection=0)
+    # all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem', dataset='new_dem',feature_selection=0)
