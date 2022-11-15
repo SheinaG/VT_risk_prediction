@@ -36,6 +36,7 @@ from scipy.interpolate import interp1d
 
 # Machine Learning
 
+from xgboost import XGBClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 import sklearn.utils.class_weight as skl_cw
@@ -43,7 +44,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from scipy.stats import mannwhitneyu
 from sklearn.feature_selection import RFE
-from sklearn.metrics import roc_auc_score, confusion_matrix, roc_curve, auc
+from sklearn.metrics import roc_auc_score, confusion_matrix, roc_curve, auc, precision_recall_curve
 from sklearn.model_selection import LeaveOneGroupOut, GridSearchCV
 from skopt.plots import plot_objective
 import pymrmr

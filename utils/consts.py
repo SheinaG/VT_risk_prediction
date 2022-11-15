@@ -2,8 +2,6 @@ import pathlib
 
 import numpy as np
 from utils.base_packages import *
-from xgboost import XGBClassifier
-
 from utils import metrics
 
 # male ==1

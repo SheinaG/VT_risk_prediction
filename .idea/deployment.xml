@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="sheina@bm@orion02:22 password (10)" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="sheina@bm@orion02:22 password" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="sheina@bm@132.68.176.119:22">
         <serverdata>
@@ -33,7 +33,7 @@
       <paths name="sheina@bm@orion02:22 password">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/home/sheina/VT_risk_prediction" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

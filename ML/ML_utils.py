@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 
 from utils import consts as cts
@@ -236,7 +237,7 @@ def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, nu
     if method == 'mannw':
         X_new, features = stat_selection('mannw', X_train_df, y_train, num)
     if method == 'mrmr':
-        X_new, features = mrmr_from_matlab(np.asarray(X_train_df), y_train)
+        X_new, features = mrmr_from_matlab(X_train_df, y_train)
     return X_new, features
 
 
@@ -298,8 +299,20 @@ def calc_confidence_interval_of_array(x, confidence=0.95):
 
 
 def mrmr_from_matlab(x_train, y_train):
+    features = list(x_train.columns)
     import matlab.engine
     eng = matlab.engine.start_matlab()
     eng.cd(r'/home/sheina/VT_risk_prediction/ML/', nargout=0)
-    idx, scores = eng.matlab_mrmr(x_train, y_train)
-    a = 5
+    X = matlab.single(np.asarray(x_train).tolist())
+    Y = matlab.int8(y_train.astype('int').tolist())
+    idx, scores = eng.matlab_mrmr(X, Y, nargout=2)
+    scores_norm = np.asarray(scores[0]) / sum(scores[0])
+    energy = 0
+    new_features = []
+    for idx_i in idx[0]:
+        energy += scores_norm[int(idx_i) - 1]
+        new_features.append(features[int(idx_i) - 1])
+        if energy >= 0.95:
+            break
+    X_new = x_train[new_features]
+    return X_new, new_features
