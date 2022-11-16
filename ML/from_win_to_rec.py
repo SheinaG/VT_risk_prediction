@@ -1,20 +1,10 @@
 from ML.ML_utils import *
-
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
 features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 f2 = lambda x: list(map('{:.2f}'.format, x))
 MAX_WIN = cts.MAX_WIN
-NM = cts.NM
-
-
-def rc_scorer(estimator, X, y):
-    y_hat = estimator.predict(X)
-    if len(np.unique(y_hat)) == 2:
-        return roc_auc_score(y, y_hat)
-    else:
-        return 0
 
 
 def organize_win_probabilities(n_win, x_as_list):
@@ -56,7 +46,7 @@ def tev_LR(x, y, hyp_path, task):
     if task == 'train':
         # hyperparameters search
         lr = LogisticRegression(random_state=42, class_weight='balanced')
-        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=10)
+        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=1)
         clf.fit(x, y)
         prob = clf.predict_proba(x)[:, 1]
         with open((hyp_path / 'LR.pkl'), 'wb') as f:
@@ -119,13 +109,10 @@ def plot_results(prob, y_true, title, save_path, algo):
         str_t = 'Roc curve for RBDB test'
     if title == 'ext_test':
         str_t = 'Roc curve for UVAF test'
-    for i in range(NM):
+    for i in range(1, cts.NM + 1):
         AUROC[i] = roc_auc_score(y_true, prob[i, :])
-        # th, Sp_, Se_ = opt_thresh(prob[i, :].T, y_true, save_path, task=title, model_type=i + 1, algo=algo)
         tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i, :])
         plt.plot(tpr_rf, fpr_rf, cts.colors[i], label='model ' + str(i + 1) + ' (' + str(np.round(AUROC[i], 2)) + ')')
-        # ind_th = np.argsort(abs(ths - th))[0]
-        # plt.plot(tpr_rf[ind_th], fpr_rf[ind_th], cts.colors[i], marker="+", markersize=15)
         plt.plot(tpr_rf, tpr_rf, 'k')
         plt.xlabel('1-Sp')
         plt.ylabel('Se')
@@ -138,80 +125,12 @@ def plot_results(prob, y_true, title, save_path, algo):
     plt.title(str_t)
     plt.savefig(save_path / str(title + '.png'), dpi=400, transparent=True)
     plt.show()
-    # res['Se'] = Se
-    # res['Sp'] = Sp
     res['AUROC'] = AUROC
 
     results = pd.DataFrame.from_dict(res)
     results = results.apply(f2)
     results.to_excel(save_path / str(title + '_results.xlsx'))
     return res
-
-
-def run_all_models(dataset, DATA_PATH, algo):
-    save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
-    # train:
-
-    train_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    val_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-    train_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    y_train_p = np.concatenate([np.ones([1, len(train_vt)]), np.zeros([1, len(train_no_vt + val_no_vt)])],
-                               axis=1).squeeze()
-    x_train, y_train, train_ids_groups, n_win = create_dataset(train_vt + train_no_vt + val_no_vt,
-                                                               y_train_p,
-                                                               path=DATA_PATH, model=0, return_num=True)
-    train_groups = split_to_group(train_ids_groups, train_vt, train_no_vt + val_no_vt, n_vt=12)
-    for i in range(NM):
-        x_train_model = model_features(x_train, i + 1)
-        hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
-            algo + '_' + str(i + 1))
-        prob = split_and_collect(x_train_model, y_train, y_train_p, train_groups, n_win, hyp_path, algo)
-        if i == 0:
-            prob_all = np.expand_dims(prob, axis=1).T
-        else:
-            prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
-    # res = plot_results(prob_all, y_train_p[:-6], 'train', save_path, algo)
-
-    # test
-    test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    y_test_p = np.concatenate([np.ones([1, len(test_vt)]), np.zeros([1, len(test_no_vt)])], axis=1).squeeze()
-    x_test, y_test, _, n_win_test = train_model.create_dataset(test_vt + test_no_vt, y_test_p, path=DATA_PATH, model=0,
-                                                               return_num=True)
-    for i in range(NM):
-        x_test_model = train_model.model_features(x_test, i + 1)
-        hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
-            'RF_' + str(i + 1))
-        opt = joblib.load(hyp_path / 'opt.pkl')
-        y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
-        data = organize_win_probabilities(n_win, y_pred)
-        prob = tev_LR(data, y_test_p, hyp_path, task='test')
-        if i == 0:
-            prob_all = np.expand_dims(prob, axis=1).T
-        else:
-            prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
-    res = plot_results(prob_all, y_test_p, 'test', save_path)
-
-    # ext_test
-    test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
-    test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
-    y_test_p = np.concatenate([np.ones([1, len(test_vt)]), np.zeros([1, len(test_no_vt)])], axis=1).squeeze()
-    x_test, y_test, _, n_win = train_model.create_dataset(test_vt + test_no_vt, y_test_p, path=DATA_PATH, model=0,
-                                                          return_num=True)
-    for i in range(NM):
-        x_test_model = train_model.model_features(x_test, i + 1)
-        hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
-            algo + '_' + str(i + 1))
-        opt = joblib.load(hyp_path / 'opt.pkl')
-        y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
-        data = organize_win_probabilities(n_win, y_pred)
-        prob = tev_LR(data, y_test_p, hyp_path, task='test')
-        if i == 0:
-            prob_all = np.expand_dims(prob, axis=1).T
-        else:
-            prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
-    res = plot_results(prob_all, y_test_p, 'ext_test', save_path)
-    return prob_all
 
 
 def run_one_model(all_path, DATA_PATH, algo, feature_selection=0):
@@ -246,16 +165,13 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0):
 
 
 def plot_test(dataset, DATA_PATH, algo):
-    # train:
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
-    test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    y_test_p = np.concatenate([np.ones([1, len(test_vt)]), np.zeros([1, len(test_no_vt)])], axis=1).squeeze()
-    x_test, y_test, _, n_win = create_dataset(test_vt + test_no_vt, y_test_p, path=DATA_PATH, model=0,
+    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
+    x_test, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                               return_num=True)
-    for i in range(NM):
+    for i in range(cts.NM):
         x_test_model = model_features(x_test, i + 1, with_pvc=True)
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))

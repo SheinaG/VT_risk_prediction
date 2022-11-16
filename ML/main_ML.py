@@ -59,10 +59,11 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         features_all = features_model
         for method in methods:
             if method == 'ns':
-                x_df, features_new = remove_not_significant(X_df, y_train)
-                x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=1)
+                x_df, removed_features = remove_not_significant(X_df, y_train)
+                x_test = features_mrmr(x_test, list(features_all), list(removed_features), remove=1)
+                features_new = x_test.columns
             else:
-                x_train, features_new = feature_selection_func(x_train, y_train, method, n_jobs=n_jobs, num=f_n)
+                X_df, features_new = feature_selection_func(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
                 x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=0)
             path = set_path(algo, dataset, model_type, results_dir)
             with open((path / str('features' + method + '.pkl')), 'wb') as f:
@@ -86,6 +87,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    for i in range(1, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem53', methods='',
-                               n_jobs=10, feature_selection=0)
+    for i in range(2, cts.NM + 1):
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem53', methods=['ns'],
+                               n_jobs=10, feature_selection=1)
