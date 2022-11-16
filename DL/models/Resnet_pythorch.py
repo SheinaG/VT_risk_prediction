@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from prettytable import PrettyTable
 
 
 # n_out = ((n_in + 2p - k) / s) + 1

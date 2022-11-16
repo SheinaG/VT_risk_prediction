@@ -1,26 +1,43 @@
-from models.OScnnS import OmniScaleCNN
-from models.TCNs import TCN
-from models.XceptoinTimeS import XceptionTime
-from utils.base_packages import *
-import utils.consts as cts
+import sys
+
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from OSrnn.OScnnS import OmniScaleCNN
+from OSrnn.TCNs import TCN
+from OSrnn.XceptoinTimeS import XceptionTime
+from sklearn.metrics import roc_auc_score
 
 sys.path.append('/home/sheina/tsai/')
-from dataset import all_set
-from utils.base_packages import *
-from DL_utiles.parse_args import parse_global_args
+from dataset import one_set
+import datetime
+from torch.utils.data import DataLoader
+import argparse
+import wandb
+from utiles.parse_args import parse_global_args
+
+from libauc.losses import AUCMLoss
+from libauc.optimizers import PESG
+from libauc.sampler import DualSampler
 
 empty_parser = argparse.ArgumentParser()
 parser = parse_global_args(parent=empty_parser)
 run_config = parser.parse_args()
 
 
-
+def set_all_seeds(SEED):
+    # REPRODUCIBILITY
+    torch.manual_seed(SEED)
+    np.random.seed(SEED)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 wandb.init(project="VT_det", entity="sheina", config=run_config)
 run_config = argparse.Namespace(**wandb.config)
 run_config.run_name = wandb.run.name
-cts.set_all_seeds(run_config.seed)
+set_all_seeds(run_config.seed)
 
 fs = 200
 
@@ -50,7 +67,7 @@ results = {}
 
 if run_config.batch_size == 0:
     if run_config.win_len == 1:
-        run_config.batch_size = 128
+        run_config.batch_size = 32
     if run_config.win_len == 6:
         run_config.batch_size = 32
     if run_config.win_len == 30:
@@ -59,17 +76,9 @@ if run_config.batch_size == 0:
         run_config.batch_size = 4
     if run_config.win_len == 180:
         run_config.batch_size = 1
-    if run_config.win_len == 360:
-        run_config.batch_size = 1
 
-train_set = all_set(task='train_part', win_len=run_config.win_len)
-val_set = all_set(task='val', win_len=run_config.win_len)
-if run_config.use_sampler:
-    sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=0.5)
-    train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, sampler=sampler)
-else:
-    train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, shuffle=True)
-val_loader = DataLoader(dataset=val_set, batch_size=run_config.batch_size)
+train_set = one_set(task='train_part', win_len=run_config.win_len, shuffle=True)
+val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
 
 if run_config.loss == 'wCE':
     loss_fn = nn.CrossEntropyLoss(weight=torch.Tensor([1, run_config.weight])).to(device)
@@ -87,6 +96,9 @@ epoch_gamma = 1
 
 
 def train_one_epoch(epoch_index):
+    train_set.init_epoch(epoch_index)
+    sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=0.5)
+    train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, sampler=sampler)
     whole_y_pred = np.array([])
     whole_y_t = np.array([])
     running_loss = 0.
@@ -128,15 +140,15 @@ def train_one_epoch(epoch_index):
 
         # Gather data and report
         running_loss += loss.item()
-        if i % 1000 == 999:
-            last_loss = running_loss / 1000  # loss per batch
-            print('  batch {} loss: {}'.format(i + 1, last_loss))
-            wandb.log({"train batch loss": last_loss})
-            wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
-            print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
-            running_loss = 0.
-            pred_all = []
-            lab_all = []
+
+    last_loss = running_loss / 1000  # loss per batch
+    print('  batch {} loss: {}'.format(i + 1, last_loss))
+    wandb.log({"train batch loss": last_loss})
+    wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
+    print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
+    running_loss = 0.
+    pred_all = []
+    lab_all = []
 
     return last_loss, pred_epoch, lab_epoch
 
@@ -154,6 +166,8 @@ for epoch in range(EPOCHS):
     model.train(False)
     pred_all = []
     print('evaluating')
+    val_set.init_epoch(epoch)
+    val_loader = DataLoader(dataset=val_set, batch_size=run_config.batch_size)
     with torch.no_grad():
         running_vloss = 0.0
         for i, vdata in enumerate(val_loader):
