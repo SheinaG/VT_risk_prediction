@@ -13,7 +13,7 @@ features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 def rebuild_clf(x_train, y_train, x_test, y_test, params_dict, algo):
     clf = cts.class_funcs[algo](**params_dict, class_weight='balanced',
-                                n_jobs=10)  # RandomForestClassifier(**params_dict, n_jobs=10, class_weight='balanced')
+                                n_jobs=10)
     clf.fit(x_train, y_train)
     y_pred = clf.predict_proba(x_test)[:, 1]
     results_ts = eval(clf, x_test, y_test)
@@ -44,10 +44,10 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     # create dataset ( VT each grop)
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
                                                         model=0)
-    x_train = model_features(x_train, model_type, with_dems=True)
-    train_groups = split_to_group(train_ids_groups)
+    x_train = model_features(x_train, model_type, with_dems=False)
+    train_groups = split_to_group_old(train_ids_groups)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0)
-    x_test = model_features(x_test, model_type, with_dems=True)
+    x_test = model_features(x_test, model_type, with_dems=False)
 
     if feature_selection:
         dataset = dataset + '_' + '_'.join(methods)
@@ -88,5 +88,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem53', methods=['ns'],
-                               n_jobs=10, feature_selection=1)
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='old_split_no_dems',
+                               methods=['ns'],
+                               n_jobs=10, feature_selection=0)

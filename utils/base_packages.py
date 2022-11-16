@@ -35,6 +35,7 @@ from scipy.interpolate import interp1d
 from prettytable import PrettyTable
 import pickle
 import joblib
+from datetime import datetime
 
 # Machine Learning
 
@@ -60,38 +61,24 @@ from skopt.plots import plot_objective, plot_histogram
 # Deep Learning
 
 # warnings.filterwarnings('ignore')
-from datetime import datetime
 
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import DataLoader
-import argparse
-import os
-from pathlib import Path
-import wandb
-from str2bool import str2bool
-from libauc.losses import AUCMLoss
-from libauc.optimizers import PESG
-from libauc.sampler import DualSampler
-from tsai import *
-import psutil
-import torch
-from IPython.display import display
-from fastai.basics import *
-from fastai.imports import *
-from fastai.torch_core import *
-from fastcore.basics import *
-from fastcore.dispatch import *
-from fastcore.foundation import *
-from fastcore.imports import *
-from fastcore.meta import *
-from fastcore.test import *
-from fastcore.xtras import *
-from fastai.layers import *
-from fastai.losses import *
-from fastcore.basics import snake2camel
-from torch.nn.init import normal_
-# Cell
-from torch.nn.utils import weight_norm, spectral_norm
+def load_dl():
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+    from torch.utils.tensorboard import SummaryWriter
+    from torch.utils.data import DataLoader
+    import argparse
+    import os
+    from pathlib import Path
+    import wandb
+    from str2bool import str2bool
+    from libauc.losses import AUCMLoss
+    from libauc.optimizers import PESG
+    from libauc.sampler import DualSampler
+    import psutil
+    import torch
+    from IPython.display import display
+    from fastcore.basics import snake2camel
+    from torch.nn.init import normal_
+    from torch.nn.utils import weight_norm, spectral_norm

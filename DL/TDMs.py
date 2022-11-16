@@ -1,36 +1,16 @@
-import sys
+from utils.base_packages import *
 
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from sklearn.metrics import roc_auc_score
+load_dl()
 
-from OSrnn.OScnnS import OmniScaleCNN
-from OSrnn.TCNs import TCN
-from OSrnn.XceptoinTimeS import XceptionTime
-
-sys.path.append('/home/sheina/tsai/')
+from models.OScnnS import OmniScaleCNN
+from models.TCNs import TCN
+from models.XceptoinTimeS import XceptionTime
 from dataset import one_set
-import datetime
-from torch.utils.data import DataLoader
-import argparse
-import wandb
 from DL_utiles.parse_args import parse_global_args
-
 
 empty_parser = argparse.ArgumentParser()
 parser = parse_global_args(parent=empty_parser)
 run_config = parser.parse_args()
-
-
-def set_all_seeds(SEED):
-    # REPRODUCIBILITY
-    torch.manual_seed(SEED)
-    np.random.seed(SEED)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
 
 wandb.init(project="VT_det", entity="sheina", config=run_config)
 run_config = argparse.Namespace(**wandb.config)

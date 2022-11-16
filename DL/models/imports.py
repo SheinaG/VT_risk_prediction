@@ -1,5 +1,17 @@
 from utils.base_packages import *
 
+dl_load()
+from fastai.basics import *
+from fastai.imports import *
+from fastai.torch_core import *
+from fastcore.basics import *
+from fastcore.dispatch import *
+from fastcore.foundation import *
+from fastcore.imports import *
+from fastcore.meta import *
+from fastcore.test import *
+from fastcore.xtras import *
+
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 from configparser import ConfigParser
