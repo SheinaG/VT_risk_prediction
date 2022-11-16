@@ -1,6 +1,6 @@
-import pathlib
+from utils.base_packages import *
 
-import numpy as np
+load_dl()
 
 
 class all_set(Dataset):
@@ -33,7 +33,7 @@ class all_set(Dataset):
 
 
 class one_set(Dataset):
-    def __init__(self, task, win_len=6, transform=ToTensor(), shuffle=False):
+    def __init__(self, task, win_len=6, transform=ToTensor(), shuffle=False, overfit=0):
         if task in ['train', 'val', 'train_part', 'test']:
             DL_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/')
 

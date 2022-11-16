@@ -1,5 +1,4 @@
 from utils.base_packages import *
-
 load_dl()
 
 from models.OScnnS import OmniScaleCNN
@@ -56,7 +55,7 @@ if run_config.batch_size == 0:
         run_config.batch_size = 1
 
 train_set = one_set(task='train_part', win_len=run_config.win_len, shuffle=True)
-val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
+val_set = one_set(task='train_part', win_len=run_config.win_len, shuffle=False)
 
 if run_config.loss == 'wCE':
     loss_fn = nn.CrossEntropyLoss(weight=torch.Tensor([1, run_config.weight])).to(device)
