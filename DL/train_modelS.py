@@ -1,26 +1,11 @@
-import sys
-
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from sklearn.metrics import roc_auc_score
-
 from OSrnn.OScnnS import OmniScaleCNN
 from OSrnn.TCNs import TCN
 from OSrnn.XceptoinTimeS import XceptionTime
 
 sys.path.append('/home/sheina/tsai/')
 from dataset import all_set
-import datetime
-from torch.utils.data import DataLoader
-import argparse
-import wandb
-from utiles.parse_args import parse_global_args
-
-from libauc.losses import AUCMLoss
-from libauc.optimizers import PESG
-from libauc.sampler import DualSampler
+from utils.base_packages import *
+from DL_utiles.parse_args import parse_global_args
 
 empty_parser = argparse.ArgumentParser()
 parser = parse_global_args(parent=empty_parser)

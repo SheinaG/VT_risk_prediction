@@ -1,9 +1,0 @@
-{
-  "val AUROC": 0.45741758241758246,
-  "_timestamp": 1666610918,
-  "_runtime": 86,
-  "_step": 19,
-  "_wandb": {
-    "runtime": 86
-  }
-}
