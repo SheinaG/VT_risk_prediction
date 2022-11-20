@@ -4,6 +4,7 @@ __all__ = ['TemporalBlock', 'TemporalConvNet', 'TCN']
 from torch.nn.utils import weight_norm
 
 from .layers import *
+from .imports import *
 
 
 # Cell

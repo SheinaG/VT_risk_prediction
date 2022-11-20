@@ -1,6 +1,7 @@
 from utils.base_packages import *
 
 load_dl()
+from torch.utils.data import Dataset
 
 
 class all_set(Dataset):

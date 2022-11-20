@@ -1,10 +1,14 @@
 from utils.base_packages import *
+
 load_dl()
+from utils.consts import *
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
 
 from models.OScnnS import OmniScaleCNN
 from models.TCNs import TCN
 from models.XceptoinTimeS import XceptionTime
-from dataset import one_set
+from data.dataset import one_set
 from DL_utiles.parse_args import parse_global_args
 
 empty_parser = argparse.ArgumentParser()

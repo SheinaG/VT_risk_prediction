@@ -82,3 +82,4 @@ def load_dl():
     from fastcore.basics import snake2camel
     from torch.nn.init import normal_
     from torch.nn.utils import weight_norm, spectral_norm
+    from torch.utils.data import Dataset

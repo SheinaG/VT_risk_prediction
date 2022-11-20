@@ -1,3 +1,7 @@
+from utils.base_packages import *
+
+load_dl()
+
 
 def parse_global_args(parent, add_help=False):
     """
@@ -21,7 +25,7 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--run-name', default='', type=str, help='placeholder for wandb run name')
     parser.add_argument('--seed', default=0, type=int, help='random seed for everything')
     parser.add_argument('--device', default=dev, type=str, help='which device to train')
-    parser.add_argument('--train', default=True, type=str2bool, help='to train or to evaluate')
+    parser.add_argument('--train', default='overfit', type=str, help='to train or to evaluate')
     parser.add_argument('--model', default='TCN', type=str,
                         choices=['XceptionTime', 'InceptionTime', 'TCN', 'ResNet', 'OmniScaleCNN', 'LSTM_FCN', 'LSTM',
                                  'RNN'], help='which model to train')

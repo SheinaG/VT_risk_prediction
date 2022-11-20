@@ -1,13 +1,12 @@
-import sys
+from utils.base_packages import *
 
-import numpy as np
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from OSrnn.OScnnS import OmniScaleCNN
-from OSrnn.TCNs import TCN
-from OSrnn.XceptoinTimeS import XceptionTime
-from sklearn.metrics import roc_auc_score
+load_dl()
+
+from models.OScnnS import OmniScaleCNN
+from models.TCNs import TCN
+from models.XceptoinTimeS import XceptionTime
+from data.dataset import one_set
+from DL_utiles.parse_args import parse_global_args
 
 sys.path.append('/home/sheina/tsai/')
 from dataset import one_set
@@ -45,22 +44,13 @@ if run_config.gpu == '':
     device = run_config.device
 else:
     device = "{}:{}".format(run_config.device, run_config.gpu)
-# device = run_config.device
-# if run_config.model == 'InceptionTime':
-#     model = InceptionTime(c_in=1, c_out=2)
+
 if run_config.model == 'OmniScaleCNN':
     model = OmniScaleCNN(c_in=1, c_out=2, seq_len=run_config.win_len ** 10 * 200)
 if run_config.model == 'XceptionTime':
     model = XceptionTime(c_in=1, c_out=2)
 if run_config.model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'ResNet':
-#     model = ResNet(c_in=1, c_out=2)
-# if run_config.model == 'TST':
-#     model = TST(c_in=1, c_out=2, seq_len=run_config.win_len**10*200, dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'mWDN':
-#     model = mWDN(c_in=1, c_out=2, wavelet ='db1', seq_len=run_config.win_len**10*200)
-
 
 model = model.to(device)
 results = {}
@@ -77,8 +67,8 @@ if run_config.batch_size == 0:
     if run_config.win_len == 180:
         run_config.batch_size = 1
 
-train_set = one_set(task='train_part', win_len=run_config.win_len, shuffle=True)
-val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
+train_set = one_set(task='train_part', win_len=run_config.win_len, shuffle=True, overfit=1)
+# val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
 
 if run_config.loss == 'wCE':
     loss_fn = nn.CrossEntropyLoss(weight=torch.Tensor([1, run_config.weight])).to(device)

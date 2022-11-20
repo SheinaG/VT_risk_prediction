@@ -1,6 +1,5 @@
 from utils.base_packages import *
-
-dl_load()
+load_dl()
 from fastai.basics import *
 from fastai.imports import *
 from fastai.torch_core import *

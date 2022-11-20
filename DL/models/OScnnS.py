@@ -4,7 +4,9 @@ __all__ = ['SampaddingConv1D_BN', 'build_layer_with_layer_parameter', 'OmniScale
            'get_out_channel_number', 'generate_layer_parameter_list']
 
 # Cell
+from .imports import *
 from .layers import *
+from .model_utiles import *
 
 
 # Cell
