@@ -44,10 +44,10 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     # create dataset ( VT each grop)
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
                                                         model=0)
-    x_train = model_features(x_train, model_type, with_dems=False)
-    train_groups = split_to_group_old(train_ids_groups)
+    x_train = model_features(x_train, model_type, with_dems=True)
+    train_groups = split_to_group(train_ids_groups)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0)
-    x_test = model_features(x_test, model_type, with_dems=False)
+    x_test = model_features(x_test, model_type, with_dems=True)
 
     if feature_selection:
         dataset = dataset + '_' + '_'.join(methods)
@@ -59,12 +59,13 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         features_all = features_model
         for method in methods:
             if method == 'ns':
-                x_df, removed_features = remove_not_significant(X_df, y_train)
+                X_df, removed_features = remove_not_significant(X_df, y_train)
                 x_test = features_mrmr(x_test, list(features_all), list(removed_features), remove=1)
                 features_new = x_test.columns
             else:
                 X_df, features_new = feature_selection_func(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
                 x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=0)
+            x_train = X_df
             path = set_path(algo, dataset, model_type, results_dir)
             with open((path / str('features' + method + '.pkl')), 'wb') as f:
                 joblib.dump(features_new, f)
@@ -88,6 +89,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='old_split_no_dems',
-                               methods=['ns'],
-                               n_jobs=10, feature_selection=0)
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem53',
+                               methods=['mrmr'],
+                               n_jobs=10, feature_selection=1)

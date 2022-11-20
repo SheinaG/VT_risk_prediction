@@ -1,4 +1,7 @@
+import numpy as np
+
 from ML.ML_utils import *
+
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
 features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
@@ -133,7 +136,7 @@ def plot_results(prob, y_true, title, save_path, algo):
     return res
 
 
-def run_one_model(all_path, DATA_PATH, algo, feature_selection=0):
+def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR'):
     # load data for all models
     y_train_p = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                                axis=1).squeeze()
@@ -150,21 +153,28 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0):
         x_train_model = model_features(x_train, i, with_dems=True)
         y_pred = opt.predict_proba(x_train_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred)
-        prob = tev_LR(data, y_train_p, model_path, task='train')
-        opt_thresh_sp(prob, y_train_p, model_path, min_sp=90, task='train', algo=algo)
 
         # test
         x_test_model = model_features(x_test, i, with_dems=True)
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
-        data = organize_win_probabilities(n_win_test, y_pred)
-        prob = tev_LR(data, y_test_p, model_path, task='test')
-        AUROC = roc_auc_score(y_test_p, prob)
+        data_test = organize_win_probabilities(n_win_test, y_pred)
+
+        if method == 'LR':
+            prob = tev_LR(data, y_train_p, model_path, task='train')
+            opt_thresh_sp(prob, y_train_p, model_path, min_sp=90, task='train', algo=algo)
+            prob = tev_LR(data_test, y_test_p, model_path, task='test')
+            AUROC = roc_auc_score(y_test_p, prob)
+
+        if method == 'median':
+            medians = np.median(data_test, axis=0)
+            AUROC = roc_auc_score(y_test_p, medians)
+
         auroc_all.append(AUROC)
     print(auroc_all)
     return prob
 
 
-def plot_test(dataset, DATA_PATH, algo):
+def plot_test(dataset, DATA_PATH, algo, method='LR'):
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
@@ -172,13 +182,16 @@ def plot_test(dataset, DATA_PATH, algo):
     x_test, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                               return_num=True)
     for i in range(cts.NM):
-        x_test_model = model_features(x_test, i + 1, with_pvc=True)
+        x_test_model = model_features(x_test, i + 1, with_dems=True)
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
         opt = joblib.load(hyp_path / 'opt.pkl')
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred)
-        prob = tev_LR(data, y_test_p, hyp_path, task='test')
+        if method == 'LR':
+            prob = tev_LR(data, y_test_p, hyp_path, task='test')
+        if method == 'median':
+            prob = np.median(data, axis=0)
         if i == 0:
             prob_all = np.expand_dims(prob, axis=1).T
         else:
@@ -191,9 +204,9 @@ def plot_test(dataset, DATA_PATH, algo):
 if __name__ == '__main__':
     algo = 'RF'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem/')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem53/')
     # run_all_models(dataset, DATA_PATH, algo)
     # plot_test(dataset, DATA_PATH, algo)
-    run_one_model(all_path, DATA_PATH, algo)
+    run_one_model(all_path, DATA_PATH, algo, method='median')
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

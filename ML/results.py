@@ -289,6 +289,6 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem/RF_3/')
+    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/old_split_no_dems/RF_5/')
 
-    # all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem', dataset='new_dem',feature_selection=0)
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem53_ns', dataset='new_dem53', feature_selection=1)
