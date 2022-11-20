@@ -110,6 +110,6 @@ class overfit_set(Dataset):
         epoch_idxs_ordered = np.where(self.indexes_all[:, 1] == str(epoch_idx * self.win_len))[0]
         targets = self.targets_all[epoch_idxs_ordered]
         p_idx = epoch_idxs_ordered[targets == 1]
-        n_idx = epoch_idxs_ordered[targets == 1]
-        self.indexes = p_idx[:self.size] + n_idx[:self.size]
+        n_idx = epoch_idxs_ordered[targets == 0]
+        self.indexes = p_idx[:self.size].tolist() + n_idx[:self.size].tolist()
         self.targets = self.targets_all[self.indexes]

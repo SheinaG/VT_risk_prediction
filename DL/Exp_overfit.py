@@ -32,9 +32,11 @@ if run_config.model == 'OmniScaleCNN':
 if run_config.model == 'XceptionTime':
     model = XceptionTime(c_in=1, c_out=2)
 if run_config.model == 'TCN':
-    model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
+    model = TCN(c_in=1, c_out=2, layers=2 * [25], conv_dropout=run_config.conv_dropout,
+                fc_dropout=run_config.fc_dropout)
 
 model = model.to(device)
+wandb.watch(model, log='all')
 results = {}
 
 if run_config.batch_size == 0:
@@ -50,7 +52,8 @@ if run_config.batch_size == 0:
         run_config.batch_size = 1
 
 train_set = overfit_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
-train_set.init_epoch(epoch_index=0)
+train_set.init_epoch(epoch_idx=0)
+train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
 # val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
 
 if run_config.loss == 'wCE':
@@ -64,16 +67,13 @@ if run_config.optimizer == 'PESG':
     optimizer = PESG(model, lr=run_config.lr, loss_fn=loss_fn, momentum=0.9, margin=1.0, epoch_decay=0.003,
                      weight_decay=0.0001)
 
-timestamp = datetime.datetime.now()
+timestamp = datetime.now()
 epoch_gamma = 1
 
 
 def train_one_epoch(epoch_index):
-    train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
-    whole_y_pred = np.array([])
-    whole_y_t = np.array([])
+
     running_loss = 0.
-    last_loss = 0.
     pred_all = []
     lab_all = []
     pred_epoch = []
@@ -156,6 +156,9 @@ for epoch in range(EPOCHS):
     wandb.log({"val AUROC": val_auroc})
     if val_auroc == 1:
         run_config.size = run_config.size * 2
+        train_set = overfit_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
+        train_set.init_epoch(epoch_idx=0)
+        train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
 
     # Log the running loss averaged per batch
     # for both training and validation

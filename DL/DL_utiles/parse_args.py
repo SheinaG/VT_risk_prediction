@@ -1,4 +1,4 @@
-from DL_utiles.base_packages import *
+from DL.DL_utiles.base_packages import *
 
 
 
@@ -44,16 +44,16 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--loss', default='AUCMLoss', type=str, choices=['CE', 'wCE', 'focal', 'AUCMLoss'],
                         help='loss to use')
     parser.add_argument('--weight', default=36, type=int, help='The weight of the positive class')
-    parser.add_argument('--epochs', type=int, default=500, help='Total number of epochs')
+    parser.add_argument('--epochs', type=int, default=1000, help='Total number of epochs')
     # parser.add_argument('--early-stop-patience', type=int, default=10, help='')
     # parser.add_argument('--val-step-every', type=int, default=1, help='run validation set every x number of epochs')
     parser.add_argument('--optimizer', default='PESG', type=str, choices=['AdamW', 'sgd', 'Adam', 'PESG'],
                         help='which optimizer to use')
     # parser.add_argument('--scheduler_patience', default=5, type=int, help='patience of reduce lr on plateau')
-    parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=1e-2, help='Learning rate')
     # parser.add_argument('--weight_decay', type=float, default=1e-4, help='Regularization term')
     parser.add_argument('--batch_size', type=int, default=32, help='training batch size')
-    parser.add_argument('--size', type=int, default=32, help='overfit size')
+    parser.add_argument('--size', type=int, default=1, help='overfit size')
     parser.add_argument('--batch-size-val', type=int, default=4, help='validation batch size')
     parser.add_argument('--batch-size-test', type=int, default=4, help='test batch size')
 
