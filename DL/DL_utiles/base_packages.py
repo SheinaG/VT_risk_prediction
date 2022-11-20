@@ -58,31 +58,32 @@ from skopt import BayesSearchCV
 from skopt.space import Real, Categorical, Integer
 from skopt.plots import plot_objective, plot_histogram
 
-
 # Deep Learning
 
 # warnings.filterwarnings('ignore')
 
-def load_dl():
-    import torch
-    import torch.nn as nn
-    import torch.optim as optim
-    from torch.utils.tensorboard import SummaryWriter
-    from torch.utils.data import DataLoader
-    import argparse
-    import os
-    from pathlib import Path
-    import wandb
-    from str2bool import str2bool
-    from libauc.losses import AUCMLoss
-    from libauc.optimizers import PESG
-    from libauc.sampler import DualSampler
-    import psutil
-    import torch
-    from IPython.display import display
-    from fastcore.basics import snake2camel
-    from torch.nn.init import normal_
-    from torch.nn.utils import weight_norm, spectral_norm
-    from torch.utils.data import Dataset
-    from torchvision import transforms
-    import argparse
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DataLoader
+import argparse
+import os
+from pathlib import Path
+import wandb
+from str2bool import str2bool
+from libauc.losses import AUCMLoss
+from libauc.optimizers import PESG
+from libauc.sampler import DualSampler
+import psutil
+import torch
+from IPython.display import display
+from fastcore.basics import snake2camel
+from torch.nn.init import normal_
+from torch.nn.utils import weight_norm, spectral_norm
+from torch.utils.data import Dataset
+from torchvision import transforms
+import argparse
+from torch.nn.utils.rnn import PackedSequence
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence

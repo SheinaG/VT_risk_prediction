@@ -1,5 +1,5 @@
-from utils.base_packages import *
-load_dl()
+from DL.DL_utiles.base_packages import *
+from utils.consts import *
 from fastai.basics import *
 from fastai.imports import *
 from fastai.torch_core import *

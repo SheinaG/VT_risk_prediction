@@ -1,6 +1,4 @@
-import torch
-import torch.nn as nn
-
+from DL.DL_utiles.base_packages import *
 
 class RNN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):

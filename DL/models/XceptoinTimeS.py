@@ -1,4 +1,4 @@
-import torch.nn as nn
+from DL.DL_utiles.base_packages import *
 from .imports import *
 from .layers import *
 

@@ -1,6 +1,5 @@
-from utils.base_packages import *
+from DL_utiles.base_packages import *
 
-load_dl()
 
 
 def parse_global_args(parent, add_help=False):
@@ -54,6 +53,7 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--lr', type=float, default=1e-3, help='Learning rate')
     # parser.add_argument('--weight_decay', type=float, default=1e-4, help='Regularization term')
     parser.add_argument('--batch_size', type=int, default=32, help='training batch size')
+    parser.add_argument('--size', type=int, default=32, help='overfit size')
     parser.add_argument('--batch-size-val', type=int, default=4, help='validation batch size')
     parser.add_argument('--batch-size-test', type=int, default=4, help='test batch size')
 

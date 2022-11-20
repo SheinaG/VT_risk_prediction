@@ -1,7 +1,4 @@
-import torch
-import torch.nn as nn
-from torch.nn.utils.rnn import PackedSequence
-from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
+from DL.DL_utiles.base_packages import *
 
 
 class TimeDistributed(nn.Module):

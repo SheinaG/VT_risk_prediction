@@ -1,5 +1,4 @@
-import torch
-import torch.nn as nn
+from DL.DL_utiles.base_packages import *
 
 
 # n_out = ((n_in + 2p - k) / s) + 1
