@@ -32,8 +32,8 @@ if run_config.model == 'OmniScaleCNN':
 if run_config.model == 'XceptionTime':
     model = XceptionTime(c_in=1, c_out=2)
 if run_config.model == 'TCN':
-    model = TCN(c_in=1, c_out=2, layers=2 * [25], conv_dropout=run_config.conv_dropout,
-                fc_dropout=run_config.fc_dropout)
+    model = TCN(c_in=1, c_out=2, layers=run_config.n_layers * [run_config.ni], ks=run_config.ks,
+                conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
 
 model = model.to(device)
 wandb.watch(model, log='all')
@@ -159,6 +159,7 @@ for epoch in range(EPOCHS):
         train_set = overfit_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
         train_set.init_epoch(epoch_idx=0)
         train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
+        print(run_config.size)
 
     # Log the running loss averaged per batch
     # for both training and validation

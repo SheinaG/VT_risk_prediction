@@ -100,7 +100,7 @@ def opt_thresh_sp(proba, y_true_p, save_path, min_sp, task='train', algo='RF'):
     return thresh, Sp_, Se_
 
 
-def plot_results(prob, y_true, title, save_path, algo):
+def plot_results(prob, y_true, title, save_path, algo, method):
     plt.figure()
     plt.style.use('bmh')
     Se, Sp, AUROC = {}, {}, {}
@@ -113,9 +113,9 @@ def plot_results(prob, y_true, title, save_path, algo):
     if title == 'ext_test':
         str_t = 'Roc curve for UVAF test'
     for i in range(1, cts.NM + 1):
-        AUROC[i] = roc_auc_score(y_true, prob[i, :])
-        tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i, :])
-        plt.plot(tpr_rf, fpr_rf, cts.colors[i], label='model ' + str(i + 1) + ' (' + str(np.round(AUROC[i], 2)) + ')')
+        AUROC[i] = roc_auc_score(y_true, prob[i - 1, :])
+        tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i - 1, :])
+        plt.plot(tpr_rf, fpr_rf, cts.colors[i - 1], label='model ' + str(i) + ' (' + str(np.round(AUROC[i], 2)) + ')')
         plt.plot(tpr_rf, tpr_rf, 'k')
         plt.xlabel('1-Sp')
         plt.ylabel('Se')
@@ -126,13 +126,13 @@ def plot_results(prob, y_true, title, save_path, algo):
     plt.xlim([0, 1])
     plt.ylim([0, 1])
     plt.title(str_t)
-    plt.savefig(save_path / str(title + '.png'), dpi=400, transparent=True)
+    plt.savefig(save_path / str(title + '_' + method + '.png'), dpi=400, transparent=True)
     plt.show()
     res['AUROC'] = AUROC
 
     results = pd.DataFrame.from_dict(res)
     results = results.apply(f2)
-    results.to_excel(save_path / str(title + '_results.xlsx'))
+    results.to_excel(save_path / str(title + '_' + method + '_results.xlsx'))
     return res
 
 
@@ -196,17 +196,19 @@ def plot_test(dataset, DATA_PATH, algo, method='LR'):
             prob_all = np.expand_dims(prob, axis=1).T
         else:
             prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
-    res = plot_results(prob_all, y_test_p, 'test', save_path)
+    res = plot_results(prob_all, y_test_p, 'test', save_path, algo, method)
 
     return prob_all
 
 
 if __name__ == '__main__':
     algo = 'RF'
+    dataset = 'new_dem53'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem53/')
-    # run_all_models(dataset, DATA_PATH, algo)
-    # plot_test(dataset, DATA_PATH, algo)
-    run_one_model(all_path, DATA_PATH, algo, method='median')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem2/')
+    # run_all_models('new_dem53', DATA_PATH, algo)
+
+    run_one_model(all_path, DATA_PATH, algo, method='LR')
+    plot_test('new_dem2', DATA_PATH, algo)
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

@@ -243,7 +243,7 @@ def feature_selection_func(X_train_df, y_train, method='mrmr_MID', n_jobs=10, nu
 
 
 def split_to_group(ids_group):
-    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups53.npy', allow_pickle=True)
+    groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups.npy', allow_pickle=True)
     cv_groups = []
     for id_ in ids_group:
         for i, group in enumerate(groups):
