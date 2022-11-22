@@ -1,7 +1,7 @@
 method: bayes
 metric:
   goal: maximize
-  name: val AUROC
+  name: best val AUROC
 parameters:
 
   device:
@@ -13,15 +13,13 @@ parameters:
     values:
       - "0"
   lr:
-    distribution: categorical
-    values:
-      - 1e-3
-      - 1e-2
-      - 0.1
+    min: 0.001
+    max: 0.5
+
   model:
     distribution: categorical
     values:
-      - XceptionTime
+      - TCN
 
   n_layers:
     distribution: int_uniform
@@ -35,7 +33,23 @@ parameters:
 
   ks:
     distribution: int_uniform
-    max: 19
+    max: 99
     min: 1
+
+  optimizer:
+    distribution: categorical
+    values:
+      - PESG
+  size:
+    distribution: categorical
+    values:
+      - 30
+
+  activation:
+    distribution: categorical
+    values:
+      - 'RelU'
+      - 'leakyRelu'
+
 
 program: ./DL/Exp_overfit.py

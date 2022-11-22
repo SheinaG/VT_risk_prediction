@@ -8,31 +8,45 @@ features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 f2 = lambda x: list(map('{:.2f}'.format, x))
 MAX_WIN = cts.MAX_WIN
 
+def list_duplicates_of(seq, item):
+    start_at = -1
+    locs = []
+    while True:
+        try:
+            loc = seq.index(item, start_at + 1)
+        except ValueError:
+            break
+        else:
+            locs.append(loc)
+            start_at = loc
+    return locs
 
 def divide_CI_groups(LR_probs):
     main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
     rbdb_info = pd.read_excel(main_path, engine='openpyxl')
     rbdb_info['holter_id'] = rbdb_info['holter_id'].astype(str)
     ids_db = []
-    ids_hid = cts.ids_sn + cts.ids_sp
+    ids_hid = cts.ids_sp + cts.ids_sn
     for id_ in ids_hid:
         # find his patiant id:
         ids_db.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
 
-    p_db = ids_db[-10:]
-    n_db = ids_db[:-10]
-    n_db_o = list(set(ids_db))
+    p_db = ids_db[:10]
+    n_db = ids_db[10:]
+    n_db_o = list(set(n_db))
     n_p = 10
     n_n = len(n_db_o)
     n_n_CI = int(n_n * 0.8)
     list_groups_p = []
     list_groups_n = []
     for i in range(n_p):
-        groupi = p_db.remove(p_db[i])
+        groupi = p_db.copy()
+        groupi.remove(p_db[i])
         for j in range(i + 1, n_p):
-            groupij = groupi.remove(p_db[j])
+            groupij = groupi.copy()
+            groupij.remove(p_db[j])
             list_groups_p.append(groupij)
-            list_groups_n.append(np.random.sample(n_db_o, n_n_CI).tolist())
+            list_groups_n.append(random.sample(n_db_o, n_n_CI))
     list_groups_db = []
     list_groups_hid = []
     LR_prob_list = []
@@ -44,13 +58,15 @@ def divide_CI_groups(LR_probs):
         prob_LR_group = []
         list_groups_db.append(list_groups_p[i] + list_groups_n[i])
         for db_id in list_groups_db[i]:
-            group_hid.append(ids_hid[ids_db.index(db_id)])
-            list_groups_hid.append(group_hid)
-            prob_LR_group.append(LR_probs[ids_db.index(db_id)])
-            LR_prob_list.append(prob_LR_group)
-            y_test = list(np.concatenate([np.ones([1, 8]), np.zeros([1, n_n_CI])], axis=1).squeeze())
-            y_test_list.append(y_test)
-            roc_list.append(roc_auc_score(y_test, prob_LR_group))
+            idx_db = list_duplicates_of(ids_db, db_id)
+            for j in idx_db:
+                group_hid.append(ids_hid[j])
+                prob_LR_group.append(LR_probs[j])
+        list_groups_hid.append(group_hid)
+        LR_prob_list.append(prob_LR_group)
+        y_test = list(np.concatenate([np.ones([1, 8]), np.zeros([1, len(prob_LR_group) - 8])], axis=1).squeeze())
+        y_test_list.append(y_test)
+        roc_list.append(roc_auc_score(y_test, prob_LR_group))
 
     return y_test_list, LR_prob_list
 
@@ -230,7 +246,7 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     return prob
 
 
-def plot_test(dataset, DATA_PATH, algo, method='LR'):
+def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr']):
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
@@ -244,12 +260,20 @@ def plot_test(dataset, DATA_PATH, algo, method='LR'):
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
         opt = joblib.load(hyp_path / 'opt.pkl')
+        features_model = list(model_features(features_list, i + 1, with_dems=True)[0])
+        if feature_selection:
+            features_str = str('features' + methods[0] + '.pkl')
+            try:
+                features = joblib.load(hyp_path / features_str)
+            except FileNotFoundError:
+                features = features_model
+            x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred)
         if method == 'LR':
             prob = tev_LR(data, y_test_p, hyp_path, task='test')
             y_test_list, prob_list = divide_CI_groups(prob)
-            low_auroc_i, high_auroc_i = roc_plot_envelope(prob, y_test_list, K_test=100, augmentation=1, typ=i,
+            low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='LR',
                                                           majority_vote=False, soft_lines=False)
         if method == 'median':
@@ -279,7 +303,7 @@ if __name__ == '__main__':
     all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
     # run_all_models('new_dem53', DATA_PATH, algo)
 
-    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
-    plot_test('new_dem2', DATA_PATH, algo)
+    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
+    plot_test('new_dem', DATA_PATH, algo, feature_selection=1, methods=['mrmr'])
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

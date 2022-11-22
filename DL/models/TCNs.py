@@ -14,19 +14,23 @@ from .imports import *
 
 
 class TemporalBlock(Module):
-    def __init__(self, ni, nf, ks, stride, dilation, padding, dropout=0.):
+    def __init__(self, ni, nf, ks, stride, dilation, padding, activation, dropout=0.):
         self.conv1 = weight_norm(nn.Conv1d(ni, nf, ks, stride=stride, padding=padding, dilation=dilation))
         self.chomp1 = Chomp1d(padding)
-        self.relu1 = nn.ReLU()
+        if activation == 'RelU':
+            act_func = nn.ReLU()
+        if activation == 'leakyRelU':
+            act_func = nn.LeakyReLU()
+        self.relu1 = act_func
         self.dropout1 = nn.Dropout(dropout)
         self.conv2 = weight_norm(nn.Conv1d(nf, nf, ks, stride=stride, padding=padding, dilation=dilation))
         self.chomp2 = Chomp1d(padding)
-        self.relu2 = nn.ReLU()
+        self.relu2 = act_func
         self.dropout2 = nn.Dropout(dropout)
         self.net = nn.Sequential(self.conv1, self.chomp1, self.relu1, self.dropout1,
                                  self.conv2, self.chomp2, self.relu2, self.dropout2)
         self.downsample = nn.Conv1d(ni, nf, 1) if ni != nf else None
-        self.relu = nn.ReLU()
+        self.relu = act_func
         self.init_weights()
 
     def init_weights(self):
@@ -40,20 +44,20 @@ class TemporalBlock(Module):
         return self.relu(out + res)
 
 
-def TemporalConvNet(c_in, layers, ks=2, dropout=0.):
+def TemporalConvNet(c_in, layers, activation, ks=2, dropout=0.):
     temp_layers = []
     for i in range(len(layers)):
         dilation_size = 2 ** i
         ni = c_in if i == 0 else layers[i - 1]
         nf = layers[i]
         temp_layers += [TemporalBlock(ni, nf, ks, stride=1, dilation=dilation_size, padding=(ks - 1) * dilation_size,
-                                      dropout=dropout)]
+                                      dropout=dropout, activation=activation)]
     return nn.Sequential(*temp_layers)
 
 
 class TCN(Module):
-    def __init__(self, c_in, c_out, layers=8 * [25], ks=7, conv_dropout=0., fc_dropout=0.):
-        self.tcn = TemporalConvNet(c_in, layers, ks=ks, dropout=conv_dropout)
+    def __init__(self, c_in, c_out, layers=8 * [25], ks=7, conv_dropout=0., fc_dropout=0., activation='RelU'):
+        self.tcn = TemporalConvNet(c_in, layers, activation, ks=ks, dropout=conv_dropout)
         self.gap = GAP1d()
         self.dropout = nn.Dropout(fc_dropout) if fc_dropout else None
         self.linear = nn.Linear(layers[-1], c_out)

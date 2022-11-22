@@ -17,7 +17,7 @@ def parse_global_args(parent, add_help=False):
     else:
         dev = "cpu"
 
-    parser.add_argument('--gpu', default='1', type=str, help='specific gpu number to use {0,1,2...}')
+    parser.add_argument('--gpu', default='0', type=str, help='specific gpu number to use {0,1,2...}')
     parser.add_argument('--repo_root', default=repo_root, type=Path, help='repository main dir')
     parser.add_argument('--models_dir', default=output_folder, type=Path, help='output dir')
     parser.add_argument('--dataset_dir', default=dataset_root, type=Path, help='dataset path')
@@ -58,7 +58,7 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--batch-size-test', type=int, default=4, help='test batch size')
 
     # TCN model:
-
+    parser.add_argument('--activation', type=str, default='RelU', help='which activation function to use')
     parser.add_argument('--n_layers', type=int, default=8, help='how many layers are in the model')
     parser.add_argument('--ni', type=int, default=8, help='how many channels are in the model')
     parser.add_argument('--ks', type=int, default=8, help='filter size')

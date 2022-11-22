@@ -42,17 +42,20 @@ class XceptionModule(Module):
 
 
 class XceptionBlock(Module):
-    def __init__(self, ni, nf, residual=True, **kwargs):
+    def __init__(self, ni, nf, ks, n_layers, residual=True, activation='RelU', **kwargs):
         self.residual = residual
         self.xception, self.shortcut = nn.ModuleList(), nn.ModuleList()
-        for i in range(4):
+        for i in range(n_layers):
             if self.residual and (i - 1) % 2 == 0: self.shortcut.append(
                 BN1d(n_in) if n_in == n_out else ConvBlock(n_in, n_out * 4 * 2, 1, act=None))
             n_out = nf * 2 ** i
             n_in = ni if i == 0 else n_out * 2
-            self.xception.append(XceptionModule(n_in, n_out, **kwargs))
+            self.xception.append(XceptionModule(n_in, n_out, ks, ))
         self.add = Add()
-        self.act = nn.ReLU()
+        if activation == 'RelU':
+            self.act = nn.ReLU()
+        if activation == 'leakyRelU':
+            self.act = nn.LeakyReLU()
 
     def forward(self, x):
         res = x
@@ -63,9 +66,9 @@ class XceptionBlock(Module):
 
 
 class XceptionTime(Module):
-    def __init__(self, c_in, c_out, nf=16, nb_filters=None, adaptive_size=50, **kwargs):
+    def __init__(self, c_in, c_out, nf=16, ks=40, nb_filters=None, adaptive_size=50, n_layers=4, **kwargs):
         nf = ifnone(nf, nb_filters)
-        self.block = XceptionBlock(c_in, nf, **kwargs)
+        self.block = XceptionBlock(c_in, nf, ks, n_layers, **kwargs)
         self.head_nf = nf * 32
         self.head = nn.Sequential(nn.AdaptiveAvgPool1d(adaptive_size),
                                   ConvBlock(self.head_nf, self.head_nf // 2, 1),

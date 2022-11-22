@@ -91,4 +91,4 @@ if __name__ == "__main__":
     for i in range(1, cts.NM + 1):
         train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem41',
                                methods=['ns'],
-                               n_jobs=10, feature_selection=0, algo='xgb')
+                               n_jobs=10, feature_selection=0, algo='XGB')

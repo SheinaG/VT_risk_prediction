@@ -30,10 +30,11 @@ else:
 if run_config.model == 'OmniScaleCNN':
     model = OmniScaleCNN(c_in=1, c_out=2, seq_len=run_config.win_len ** 10 * 200)
 if run_config.model == 'XceptionTime':
-    model = XceptionTime(c_in=1, c_out=2)
+    model = XceptionTime(c_in=1, c_out=2, ks=run_config.ks, nf=run_config.ni, n_layers=run_config.n_layers)
 if run_config.model == 'TCN':
     model = TCN(c_in=1, c_out=2, layers=run_config.n_layers * [run_config.ni], ks=run_config.ks,
-                conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
+                conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout,
+                activation=run_config.activation)
 
 model = model.to(device)
 wandb.watch(model, log='all')
@@ -165,7 +166,8 @@ for epoch in range(EPOCHS):
     # for both training and validation
 
     # Track best performance, and save the model's state
-    # if val_auroc > val_auroc_b:
-    #     val_auroc_b = val_auroc
+    if val_auroc > val_auroc_b:
+        val_auroc_b = val_auroc
+        wandb.log({"best val AUROC": val_auroc_b})
     #     model_path = run_config.models_dir + '/' + str(run_config.run_name + '_model_{}'.format(epoch))
     #     torch.save(model.state_dict(), str(model_path))

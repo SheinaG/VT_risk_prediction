@@ -14,7 +14,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', alg
         # Plot of a ROC curve:
         y_true = y_tests[i]
         y_score = y_preds[i]
-        fpr, tpr, THs = roc_curve(y_true.ravel(), y_score.ravel())
+        fpr, tpr, THs = roc_curve(y_true, y_score)
         fprs.append(fpr)
         tprs.append(tpr)
         if majority_vote:

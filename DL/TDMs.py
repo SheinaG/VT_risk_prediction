@@ -1,6 +1,4 @@
 from utils.base_packages import *
-
-load_dl()
 from utils.consts import *
 
 sys.path.append("/home/sheina/VT_risk_prediction/")
