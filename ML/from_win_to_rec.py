@@ -1,6 +1,5 @@
-import numpy as np
-
 from ML.ML_utils import *
+from utils.plots import *
 
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
@@ -8,6 +7,52 @@ features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 f2 = lambda x: list(map('{:.2f}'.format, x))
 MAX_WIN = cts.MAX_WIN
+
+
+def divide_CI_groups(LR_probs):
+    main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
+    rbdb_info = pd.read_excel(main_path, engine='openpyxl')
+    rbdb_info['holter_id'] = rbdb_info['holter_id'].astype(str)
+    ids_db = []
+    ids_hid = cts.ids_sn + cts.ids_sp
+    for id_ in ids_hid:
+        # find his patiant id:
+        ids_db.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
+
+    p_db = ids_db[-10:]
+    n_db = ids_db[:-10]
+    n_db_o = list(set(ids_db))
+    n_p = 10
+    n_n = len(n_db_o)
+    n_n_CI = int(n_n * 0.8)
+    list_groups_p = []
+    list_groups_n = []
+    for i in range(n_p):
+        groupi = p_db.remove(p_db[i])
+        for j in range(i + 1, n_p):
+            groupij = groupi.remove(p_db[j])
+            list_groups_p.append(groupij)
+            list_groups_n.append(np.random.sample(n_db_o, n_n_CI).tolist())
+    list_groups_db = []
+    list_groups_hid = []
+    LR_prob_list = []
+    roc_list = []
+    y_test_list = []
+
+    for i in range(len(list_groups_p)):
+        group_hid = []
+        prob_LR_group = []
+        list_groups_db.append(list_groups_p[i] + list_groups_n[i])
+        for db_id in list_groups_db[i]:
+            group_hid.append(ids_hid[ids_db.index(db_id)])
+            list_groups_hid.append(group_hid)
+            prob_LR_group.append(LR_probs[ids_db.index(db_id)])
+            LR_prob_list.append(prob_LR_group)
+            y_test = list(np.concatenate([np.ones([1, 8]), np.zeros([1, n_n_CI])], axis=1).squeeze())
+            y_test_list.append(y_test)
+            roc_list.append(roc_auc_score(y_test, prob_LR_group))
+
+    return y_test_list, LR_prob_list
 
 
 def organize_win_probabilities(n_win, x_as_list):
@@ -136,8 +181,9 @@ def plot_results(prob, y_true, title, save_path, algo, method):
     return res
 
 
-def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR'):
+def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['mrmr']):
     # load data for all models
+
     y_train_p = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                                axis=1).squeeze()
     x_train, y_train, train_ids_groups, n_win = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train_p,
@@ -148,14 +194,24 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR'):
     auroc_all = []
     for i in range(1, cts.NM + 1):
         # train
+        features_model = list(model_features(features_list, i, with_dems=True)[0])
         model_path = all_path / str(algo + '_' + str(i))
         opt = joblib.load(model_path / 'opt.pkl')
         x_train_model = model_features(x_train, i, with_dems=True)
+        if feature_selection:
+            features_str = str('features' + methods[0] + '.pkl')
+            try:
+                features = joblib.load(model_path / features_str)
+            except FileNotFoundError:
+                features = features_model
+            x_train_model = features_mrmr(x_train_model, features_model, list(features), remove=0)
         y_pred = opt.predict_proba(x_train_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred)
 
         # test
         x_test_model = model_features(x_test, i, with_dems=True)
+        if feature_selection:
+            x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
         data_test = organize_win_probabilities(n_win_test, y_pred)
 
@@ -181,6 +237,8 @@ def plot_test(dataset, DATA_PATH, algo, method='LR'):
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     x_test, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                               return_num=True)
+    fig = plt.figure()
+    plt.style.use('bmh')
     for i in range(cts.NM):
         x_test_model = model_features(x_test, i + 1, with_dems=True)
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
@@ -190,13 +248,26 @@ def plot_test(dataset, DATA_PATH, algo, method='LR'):
         data = organize_win_probabilities(n_win, y_pred)
         if method == 'LR':
             prob = tev_LR(data, y_test_p, hyp_path, task='test')
+            y_test_list, prob_list = divide_CI_groups(prob)
+            low_auroc_i, high_auroc_i = roc_plot_envelope(prob, y_test_list, K_test=100, augmentation=1, typ=i,
+                                                          title='model ' + str(i), algo='LR',
+                                                          majority_vote=False, soft_lines=False)
         if method == 'median':
             prob = np.median(data, axis=0)
         if i == 0:
             prob_all = np.expand_dims(prob, axis=1).T
         else:
             prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
-    res = plot_results(prob_all, y_test_p, 'test', save_path, algo, method)
+
+    plt.legend(facecolor='white', framealpha=0.8, loc=4)
+    plt.title('Receiving operating curve')
+    plt.xlabel('1-Sp')
+    plt.ylabel('Se')
+    plt.ylim([0, 1])
+    plt.xlim([0, 1])
+    plt.grid()
+    plt.savefig(save_path / 'AUROC_per_patient.png', dpi=400, transparent=True)
+    plt.show()
 
     return prob_all
 
@@ -205,10 +276,10 @@ if __name__ == '__main__':
     algo = 'RF'
     dataset = 'new_dem53'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem2/')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
     # run_all_models('new_dem53', DATA_PATH, algo)
 
-    run_one_model(all_path, DATA_PATH, algo, method='LR')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
     plot_test('new_dem2', DATA_PATH, algo)
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

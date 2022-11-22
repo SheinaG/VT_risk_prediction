@@ -3,7 +3,8 @@ import utils.consts as cts
 from ML.ML_utils import *
 
 
-def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', majority_vote=False, soft_lines=False):
+def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', algo='RF', majority_vote=False,
+                      soft_lines=False):
     fprs = []
     tprs = []
     fprs_major = []
@@ -35,7 +36,7 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', maj
     roc_auc = auc(fpr_all, mean_tpr)
     low_auroc = auc(fpr_all, min_tpr)
     high_auroc = auc(fpr_all, max_tpr)
-    legend_i = 'RF model ' + str(typ) + ' ' + str(np.round(roc_auc, 2)) + '(' + str(
+    legend_i = algo + ' model ' + str(typ) + ' ' + str(np.around(roc_auc, 2)) + '(' + str(
         np.round(low_auroc, 3)) + ',' + str(
         np.round(high_auroc, 3)) + ')'
     plt.plot(fpr_all, mean_tpr, lw=2, color=color, label=legend_i)

@@ -86,7 +86,7 @@ pos = [0, 1, 2, 3, 4]
 colors = ['#003049', '#245D7C', '#307DA6', '#5F6F77', '#773000']
 
 
-def intrp_model(path, features_model, results_dir, feature_selection):
+def intrp_model(path, features_model, results_dir, feature_selection, features_str=''):
     # load model:
     opt = joblib.load(path / 'opt.pkl')
     x_test = joblib.load(path / 'X_test.pkl')
@@ -96,7 +96,7 @@ def intrp_model(path, features_model, results_dir, feature_selection):
 
     if feature_selection:
         try:
-            features = joblib.load(path / 'features.pkl')
+            features = joblib.load(path / features_str)
         except FileNotFoundError:
             features = features_model[0]
     results_ts = eval(opt, x_test, y_test)
@@ -147,7 +147,8 @@ def clac_probs(x_test, y_test, opt, model_path):
                     model_path)
 
 
-def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF', feature_selection=0):
+def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', algo='RF', feature_selection=0,
+               methods=['mrmr']):
     opt_d = {}
     results_d = {}
     path_d = {}
@@ -156,6 +157,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     features_d = {}
     train_val_data_d = {}
     y_test_d = {}
+    features_str = ''
 
     dataset_n = dataset
     with_ext_test = False
@@ -165,10 +167,14 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
     for i in range(1, cts.NM + 1):
+        if feature_selection:
+            dataset = dataset + '_' + '_'.join(methods)
+            features_str = str('features' + methods[0] + '.pkl')
         path_d[i] = pathlib.PurePath(model_path / str('RF_' + str(i)))
         features_model[i] = model_features(features_list, i, with_dems=True)
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
-                                                                                      results_dir, feature_selection)
+                                                                                      results_dir, feature_selection,
+                                                                                      features_str)
 
     train_val(opt_d, model_path)
     hyper_model(opt_d, model_path)
@@ -210,13 +216,14 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
 
     n_F_max = 10
     fig, axes = plt.subplots(nrows=1, ncols=5, figsize=(30, 8))
-
+    features_num = []
     for i in range(1, cts.NM + 1):
         importance_array = np.zeros([len(features_model[i][0]), ])
         axi = axes[i - 1]
         # axi = axes[int((i - 1) / 2), (i - 1) % 2]
         if feature_selection:
             n_F = np.minimum(n_F_max, len(features_d[i]))
+            features_num.append(len(features_d[i]))
             features = list(features_d[i])
             importance_arrayi = opt_d[i].best_estimator_.named_steps.model.feature_importances_
             for j in range(len(importance_arrayi)):
@@ -259,7 +266,6 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
 
     for i in range(1, cts.NM + 1):
         y_test_list, y_pred_list = test_samples(prob_rf[i][:, 1], y_test_d[i], 100)
-
         low_auroc_i, high_auroc_i = roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i,
                                                       title='model ' + str(i),
                                                       majority_vote=False, soft_lines=False)
@@ -291,4 +297,5 @@ def eval_one_model(results_dir, path):
 if __name__ == '__main__':
    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem/RF_5/')
 
-   all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem2', dataset='new_dem2', feature_selection=0)
+   all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem', dataset='new_dem', feature_selection=0,
+              methods=['mrmr'])
