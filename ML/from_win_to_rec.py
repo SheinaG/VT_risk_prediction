@@ -251,23 +251,16 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
     # test
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
-    x_test, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
-                                              return_num=True)
+    _, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
+                                         return_num=True)
     fig = plt.figure()
     plt.style.use('bmh')
     for i in range(cts.NM):
-        x_test_model = model_features(x_test, i + 1, with_dems=True)
+
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
         opt = joblib.load(hyp_path / 'opt.pkl')
-        features_model = list(model_features(features_list, i + 1, with_dems=True)[0])
-        if feature_selection:
-            features_str = str('features' + methods[0] + '.pkl')
-            try:
-                features = joblib.load(hyp_path / features_str)
-            except FileNotFoundError:
-                features = features_model
-            x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
+        x_test_model = joblib.load(hyp_path / 'X_test.pkl')
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred)
         if method == 'LR':
@@ -298,12 +291,11 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 if __name__ == '__main__':
     algo = 'RF'
-    dataset = 'new_dem53'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_ns/')
     # run_all_models('new_dem53', DATA_PATH, algo)
 
-    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
-    plot_test('new_dem', DATA_PATH, algo, feature_selection=1, methods=['mrmr'])
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=1)
+    plot_test('new_dem41_ns', DATA_PATH, algo, feature_selection=1, methods=['ns'])
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

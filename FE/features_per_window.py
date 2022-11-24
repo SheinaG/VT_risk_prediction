@@ -1,17 +1,17 @@
 from utils.base_packages import *
 
 
-def features_per_window(name, ids, data_path, save_path, pvc_path, vt_wins=0, win_len=30):
-    if name == 'rbdb':
+def features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=30):
+    if dataset == 'rbdb':
         s = ''
         ts = 5 * 60
-    if name == 'uvafdb':
+    if dataset == 'uvafdb':
         s = ''
         ts = 0
 
-    demographic_VT_xl = pd.read_excel(data_path / 'VTp' / str('demographic_features_' + name + '.xlsx'),
+    demographic_VT_xl = pd.read_excel(data_path / 'VTp' / str('demographic_features_' + dataset + '.xlsx'),
                                       engine='openpyxl')
-    demographic_no_VT_xl = pd.read_excel(data_path / 'VTn' / str('demographic_features_' + name + '.xlsx'),
+    demographic_no_VT_xl = pd.read_excel(data_path / 'VTn' / str('demographic_features_' + dataset + '.xlsx'),
                                          engine='openpyxl')
     demographic_VT_xl = demographic_VT_xl.set_axis(demographic_VT_xl['Unnamed: 0'], axis='index')
     demographic_VT_xl = demographic_VT_xl.drop(columns=['Unnamed: 0'])
@@ -28,35 +28,35 @@ def features_per_window(name, ids, data_path, save_path, pvc_path, vt_wins=0, wi
     bad_ids = []
     fs = 200
     if vt_wins:
-        segments = pd.read_excel(data_path / 'VTp' / str('segments_array_' + name + '.xlsx'), engine='openpyxl')
+        segments = pd.read_excel(data_path / 'VTp' / str('segments_array_' + dataset + '.xlsx'), engine='openpyxl')
 
     for id_ in ids:
-        isExist = os.path.exists(save_path / str(id_) / 'features_nd.xlsx')
+        isExist = os.path.exists(features_path / str(id_) / 'features_nd.xlsx')
         if isExist:
             continue
-        notExist = os.path.exists(save_path / str(id_) / 'hrv_features.xlsx')
+        notExist = os.path.exists(features_path / str(id_) / 'hrv_features.xlsx')
         if not notExist:
             bad_ids.append(id_)
             print(id_)
             continue
-        notExist = os.path.exists(save_path / str(id_) / 'bm_features.xlsx')
+        notExist = os.path.exists(features_path / str(id_) / 'bm_features.xlsx')
         if not notExist:
             print(id_)
             continue
-        hrv_vt = pd.read_excel(save_path / str(id_) / 'hrv_features.xlsx', engine='openpyxl')
+        hrv_vt = pd.read_excel(features_path / str(id_) / 'hrv_features.xlsx', engine='openpyxl')
         hrv_vt = hrv_vt.set_axis(hrv_vt['Unnamed: 0'], axis='index')
         hrv_vt = hrv_vt.drop(columns=['Unnamed: 0'])
-        bm_vt = pd.read_excel(save_path / str(id_) / 'bm_features.xlsx', engine='openpyxl')
+        bm_vt = pd.read_excel(features_path / str(id_) / 'bm_features.xlsx', engine='openpyxl')
         bm_vt = bm_vt.set_axis(bm_vt['Unnamed: 0'], axis='index')
         bm_vt = bm_vt.drop(columns=['Unnamed: 0'])
-        pvc_vt = pd.read_excel(pvc_path / str(id_) / 'pvc_features.xlsx', engine='openpyxl')
+        pvc_vt = pd.read_excel(features_path / str(id_) / 'pvc_features.xlsx', engine='openpyxl')
         pvc_vt = pvc_vt.set_axis(pvc_vt['win'], axis='index')
         pvc_vt = pvc_vt.drop(columns=['win', 'Unnamed: 0'])
 
         if vt_wins:
-            isExist = os.path.exists(save_path / id_ / 'vt_wins')
+            isExist = os.path.exists(features_path / id_ / 'vt_wins')
             if not isExist:
-                os.makedirs(save_path / id_ / 'vt_wins')
+                os.makedirs(features_path / id_ / 'vt_wins')
             bm_vt_win = pd.DataFrame(columns=bm_vt.columns)
             hrv_vt_win = pd.DataFrame(columns=hrv_vt.columns)
             pvc_vt_win = pd.DataFrame(columns=pvc_vt.columns)
@@ -115,7 +115,7 @@ def features_per_window(name, ids, data_path, save_path, pvc_path, vt_wins=0, wi
                 hrv_vt_win = hrv_vt_win.set_axis(bm_vt_win.index, axis='index')
                 vt_features = pd.concat([bm_vt_win, hrv_vt_win, pvc_vt_win, dem_vt_patient, new_dem_vt_patient], axis=1,
                                         join='inner')
-                vt_features.to_excel(save_path / id_ / 'vt_wins' / 'features_nd.xlsx')
+                vt_features.to_excel(features_path / id_ / 'vt_wins' / 'features.xlsx')
 
         dem_ = pd.DataFrame(demographic_xl.loc[s + id_]).transpose()
         new_dem_ = pd.DataFrame(new_dem_xl.loc[s + id_]).transpose()
@@ -125,7 +125,7 @@ def features_per_window(name, ids, data_path, save_path, pvc_path, vt_wins=0, wi
         new_dem_patient = new_dem_patient.set_axis(bm_vt.index, axis='index')
         hrv_vt = hrv_vt.set_axis(bm_vt.index, axis='index')
         no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient, new_dem_patient], axis=1, join='inner')
-        no_vt_features.to_excel(save_path / id_ / 'features_nd.xlsx')
+        no_vt_features.to_excel(features_path / id_ / 'features.xlsx')
 
     a = 5
 

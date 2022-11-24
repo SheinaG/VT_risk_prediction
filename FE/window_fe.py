@@ -4,7 +4,7 @@ from parsing.base_VT_parser import *
 from utils.base_packages import *
 
 
-def calculate_bsqi(ids, dataset, save_path, win_len=10):
+def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     fs = 200
     starti = 5 * 60 * fs
     db = VtParser()
@@ -12,7 +12,7 @@ def calculate_bsqi(ids, dataset, save_path, win_len=10):
         # if os.path.exists(save_path / dataset / id / str('bsqi_' + str(win_len) + '.npy')):
         #     continue
 
-        raw_lead = np.load(save_path / dataset / id / 'ecg_0.npy')
+        raw_lead = np.load(ecg_path / 'ecg_0.npy')
 
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
@@ -47,10 +47,10 @@ def calculate_bsqi(ids, dataset, save_path, win_len=10):
             start_win = end_win
             end_win = start_win + win_len * 60 * fs
 
-        np.save(save_path / dataset / id / str('bsqi_' + str(win_len) + '.npy'), np.asarray(bsqi_list))
+        np.save(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'), np.asarray(bsqi_list))
 
 
-def preprocess_ecg(ids, fs, dataset, save_path, plot=0):
+def preprocess_ecg(ids, fs, dataset, ecg_path, plot=0):
     db = VtParser()
     if dataset == 'rbdb':
         lead_n = 1
@@ -62,7 +62,7 @@ def preprocess_ecg(ids, fs, dataset, save_path, plot=0):
         # isExist = os.path.exists(save_path / 'preprocessed_data'/dataset / id )
         # if not isExist:
         #     os.makedirs(save_path / 'preprocessed_data' / dataset / id )
-        isExistecg = os.path.exists(save_path / dataset / id / 'ecg_0.npy')
+        isExistecg = os.path.exists(ecg_path / id / 'ecg_0.npy')
         # if isExistecg:
         #     continue
 
@@ -127,8 +127,8 @@ def preprocess_ecg(ids, fs, dataset, save_path, plot=0):
         fp = Fp.FiducialPoints(raw_lead, fs)
         epltd_lead = fp.epltd
 
-        np.save(save_path / dataset / id / 'ecg_0.npy', raw_lead)
-        np.save(save_path / dataset / id / 'epltd_0.npy', epltd_lead)
+        np.save(ecg_path / id / 'ecg_0.npy', raw_lead)
+        np.save(ecg_path / id / 'epltd_0.npy', epltd_lead)
         if plot == 1:
             start = 35 * 60 * fs
             stop = start + 1 * fs * 10
@@ -149,35 +149,27 @@ def preprocess_ecg(ids, fs, dataset, save_path, plot=0):
             axes[4].set_title('standardized RMS ecg')
             axes[4].set_xlabel('time[seconds]')
 
-            isExist = os.path.exists(save_path / 'figures' / 'normalization')
+            isExist = os.path.exists(ecg_path / 'figures' / 'normalization')
             if not isExist:
-                os.makedirs(save_path / 'figures' / 'normalization')
-            fig.savefig(save_path / 'figures' / 'normalization' / str(id + '_min_35.png'))
+                os.makedirs(ecg_path / 'figures' / 'normalization')
+            fig.savefig(ecg_path / 'figures' / 'normalization' / str(id + '_min_35.png'))
 
 
-def calculate_hrv(ids, dataset, cls, ecg_path, features_path, win_len=30):
+def calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30):
     features_vt = defaultdict(lambda: defaultdict(dict))
     feats = cts.IMPLEMENTED_FEATURES
     fs = 200
-    if cls:
-        cls_s = 'VTp'
-    else:
-        cls_s = 'VTn'
 
     for id in ids:
-        # isExist = os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + str('/hrv_features.xlsx'))
-        # if isExist:
-        #     continue
-        # load:
-        bsqi = np.load(ecg_path / dataset / id / str('bsqi_' + str(win_len) + '.npy'))
-        raw_lead = np.load(ecg_path / dataset / id / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / dataset / id / 'epltd_0.npy')
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy')
         start_win = 0
         end_win = start_win + fs * win_len * 60
         win = 0
-        isExist = os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + '/')
+        isExist = os.path.exists(features_path / str(id))
         if not isExist:
-            os.makedirs('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + '/')
+            os.makedirs(features_path / str(id))
         while end_win < len(raw_lead):
             if bsqi[win] < 0.8:
                 win = win + 1
@@ -212,28 +204,17 @@ def calculate_hrv(ids, dataset, cls, ecg_path, features_path, win_len=30):
             mapper[name] = id + '_num_' + str(name)
         vt_df = pd.DataFrame.from_dict(features_vt[id], orient='index')
         vt_df = vt_df.rename(index=mapper)
-        vt_df.to_excel(
-            '/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + str('/hrv_features.xlsx'))
+        vt_df.to_excel(features_path / str(id) / 'hrv_features.xlsx')
 
 
-def calculate_pebm(ids, dataset, cls, ecg_path, features_path, win_len=30):
-    if cls:
-        cls_s = 'VTp'
-    else:
-        cls_s = 'VTn'
-
+def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30):
     fs = np.uint8(200)
 
-    matlab_pat = '/usr/local/MATLAB/R2021a/'
     for id in ids:
-        # isExist = os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + str('/bm_features.xlsx'))
-        # if isExist:
-        #     continue
         pebm_feat = {}
-        bsqi = np.load(ecg_path / dataset / id / str('bsqi_' + str(win_len) + '.npy'))
-        raw_lead = np.load(ecg_path / dataset / id / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / dataset / id / 'epltd_0.npy')
-        fiducials = joblib.load(ecg_path / 'fiducials' / id / 'fiducials.pkl')
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        fiducials = joblib.load(fiducials_path / 'fiducials.pkl')
         i = 0
         start_win = 0
         end_win = start_win + win_len * 60 * fs
@@ -274,26 +255,30 @@ def calculate_pebm(ids, dataset, cls, ecg_path, features_path, win_len=30):
 
         bm = pd.DataFrame.from_dict(pebm_feat)
         bm = bm.transpose()
-        bm.to_excel(
-            '/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id) + str('/bm_features.xlsx'))
+        bm.to_excel(features_path / str(id) / 'bm_features.xlsx')
 
         print(str(id))
     a = 5
 
 
-def fe_dataset(ids, n_pools, dataset, win_len):
+def fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path):
     pool = multiprocessing.Pool(n_pools)
     in_pool = (len(ids) // n_pools) + 1
     ids_pool, dataset_pool = [], []
     for j in range(n_pools):
         ids_pool += [ids[j * in_pool:min((j + 1) * in_pool, len(ids))]]
     dataset_pool = [dataset] * n_pools
-    pool.starmap(fe_process, zip(ids_pool, dataset_pool, repeat(win_len)))
+    ecg_path_pool = [ecg_path] * n_pools
+    bsqi_path_pool = [bsqi_path] * n_pools
+    fiducials_path_pool = [fiducials_path] * n_pools
+    features_path_pool = [features_path] * n_pools
+    pool.starmap(fe_process,
+                 zip(ids_pool, dataset_pool, ecg_path_pool, bsqi_path_pool, fiducials_path_pool, features_path_pool,
+                     repeat(win_len)))
     pool.close()
 
 
-def calculate_pvc_features(ids, win_len):
-    ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
+def calculate_pvc_features(ids, bsqi_path, features_path, win_len):
     fs = 200
     m_id = []
     for id_ in ids:
@@ -301,7 +286,7 @@ def calculate_pvc_features(ids, win_len):
         pvc_head = '_ECG_heartbeat_classifier.mat'
         bd_head = '_QRS_detection.mat'
         isExist = os.path.exists(pvc_path + id_ + pvc_head)
-        bsqi = np.load(ecg_path / 'rbdb' / id_ / str('bsqi_0.npy'))
+        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(win_len) + '.npy'))
         if not isExist:
             m_id.append(id_)
 
@@ -342,7 +327,7 @@ def calculate_pvc_features(ids, win_len):
                     start = stop
                     stop = stop + fs * 60 * win_len
                 # df.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str('/pvc_features.xlsx'))
-                df.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/' + str(id_) + str('/pvc_features.xlsx'))
+                df.to_excel(features_path / str(id_) / 'pvc_features.xlsx')
             except:
                 print(id_)
 
@@ -407,16 +392,12 @@ def clear_from_bad_bsqi(ids_paths, bsqi_path):
     np.save(IDS_main / 'low_bsqi_IDS.npy', bad_IDS)
 
 
-def fe_process(ids, dataset, win_len):
-    fs = 200
-    save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
-    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/')
-
-    preprocess_ecg(ids, fs, dataset, save_path, plot=0)
-    calculate_bsqi(ids, dataset, save_path, win_len=win_len)
-    calculate_hrv(ids, dataset, 0, save_path, features_path, win_len=win_len)
-    calculate_pebm(ids, dataset, 0, save_path, features_path, win_len=win_len)
-    calculate_pvc_features(ids, win_len)
+def fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len):
+    # preprocess_ecg(ids, fs, dataset, save_path, plot=0)
+    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10)
+    calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30)
+    calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30
+    calculate_pvc_features(ids, bsqi_path, features_path, win_len)
 
 
 def df_replace_nans(path_df, name_df, manner):
@@ -441,7 +422,6 @@ def df_replace_nans(path_df, name_df, manner):
             data[np.isnan(data)] = np.mean(data[~np.isnan(data)])
         df[col] = data
         # df[abs(df) > 1e6] = 1e6
-        # df[abs(df) < 1e-6] = 1e-6
     df.to_excel(path_df / name_df)
 
 

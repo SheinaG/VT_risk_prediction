@@ -1,50 +1,26 @@
-import os
-import pathlib
-import shutil
+from utils.base_packages import *
+import utils.consts as cts
 
-import numpy as np
-from sheina import train_model, results
-
-experiment_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/experiments/std_mean/')
-org_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
-features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/')
-results_dir = experiment_path / 'results'
-algo = 'RF'
-
-
-# filtering + normalization:
-def scaling_ecg(ids, dataset):
-    for id in ids:
-        raw_lead = np.load(org_path / dataset / id / 'ecg_0.npy')
-        raw_lead = train_model.norm_mean_std(raw_lead)
-        np.save(experiment_path / dataset / id / 'scaled_ecg.npy', raw_lead)
-
-
-def copytree(src, dst, symlinks=False, ignore=None):
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, symlinks, ignore)
-        else:
-            shutil.copy2(s, d)
-
+from FE.features_per_window import *
+from FE.window_fe import *
+from FE.statistical_test import *
+from ML.main_ML import train_prediction_model
+from ML.results import all_models
+from ML.from_win_to_rec import *
 
 if __name__ == '__main__':
-    # shutil.copytree(org_path, experiment_path)
-    # scaling_ecg(cts.ids_no_VT + cts.ids_VT, 'uvafdb')
-    # scaling_ecg(cts.ids_rbdb_no_VT + cts.ids_rbdb_VT, 'rbdb')
-    # shutil.copytree(features_path/ 'VTn', experiment_path / 'VTn')
-    # shutil.copytree(features_path / 'VTp', experiment_path / 'VTp')
-    # f_vt.calculate_pebm( cts.ids_rbdb_VT, 'rbdb', 1, experiment_path, experiment_path)
-    # f_vt.calculate_pebm( cts.ids_rbdb_no_VT, 'rbdb', 0, experiment_path, experiment_path)
-    # f_vt.calculate_pebm( cts.ids_VT, 'uvafdb', 1, experiment_path, experiment_path)
-    # f_vt.calculate_pebm( cts.ids_no_VT, 'uvafdb', 0, experiment_path, experiment_path)
-    # vt_per_window.features_per_window('rbdb', experiment_path, experiment_path/'ML_model')
-    # vt_per_window.features_per_window('uvafdb', experiment_path, experiment_path/'ML_model')
-    # train_prediction_model.train_prediction_model(experiment_path/'ML_model', results_dir, 1, 'mean_std')
-    # train_prediction_model.train_prediction_model(experiment_path/'ML_model', results_dir,  2, 'mean_std')
-    # train_prediction_model.train_prediction_model(experiment_path/'ML_model', results_dir, 3, 'mean_std')
-    # train_prediction_model.train_prediction_model(experiment_path/'ML_model', results_dir,  4, 'mean_std')
-    results.all_models(experiment_path / 'ML_model', results_dir / "logo_cv" / algo, results_dir=results_dir,
-                       dataset='mean_std')
+    win_len_10 = 'win_len_60'
+    n_pools = 2
+    ids = cts.ids_sp
+    dataset = 'rbdb'
+    win_len = 60
+    ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_10
+    bsqi_path = ecg_path
+    fiducials_path = ecg_path / 'fiducials'
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_10
+    results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_10
+    data_path = cts.VTdb_path
+    algo = 'RF'
+    n_jobs = 10
+    fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
+    features_per_window(dataset, ids, data_path, features_path, vt_wins=1, win_len=30)
