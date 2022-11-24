@@ -107,3 +107,20 @@ ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids
 ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
 ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
 ids_VT = ids_sp + ids_tp + ext_test_vt
+
+# parameters for HRV
+
+# Constants definitions (time related)
+N_S_IN_HOUR = 3600
+N_MS_IN_S = 1000
+N_HOURS_IN_DAY = 24
+N_MIN_IN_HOUR = 60
+N_SEC_IN_MIN = 60
+
+# Parameters used for data filtering in the different scripts
+RR_OUTLIER_THRESHOLD_SUP = 10  # Sup Threshold to exclude a RR interval window (excluded if one RR exceeds this value, in seconds)
+RR_OUTLIER_THRESHOLD_INF = 0  # Inf Threshold to exclude a RR interval window (excluded if one RR is below this value, in seconds)
+RR_FILE_THRESHOLD = 3 * N_S_IN_HOUR  # Criterion for exclusion of a whole recording (Above 3 Hours of corrupted data, file is excluded)
+SQI_FILE_THRESHOLD = 0.75  # Threshold on the number of corrupted windows (based on bsqi criterion) to exclude a file
+SQI_WINDOW_THRESHOLD = 0.8  # Threshold on the bsqi criterion to exclude a window
+FRAGMENTATION_LIM_SMALL_SEG = 3  # The limit to set a segment as short for fragmentation features

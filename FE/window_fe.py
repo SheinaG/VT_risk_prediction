@@ -9,11 +9,10 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     starti = 5 * 60 * fs
     db = VtParser()
     for id in ids:
-        # if os.path.exists(save_path / dataset / id / str('bsqi_' + str(win_len) + '.npy')):
-        #     continue
+        if not os.path.exists(bsqi_path / id):
+            os.makedirs(bsqi_path / id)
 
-        raw_lead = np.load(ecg_path / 'ecg_0.npy')
-
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
         epltd_lead = db.parse_annotation(id, type='epltd0')
@@ -108,8 +107,8 @@ def preprocess_ecg(ids, fs, dataset, ecg_path, plot=0):
 
             plt.figure()
             plt.style.use('bmh')
-            plt.plot(f_axis[f_l:f_h], fft_signal_c[f_l:f_h], color=colors_six[0], label='Raw signal')
-            plt.plot(f_axis[f_l:f_h], fft_fsig_c[f_l:f_h], color=colors_six[1], linewidth=1, label='Filtered signal')
+            plt.plot(f_axis[f_l:f_h], fft_signal_c[f_l:f_h], color=cts.colors[0], label='Raw signal')
+            plt.plot(f_axis[f_l:f_h], fft_fsig_c[f_l:f_h], color=cts.colors[1], linewidth=1, label='Filtered signal')
             plt.xlabel('f[Hz]')
             plt.ylabel('mV')
             plt.xlim([notc_freq - 5, notc_freq + 5])
@@ -170,6 +169,8 @@ def calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30):
         isExist = os.path.exists(features_path / str(id))
         if not isExist:
             os.makedirs(features_path / str(id))
+        if os.path.exists(features_path / str(id) / 'hrv_features.xlsx'):
+            continue
         while end_win < len(raw_lead):
             if bsqi[win] < 0.8:
                 win = win + 1
@@ -219,6 +220,10 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
         start_win = 0
         end_win = start_win + win_len * 60 * fs
         qrs_all = fiducials[0]['qrs']
+
+        if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
+            continue
+
         while end_win < len(raw_lead):
             if bsqi[i] < 0.8:
                 i = i + 1
@@ -394,9 +399,9 @@ def clear_from_bad_bsqi(ids_paths, bsqi_path):
 
 def fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len):
     # preprocess_ecg(ids, fs, dataset, save_path, plot=0)
-    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10)
-    calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30)
-    calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30
+    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=win_len)
+    calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=win_len)
+    calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=win_len)
     calculate_pvc_features(ids, bsqi_path, features_path, win_len)
 
 
