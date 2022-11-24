@@ -215,7 +215,7 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
         pebm_feat = {}
         bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
-        fiducials = joblib.load(fiducials_path / 'fiducials.pkl')
+        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl')
         i = 0
         start_win = 0
         end_win = start_win + win_len * 60 * fs
