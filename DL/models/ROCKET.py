@@ -1,4 +1,4 @@
-__all__ = ['ROCKET', 'create_rocket_features', 'get_rocket_features']
+__all__ = ['ROCKET', 'create_rocket_features']
 
 from .imports import *
 from .layers import *
