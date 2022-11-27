@@ -63,6 +63,8 @@ def create_rocket_features(dl, model):
     _x_out = []
     _y_out = []
     for i, (xb, yb) in enumerate(dl):
+        bsn = xb.shape[0]
+        xb = torch.reshape(xb, (bsn, 1, -1)).float().to(device)
         _x_out.append(model(xb).cpu())
         _y_out.append(yb.cpu())
     return torch.cat(_x_out).numpy(), torch.cat(_y_out).numpy()

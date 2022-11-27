@@ -7,10 +7,11 @@ from FE.statistical_test import *
 from ML.main_ML import train_prediction_model
 from ML.results import all_models
 from ML.from_win_to_rec import *
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 if __name__ == '__main__':
     win_len_10 = 'win_len_60'
-    n_pools = 5
+    n_pools = 1
     ids = cts.ids_tp
     dataset = 'rbdb'
     win_len = 60

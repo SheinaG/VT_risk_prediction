@@ -10,7 +10,7 @@ class all_set(Dataset):
         label_filename = DL_path / str("labels_" + task + ".npy")
 
         self.win_len = win_len
-        self.first_targets = np.load(label_filename)[::win_len]
+        self.targets = np.load(label_filename)[::win_len]
         self.indexes = np.load(idx_filename)[::win_len]
         self.database = np.load(data_filename, mmap_mode='c')
         self.transform = transform
