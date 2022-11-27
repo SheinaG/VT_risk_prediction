@@ -12,9 +12,9 @@ ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 def create_part_dataset(ids, y=[], path='', model=0):
     if model == 0:
-        add_path = 'features_nd.xlsx'
+        add_path = 'features.xlsx'
     elif model == 1:
-        add_path = 'vt_wins/features_nd.xlsx'
+        add_path = 'vt_wins/features.xlsx'
     ids_group = []
     n_win = []
     for i, id_ in enumerate(ids):
