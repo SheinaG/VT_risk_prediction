@@ -1,3 +1,5 @@
+import pathlib
+
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 import numpy as np
@@ -83,21 +85,15 @@ def plot_violin_stst(data, n_arr, title, save_path):
     plt.savefig(save_path + '.png')
 
 
-def perform_statistical_test():
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-
-    y_vt = np.ones([1, len(ids_tp + ids_sp)]).squeeze()
-    y_no_vt = np.ones([1, len(ids_tn + ids_sn + ids_vn)]).squeeze()
+def perform_statistical_test(features_path, stat_path, exmp_file):
+    y_vt = np.ones([1, len(cts.ids_tp + cts.ids_sp)]).squeeze()
+    y_no_vt = np.ones([1, len(cts.ids_tn + cts.ids_sn + cts.ids_vn)]).squeeze()
 
     # create dataset ( one VT each grop)
-    data_vt, _, _ = create_dataset(ids_tp + ids_sp, y_vt, features_path, model=0)
-    data_no_vt, _, _ = create_dataset(ids_tn + ids_sn + ids_vn, y_no_vt, features_path, model=0)
+    data_vt, _, _ = create_dataset(cts.ids_tp + cts.ids_sp, y_vt, features_path, model=0)
+    data_no_vt, _, _ = create_dataset(cts.ids_tn + cts.ids_sn + cts.ids_vn, y_no_vt, features_path, model=0)
 
-    sample_features_xl = pd.read_excel(cts.VTdb_path + 'normalized/1020D818/features.xlsx', engine='openpyxl')
+    sample_features_xl = pd.read_excel(exmp_file, engine='openpyxl')
     features_arr = np.asarray(sample_features_xl.columns[1:])
     features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
     statistical_test_print = pd.DataFrame(columns=['mannwhitneyu', 'VT', 'Non-VT'], index=features_list[0])
@@ -123,34 +119,23 @@ def perform_statistical_test():
             statistical_test_print['mannwhitneyu'][feature] = 1
             statistical_test_alz['mannwhitneyu'][feature] = 1
 
-    statistical_test_alz.to_excel(cts.VTdb_path + 'stat_test_norm/statistical_test_alz.xlsx')
-    statistical_test_print.to_excel(cts.VTdb_path + 'stat_test_norm/statistical_test_print.xlsx')
+    statistical_test_alz.to_excel(stat_path / 'statistical_test_alz.xlsx')
+    statistical_test_print.to_excel(stat_path / 'statistical_test_print.xlsx')
 
 
-def analyze_statistical_test():
-    stat_test_df = pd.read_excel(cts.VTdb_path + 'stat_test_norm/statistical_test_alz.xlsx', engine='openpyxl')
+def analyze_statistical_test(features_path, stat_path, exmp_file):
+    stat_test_df = pd.read_excel(stat_path / 'statistical_test_alz.xlsx', engine='openpyxl')
     p_values = np.asarray(stat_test_df['mannwhitneyu'])
-    # p_values = choose_right_features(np.transpose(np.expand_dims(p_values, axis = 1)))
     features_arrey = np.asarray(stat_test_df['Unnamed: 0'])
-    # features_arrey = choose_right_features(np.transpose(np.expand_dims(features_arrey, axis=1)))
     idx = np.argsort(p_values).squeeze()
     best_features = features_arrey[idx]
 
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
-
-    y_vt = np.ones([1, len(ids_tp + ids_sp)]).squeeze()
-    y_no_vt = np.ones([1, len(ids_tn + ids_sn + ids_vn)]).squeeze()
+    y_vt = np.ones([1, len(cts.ids_tp + cts.ids_sp)]).squeeze()
+    y_no_vt = np.ones([1, len(cts.ids_tn + cts.ids_sn + cts.ids_vn)]).squeeze()
 
     # create dataset ( one VT each grop)
-    data_vt, _, ids_group_p = create_dataset(ids_tp + ids_sp, y_vt, features_path, model=0)
-    data_no_vt, _, ids_group_n = create_dataset(ids_tn + ids_sn + ids_vn, y_no_vt, features_path, model=0)
-
-    mor_list = [1, 8, 9]
-    hrv_list = [0, 2, 3]
+    data_vt, _, ids_group_p = create_dataset(cts.ids_tp + cts.ids_sp, y_vt, features_path, model=0)
+    data_no_vt, _, ids_group_n = create_dataset(cts.ids_tn + cts.ids_sn + cts.ids_vn, y_no_vt, features_path, model=0)
 
     for i in range(20):
         data1 = data_vt[:, idx[i]].astype(float)
@@ -179,6 +164,8 @@ def analyze_statistical_test():
 
 
 if __name__ == '__main__':
-    perform_statistical_test()
-    analyze_statistical_test()
-    # handel_strings(try_figure=True)
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+    stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
+    exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
+    perform_statistical_test(features_path, stat_path, exmp_file)
+    analyze_statistical_test(features_path, stat_path, exmp_file)
