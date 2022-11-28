@@ -170,7 +170,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         if feature_selection:
             dataset = dataset + '_' + '_'.join(methods)
             features_str = str('features' + methods[0] + '.pkl')
-        path_d[i] = pathlib.PurePath(model_path / str('RF_' + str(i)))
+        path_d[i] = pathlib.PurePath(model_path / str(algo + '_' + str(i)))
         features_model[i] = model_features(features_list, i, with_dems=True)
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
                                                                                       results_dir, feature_selection,
@@ -295,7 +295,7 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-   # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem/RF_5/')
+    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem/RF_5/')
 
-   all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_ns', dataset='new_dem41', feature_selection=1,
-              methods=['ns'])
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41', dataset='new_dem41', feature_selection=0,
+               methods=['ns'], algo='XGB')

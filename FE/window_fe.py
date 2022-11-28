@@ -11,7 +11,8 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     for id in ids:
         if not os.path.exists(bsqi_path / id):
             os.makedirs(bsqi_path / id)
-
+        if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
+            continue
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
@@ -58,13 +59,7 @@ def preprocess_ecg(ids, fs, dataset, ecg_path, plot=0):
         lead_n = 0
         notc_freq = 60  # power line in usa
     for id in ids:
-        # isExist = os.path.exists(save_path / 'preprocessed_data'/dataset / id )
-        # if not isExist:
-        #     os.makedirs(save_path / 'preprocessed_data' / dataset / id )
         isExistecg = os.path.exists(ecg_path / id / 'ecg_0.npy')
-        # if isExistecg:
-        #     continue
-
         raw_lead = db.parse_raw_rec(id, start=0, end=-1)
         # raw_lead = raw_ecg[0]
         if dataset == 'rbdb':

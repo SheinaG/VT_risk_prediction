@@ -124,3 +124,13 @@ RR_FILE_THRESHOLD = 3 * N_S_IN_HOUR  # Criterion for exclusion of a whole record
 SQI_FILE_THRESHOLD = 0.75  # Threshold on the number of corrupted windows (based on bsqi criterion) to exclude a file
 SQI_WINDOW_THRESHOLD = 0.8  # Threshold on the bsqi criterion to exclude a window
 FRAGMENTATION_LIM_SMALL_SEG = 3  # The limit to set a segment as short for fragmentation features
+
+# pebm:
+INTS = ['Pwave_int', 'PR_int', 'PR_seg', 'PR_int2', 'QRS_int', 'QT_int', 'Twave_int', 'TP_seg'
+    , 'RR_int', 'R_dep', 'QTc_b', 'QTc_frid', 'QTc_fra', 'QTc_hod']
+WAVES = ['Pwave', 'Twave', 'Rwave', 'STamp', 'Parea', 'Tarea', 'QRSarea', 'Jpoint']
+
+pebm_units = ['ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms', 'ms',
+              'mV', 'mV', 'mV', 'mv', 'ms*mV', 'ms*mV', 'ms*mV', 'mV']
+HRV_units = ['nu', 'nu', 'nu', 'nu', 'nu', 'ms', 'ms', 'bpm', 'ms', 'ms', '%', '%', 'ms', 'nu', 'ms', 'ms',
+             'nu', 'nu', 'nu', 'nu', 'nu', 'nu', 'nu']

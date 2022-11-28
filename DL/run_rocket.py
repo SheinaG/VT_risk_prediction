@@ -1,5 +1,4 @@
 import sys
-
 sys.path.append("/home/sheina/VT_risk_prediction/")
 
 from DL_utiles.base_packages import *
@@ -12,7 +11,7 @@ set_all_seeds(1)
 fs = 200
 win_len = 30
 device = "cuda"
-batch_size = 32
+batch_size = 64
 model = ROCKET(c_in=1, seq_len=win_len * 60 * fs, n_kernels=10_000, kss=[7, 9, 11], device=device)
 
 model = model.to(device)

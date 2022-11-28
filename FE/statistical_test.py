@@ -82,7 +82,7 @@ def plot_violin_stst(data, n_arr, title, save_path):
     labels = [r'$C_0$', r'$C_1$']
     set_axis_style(axe, labels)
     plt.tight_layout()
-    plt.savefig(save_path + '.png')
+    plt.savefig(str(save_path) + '.png')
 
 
 def perform_statistical_test(features_path, stat_path, exmp_file):
@@ -100,8 +100,8 @@ def perform_statistical_test(features_path, stat_path, exmp_file):
     statistical_test_alz = pd.DataFrame(columns=['mannwhitneyu'], index=features_list[0])
 
     for i, feature in enumerate(features_list[0]):
-        data1 = data_vt[:, i]
-        data2 = data_no_vt[:, i]
+        data1 = data_vt[:, i].astype(np.float)
+        data2 = data_no_vt[:, i].astype(np.float)
         median1 = np.around(np.median(data1), 2)
         median2 = np.around(np.median(data2), 2)
         iqr1 = np.around(np.percentile(data1, 75) - np.percentile(data1, 25), 2)
@@ -158,7 +158,7 @@ def analyze_statistical_test(features_path, stat_path, exmp_file):
         title = best_features[i]
         print(title)
         plot_violin_stst([data2_clean, data1_clean], [np2, nw2, np1, nw1], title,
-                         cts.VTdb_path + 'stat_test_norm/' + title)
+                         stat_path / title)
 
     stat_df = pd.Dataframe(index=features_arrey, columns=['p-values', 'VT - median', 'Non VT median'])
 
@@ -167,5 +167,5 @@ if __name__ == '__main__':
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
-    perform_statistical_test(features_path, stat_path, exmp_file)
+    # perform_statistical_test(features_path, stat_path, exmp_file)
     analyze_statistical_test(features_path, stat_path, exmp_file)
