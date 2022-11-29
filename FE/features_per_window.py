@@ -31,9 +31,9 @@ def features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_l
         segments = pd.read_excel(data_path / 'VTp' / str('segments_array_' + dataset + '.xlsx'), engine='openpyxl')
 
     for id_ in ids:
-        isExist = os.path.exists(features_path / str(id_) / 'features_nd.xlsx')
-        if isExist:
-            continue
+        # isExist = os.path.exists(features_path / str(id_) / 'features_nd.xlsx')
+        # if isExist:
+        #     continue
         notExist = os.path.exists(features_path / str(id_) / 'hrv_features.xlsx')
         if not notExist:
             bad_ids.append(id_)
