@@ -32,7 +32,7 @@ if __name__ == '__main__':
     # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
     # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
 
-    ids = cts.ids_tp + cts.ids_sn + cts.ids_vn + cts.ids_sp + cts.ids_tn
+    ids = cts.ids_tn
     for id_ in ids:
         p_dir = pathlib.PurePath(features_path / id_)  # ML_model
         df_replace_nans(p_dir, 'features.xlsx', 'mean')
