@@ -292,10 +292,10 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 if __name__ == '__main__':
     algo = 'XGB'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41/')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
     # run_all_models('new_dem53', DATA_PATH, algo)
 
-    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0)
-    plot_test('new_dem41', DATA_PATH, algo, feature_selection=0, methods=['ns'])
+    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
+    plot_test('new_dem41', DATA_PATH, algo, feature_selection=1, methods=['mrmr'])
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

@@ -31,7 +31,9 @@ if __name__ == '__main__':
     # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
     # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
     # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
-
+    not_exist = ['PA18A685', 'N620E203', '6518F561', 'S218767f', '9018C42a', 'A618A557'
+        , 'R921B1db', 'Q620G162', 'J621F4c4', '5921D0ce', '4018Fcff', 'Q1188937', 'U520F0f1', 'U620D940',
+                 'T2186cf4']
     ids = cts.ids_tn
     for id_ in ids:
         p_dir = pathlib.PurePath(features_path / id_)  # ML_model
