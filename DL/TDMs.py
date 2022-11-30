@@ -30,16 +30,11 @@ else:
 if run_config.model == 'OmniScaleCNN':
     model = OmniScaleCNN(c_in=1, c_out=2, seq_len=run_config.win_len ** 10 * 200)
 if run_config.model == 'XceptionTime':
-    model = XceptionTime(c_in=1, c_out=2)
+    model = XceptionTime(c_in=1, c_out=2, ks=run_config.ks, nf=run_config.ni, n_layers=run_config.n_layers)
 if run_config.model == 'TCN':
-    model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'ResNet':
-#     model = ResNet(c_in=1, c_out=2)
-# if run_config.model == 'TST':
-#     model = TST(c_in=1, c_out=2, seq_len=run_config.win_len**10*200, dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'mWDN':
-#     model = mWDN(c_in=1, c_out=2, wavelet ='db1', seq_len=run_config.win_len**10*200)
-
+    model = TCN(c_in=1, c_out=2, layers=run_config.n_layers * [run_config.ni], ks=run_config.ks,
+                conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout,
+                activation=run_config.activation)
 
 model = model.to(device)
 results = {}

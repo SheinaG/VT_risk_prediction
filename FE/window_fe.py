@@ -404,7 +404,7 @@ def df_replace_nans(path_df, name_df, manner):
     if not os.path.exists(path_df / name_df):
         print('Not exist DF!')
         print(path_df)
-        return
+        return -1
     df = pd.read_excel(path_df / name_df, engine='openpyxl')
     if df.empty:
         print('DataFrame is empty!')

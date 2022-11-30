@@ -44,6 +44,7 @@ class XceptionModule(Module):
 class XceptionBlock(Module):
     def __init__(self, ni, nf, ks, n_layers, residual=True, activation='RelU', **kwargs):
         self.residual = residual
+        self.n_layers = n_layers
         self.xception, self.shortcut = nn.ModuleList(), nn.ModuleList()
         for i in range(n_layers):
             if self.residual and (i - 1) % 2 == 0: self.shortcut.append(
@@ -59,7 +60,7 @@ class XceptionBlock(Module):
 
     def forward(self, x):
         res = x
-        for i in range(4):
+        for i in range(self.n_layers):
             x = self.xception[i](x)
             if self.residual and (i + 1) % 2 == 0: res = x = self.act(self.add(x, self.shortcut[i // 2](res)))
         return x
@@ -69,11 +70,16 @@ class XceptionTime(Module):
     def __init__(self, c_in, c_out, nf=16, ks=40, nb_filters=None, adaptive_size=50, n_layers=4, **kwargs):
         nf = ifnone(nf, nb_filters)
         self.block = XceptionBlock(c_in, nf, ks, n_layers, **kwargs)
-        self.head_nf = nf * 32
+        self.head_nf = nf * 2 ** (n_layers + 1)
+        self.n_layers = n_layers
+        midel_layers = []
+        b = 1
+        for i in range(n_layers - 2):
+            midel_layers += [ConvBlock(self.head_nf // b, self.head_nf // (2 * b), 1)]
+            b *= 2
         self.head = nn.Sequential(nn.AdaptiveAvgPool1d(adaptive_size),
-                                  ConvBlock(self.head_nf, self.head_nf // 2, 1),
-                                  ConvBlock(self.head_nf // 2, self.head_nf // 4, 1),
-                                  ConvBlock(self.head_nf // 4, c_out, 1),
+                                  *midel_layers,
+                                  ConvBlock(self.head_nf // b, c_out, 1),
                                   GAP1d(1))
 
     def forward(self, x):

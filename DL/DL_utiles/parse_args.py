@@ -58,9 +58,9 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--batch-size-test', type=int, default=4, help='test batch size')
 
     # TCN model:
-    parser.add_argument('--activation', type=str, default='RelU', help='which activation function to use')
-    parser.add_argument('--n_layers', type=int, default=8, help='how many layers are in the model')
-    parser.add_argument('--ni', type=int, default=8, help='how many channels are in the model')
-    parser.add_argument('--ks', type=int, default=8, help='filter size')
+    parser.add_argument('--activation', type=str, default='leakyRelu', help='which activation function to use')
+    parser.add_argument('--n_layers', type=int, default=3, help='how many layers are in the model')
+    parser.add_argument('--ni', type=int, default=25, help='how many channels are in the model')
+    parser.add_argument('--ks', type=int, default=17, help='filter size')
 
     return parser

@@ -31,14 +31,26 @@ if __name__ == '__main__':
     # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
     # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
     # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
-    not_exist = ['PA18A685', 'N620E203', '6518F561', 'S218767f', '9018C42a', 'A618A557'
-        , 'R921B1db', 'Q620G162', 'J621F4c4', '5921D0ce', '4018Fcff', 'Q1188937', 'U520F0f1', 'U620D940',
-                 'T2186cf4']
+    bad_bsqi = ['J621F4c4', '5921D0ce', '4018Fcff']
+    not_exist = cts.ids_vn + cts.ids_sn + cts.ids_tp + cts.ids_sp
     ids = not_exist
-    fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
+    Not_exist_list = []
+    # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
+    # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
     for id_ in ids:
         p_dir = pathlib.PurePath(features_path / id_)  # ML_model
-        df_replace_nans(p_dir, 'features.xlsx', 'mean')
+        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
+        if res == -1:
+            Not_exist_list.append(id_)
+    fe_process(Not_exist_list, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
+    features_per_window(dataset, Not_exist_list, data_path, features_path, vt_wins=0, win_len=win_len)
+
+    Not_exist_list2 = []
+    for id_ in ids:
+        p_dir = pathlib.PurePath(features_path / id_)  # ML_model
+        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
+        if res == -1:
+            Not_exist_list2.append(id_)
 
     for i in range(1, cts.NM + 1):
         train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',

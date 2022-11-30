@@ -7,7 +7,7 @@ sys.path.append("/home/sheina/VT_risk_prediction/")
 from models.OScnnS import OmniScaleCNN
 from models.TCNs import TCN
 from models.XceptoinTimeS import XceptionTime
-from data.dataset import one_set, overfit_set
+from data.dataset import one_set, overfit_set, ansamble_set
 from DL_utiles.parse_args import parse_global_args
 
 
@@ -52,7 +52,7 @@ if run_config.batch_size == 0:
     if run_config.win_len == 180:
         run_config.batch_size = 1
 
-train_set = overfit_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
+train_set = ansamble_set(task='train', win_len=run_config.win_len, size=run_config.size)
 train_set.init_epoch(epoch_idx=0)
 train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
 # val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
