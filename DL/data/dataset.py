@@ -140,10 +140,13 @@ class t_ansamble_set(Dataset):
         n_start = n_idx[ensamble_num * 30]
         n_end = n_idx[(ensamble_num + 1) * 30]
         n_rel = self.indexes_all[n_start:n_end]
-        self.indexes = p_idx.tolist() + n_rel.tolist()
-        self.targets = self.targets_all[self.indexes]
-        self.win_lens = win_nums[self.indexes]
+        self.first_idexes = epoch_idxs_ordered[targets == 0].tolist() + n_idx.tolist()
+        self.indexes_model = p_idx.tolist() + n_rel.tolist()
+        self.targets_model = self.targets_all[self.indexes]
+        self.win_lens = win_nums[self.indexes_all_epochs]
         self.max_win = max(self.win_lens)
+        self.indexes = []
+        self.targets = []
 
     def __len__(self):
         return len(self.indexes)
@@ -159,5 +162,8 @@ class t_ansamble_set(Dataset):
         return ecg_win, label
 
     def init_epoch(self, epoch_idx=0):
-        random.seed(epoch_idx)
-        r_int = random.randint(range(self.max_win))
+        epoch_idxes = self.first_idexes + epoch_idx
+        epoch_idxes[self.win_lens < epoch_idx] = epoch_idxes[self.win_lens < epoch_idx] % self.win_lens[
+            self.win_lens < epoch_idx]
+        self.indexes = self.indexes_model[epoch_idxes]
+        self.targets = self.targets_model[epoch_idxes]

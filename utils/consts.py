@@ -77,7 +77,8 @@ search_spaces_RF = {
     'model__min_samples_leaf': Integer(1, 100),
     'model__max_features': [0.05, 0.1, 0.3, 0.5, 0.8, 1],
     # 'model__max_leaf_nodes': [None],
-    #    'model__max_samples': Real(0.3, 0.99),
+    'model__bootstrap': True,
+    'model__max_samples': Real(0.3, 0.99),
 }
 
 search_spaces_XGB = {

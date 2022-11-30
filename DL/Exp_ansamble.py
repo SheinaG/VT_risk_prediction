@@ -10,7 +10,6 @@ from models.XceptoinTimeS import XceptionTime
 from data.dataset import one_set, overfit_set, t_ansamble_set
 from DL_utiles.parse_args import parse_global_args
 
-
 empty_parser = argparse.ArgumentParser()
 parser = parse_global_args(parent=empty_parser)
 run_config = parser.parse_args()
