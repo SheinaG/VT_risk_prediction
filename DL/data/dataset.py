@@ -63,9 +63,14 @@ class one_set(Dataset):
             ecg_win = self.transform(ecg_win)
         return ecg_win, label
 
-    def init_epoch(self, epoch_idx):
+    def init_epoch(self, epoch_idx, eval_num=1):
         epoch_idx = epoch_idx % 40
-        epoch_idxs_ordered = np.where(self.indexes_all[:, 1] == str(epoch_idx * self.win_len))[0]
+        for i in range(eval_num):
+            epoch_idxs_ordered_part = np.where(self.indexes_all[:, 1] == str(epoch_idx * self.win_len))[0]
+            if i == 0:
+                epoch_idxs_ordered = epoch_idxs_ordered_part
+            else:
+                epoch_idxs_ordered = np.concatenate(epoch_idxs_ordered, epoch_idxs_ordered_part)
 
         if self.shuffle:
             np.random.seed(epoch_idx)
@@ -108,7 +113,7 @@ class overfit_set(Dataset):
             ecg_win = self.transform(ecg_win)
         return ecg_win, label
 
-    def init_epoch(self, epoch_idx=0):
+    def init_epoch(self, epoch_idx=0, eval_num=1):
         epoch_idx = epoch_idx % 40
         epoch_idxs_ordered = np.where(self.indexes_all[:, 1] == str(epoch_idx * self.win_len))[0]
         targets = self.targets_all[epoch_idxs_ordered]
@@ -135,15 +140,16 @@ class t_ansamble_set(Dataset):
         epoch_idxs_ordered = np.where(self.indexes_all[:, 1] == '0')[0]
         win_nums = np.diff(np.concatenate(epoch_idxs_ordered, np.array(len(epoch_idxs_ordered))))
         targets = self.targets_all[epoch_idxs_ordered]
-        p_idx = self.indexes_all[targets == 1]
+        p_idx = self.indexes_all[self.targets_all == 1]
         n_idx = epoch_idxs_ordered[targets == 0]
         n_start = n_idx[ensamble_num * 30]
         n_end = n_idx[(ensamble_num + 1) * 30]
         n_rel = self.indexes_all[n_start:n_end]
         self.first_idexes = epoch_idxs_ordered[targets == 0].tolist() + n_idx.tolist()
         self.indexes_model = p_idx.tolist() + n_rel.tolist()
-        self.targets_model = self.targets_all[self.indexes]
-        self.win_lens = win_nums[self.indexes_all_epochs]
+        self.targets_model = np.concatenate([np.ones([1, len(p_idx.tolist())]), np.zeros([1, len(n_rel.tolist())])],
+                                            axis=1).squeeze()
+        self.win_lens = win_nums[self.indexes_model]
         self.max_win = max(self.win_lens)
         self.indexes = []
         self.targets = []

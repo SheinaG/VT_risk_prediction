@@ -7,7 +7,7 @@ sys.path.append("/home/sheina/VT_risk_prediction/")
 from models.OScnnS import OmniScaleCNN
 from models.TCNs import TCN
 from models.XceptoinTimeS import XceptionTime
-from data.dataset import one_set, overfit_set, t_ansamble_set
+from data.dataset import one_set, t_ansamble_set
 from DL_utiles.parse_args import parse_global_args
 
 empty_parser = argparse.ArgumentParser()
@@ -51,7 +51,7 @@ if run_config.batch_size == 0:
     if run_config.win_len == 180:
         run_config.batch_size = 1
 
-train_set = t_ansamble_set(task='train', win_len=run_config.win_len, size=run_config.size)
+train_set = t_ansamble_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
 # train_set.init_epoch(epoch_idx=0)
 val_set = one_set(task='val', win_len=run_config.win_len, shuffle=False)
 
@@ -72,7 +72,7 @@ epoch_gamma = 1
 
 def train_one_epoch(epoch_index):
     train_set.init_epoch(epoch_index)
-    train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
+    train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size)
     running_loss = 0.
     pred_all = []
     lab_all = []
@@ -125,6 +125,7 @@ def train_one_epoch(epoch_index):
 
 
 val_auroc_b = 0
+eval_num = 1
 EPOCHS = run_config.epochs
 for epoch in range(EPOCHS):
     print('EPOCH {}:'.format(epoch + 1))
@@ -140,7 +141,9 @@ for epoch in range(EPOCHS):
 
     with torch.no_grad():
         running_vloss = 0.0
-        for i, vdata in enumerate(train_loader):
+        val_set.init_epoch(epoch, eval_num=eval_num)
+        val_loader = DataLoader(dataset=val_set, batch_size=run_config.batch_size)
+        for i, vdata in enumerate(val_loader):
             vinputs, vlabels = vdata
             bsn = vinputs.shape[0]
             vinputs = torch.reshape(vinputs, (bsn, 1, -1)).float()

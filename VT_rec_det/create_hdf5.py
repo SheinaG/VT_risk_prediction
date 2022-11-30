@@ -1,9 +1,6 @@
 import sys
-
 import h5py
 import numpy as np
-
-sys.path.append('/home/b.noam/')
 import utils.consts as cts
 from parsing.base_VT_parser import VtParser
 
@@ -130,7 +127,7 @@ def add_data(db, data_filename, list_ids, range, part_pat):
 
 
 if __name__ == '__main__':
-    task = 'train_part'  # 'test'
+    task = 'train'  # 'test'
     data_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("data_" + task + ".hdf5")
     idx_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("idx_" + task + ".npy")
     label_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("labels_" + task + ".npy")
