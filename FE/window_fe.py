@@ -11,13 +11,13 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     for id in ids:
         if not os.path.exists(bsqi_path / id):
             os.makedirs(bsqi_path / id)
-        if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
-            continue
+        # if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
+        #     continue
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
-        epltd_lead = db.parse_annotation(id, type='epltd0')
-        epltd_lead = epltd_lead[(epltd_lead >= starti)] - starti
+        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy')
+        # epltd_lead = epltd_lead[(epltd_lead >= starti)] - starti
         bsqi_list = []
         i = 0
         start_win = 0
@@ -164,8 +164,8 @@ def calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30):
         isExist = os.path.exists(features_path / str(id))
         if not isExist:
             os.makedirs(features_path / str(id))
-        if os.path.exists(features_path / str(id) / 'hrv_features.xlsx'):
-            continue
+        # if os.path.exists(features_path / str(id) / 'hrv_features.xlsx'):
+        #     continue
         while end_win < len(raw_lead):
             if bsqi[win] < 0.8:
                 win = win + 1
@@ -216,8 +216,8 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
         end_win = start_win + win_len * 60 * fs
         qrs_all = fiducials[0]['qrs']
 
-        if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
-            continue
+        # if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
+        #     continue
 
         while end_win < len(raw_lead):
             if bsqi[i] < 0.8:

@@ -43,7 +43,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
     # create dataset ( VT each grop)
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
-                                                        model=0)
+                                                        model=0, features_name=features_name)
     x_train = model_features(x_train, model_type, with_dems=True)
     train_groups = split_to_group(train_ids_groups)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0,
