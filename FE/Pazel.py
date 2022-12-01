@@ -16,7 +16,7 @@ if __name__ == '__main__':
     dataset = 'rbdb'
     win_len = 60
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
@@ -24,8 +24,8 @@ if __name__ == '__main__':
     algo = 'RF'
     n_jobs = 10
     bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
-    # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
-    # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
+    ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn
+    fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=1)
     # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, vt_wins=1, win_len=win_len)
     #
     # for id_ in ids:
