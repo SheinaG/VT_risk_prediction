@@ -206,7 +206,7 @@ class VtParser:
     def parse_ids(self, task='train'):
         if task == 'train':
             train_n = list(np.load(cts.IDS_DIR / 'RBDB_train_no_VT_ids.npy'))
-            train_p = list(np.load(cts.IDS_DIR / 'RBDB_train_VT_ids.npy'))[5:]
+            train_p = list(np.load(cts.IDS_DIR / 'RBDB_train_VT_ids.npy'))[10:]
             train_df = pd.DataFrame(columns=['holter_id', 'th_id', 'y'])
             y = np.asarray([0] * len(train_n) + [1] * len(train_p))
             train_df['holter_id'] = np.asarray(train_n + train_p)

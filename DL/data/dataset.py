@@ -1,5 +1,7 @@
 import random
 
+import numpy as np
+
 from DL.DL_utiles.base_packages import *
 
 
@@ -70,7 +72,7 @@ class one_set(Dataset):
             if i == 0:
                 epoch_idxs_ordered = epoch_idxs_ordered_part
             else:
-                epoch_idxs_ordered = np.concatenate(epoch_idxs_ordered, epoch_idxs_ordered_part)
+                epoch_idxs_ordered = np.concatenate([epoch_idxs_ordered, epoch_idxs_ordered_part], axis=0)
 
         if self.shuffle:
             np.random.seed(epoch_idx)
@@ -137,19 +139,30 @@ class t_ansamble_set(Dataset):
         self.indexes_all = np.load(idx_filename)[::win_len]
         self.database_all = np.load(data_filename, mmap_mode='c')
         self.transform = transform
-        epoch_idxs_ordered = np.where(self.indexes_all[:, 1] == '0')[0]
-        win_nums = np.diff(np.concatenate(epoch_idxs_ordered, np.array(len(epoch_idxs_ordered))))
-        targets = self.targets_all[epoch_idxs_ordered]
-        p_idx = self.indexes_all[self.targets_all == 1]
-        n_idx = epoch_idxs_ordered[targets == 0]
+        epoch_idxs_ordered = list(np.where(self.indexes_all[:, 1] == '0')[0])
+        epoch_idxs_ordered.append(len(self.indexes_all))
+        win_nums = np.diff(epoch_idxs_ordered)
+        targets = self.targets_all[epoch_idxs_ordered[:-1]]
+        p_idx_list = self.indexes_all[self.targets_all == 1]
+        p_idx = np.asarray(epoch_idxs_ordered[:-1])[targets == 1]
+        p_start = p_idx[0]
+        p_end = p_idx[-1] + 1
+        n_idx = np.asarray(epoch_idxs_ordered[:-1])[targets == 0]
         n_start = n_idx[ensamble_num * 30]
         n_end = n_idx[(ensamble_num + 1) * 30]
-        n_rel = self.indexes_all[n_start:n_end]
-        self.first_idexes = epoch_idxs_ordered[targets == 0].tolist() + n_idx.tolist()
-        self.indexes_model = p_idx.tolist() + n_rel.tolist()
-        self.targets_model = np.concatenate([np.ones([1, len(p_idx.tolist())]), np.zeros([1, len(n_rel.tolist())])],
-                                            axis=1).squeeze()
-        self.win_lens = win_nums[self.indexes_model]
+
+        n_idx_list = self.indexes_all[n_start:n_end]
+        self.first_idexes = np.asarray(epoch_idxs_ordered[:-1])[targets == 1].tolist() + n_idx[ensamble_num * 30:(
+                                                                                                                             ensamble_num + 1) * 30].tolist()
+        self.indexes_model_list = p_idx_list.tolist() + n_idx_list.tolist()
+        self.indexes_model = np.concatenate([np.expand_dims(np.arange(p_start, p_end), 1),
+                                             np.expand_dims(np.arange(n_start, n_end), 1)], axis=0).squeeze()
+        self.targets_model = np.concatenate(
+            [np.ones([1, len(p_idx.tolist())]), np.zeros([1, len(n_idx_list.tolist())])],
+            axis=1).squeeze()
+        self.win_lens = np.concatenate(
+            [np.asarray(win_nums[targets == 1]), np.asarray(win_nums[ensamble_num * 30:(ensamble_num + 1) * 30])],
+            axis=0)
         self.max_win = max(self.win_lens)
         self.indexes = []
         self.targets = []
@@ -168,8 +181,11 @@ class t_ansamble_set(Dataset):
         return ecg_win, label
 
     def init_epoch(self, epoch_idx=0):
-        epoch_idxes = self.first_idexes + epoch_idx
-        epoch_idxes[self.win_lens < epoch_idx] = epoch_idxes[self.win_lens < epoch_idx] % self.win_lens[
-            self.win_lens < epoch_idx]
-        self.indexes = self.indexes_model[epoch_idxes]
-        self.targets = self.targets_model[epoch_idxes]
+        epoch_idxes = []
+        for i in range(len(self.first_idexes)):
+            iid = self.first_idexes[i] + epoch_idx
+            if epoch_idx > self.win_lens[i]:
+                iid = self.first_idexes[i] + epoch_idx % self.win_lens[i]
+            epoch_idxes.append(iid)
+        self.indexes = epoch_idxes
+        self.targets = self.targets_all[epoch_idxes]

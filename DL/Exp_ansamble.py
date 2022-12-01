@@ -116,7 +116,7 @@ def train_one_epoch(epoch_index):
     print('  batch {} loss: {}'.format(i + 1, last_loss))
     wandb.log({"train batch loss": last_loss})
     wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
-    print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
+    # print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
     running_loss = 0.
     pred_all = []
     lab_all = []
@@ -155,21 +155,17 @@ for epoch in range(EPOCHS):
             pred_all = pred_all + pred
 
     # wandb.log({"val loss": avg_vloss})
-    val_auroc = roc_auc_score(train_set.targets, np.array(pred_all)[:, 1])
+    val_auroc = roc_auc_score(val_set.targets, np.array(pred_all)[:, 1])
     wandb.log({"val AUROC": val_auroc})
-    if val_auroc == 1:
-        run_config.size = run_config.size * 2
-        train_set = overfit_set(task='train_part', win_len=run_config.win_len, size=run_config.size)
-        train_set.init_epoch(epoch_idx=0)
-        train_loader = DataLoader(dataset=train_set, batch_size=run_config.size * 2)
-        print(run_config.size)
+    print(val_auroc)
 
-    # Log the running loss averaged per batch
-    # for both training and validation
 
     # Track best performance, and save the model's state
     if val_auroc > val_auroc_b:
         val_auroc_b = val_auroc
         wandb.log({"best val AUROC": val_auroc_b})
-        model_path = run_config.models_dir + '/' + str(run_config.run_name + '_model_{}'.format(epoch))
-        torch.save(model.state_dict(), str(model_path))
+        wandb.log({"eval_num": eval_num})
+        # if eval_num > 3:
+        # model_path = run_config.models_dir + '/' + str(run_config.run_name + '_model_{}'.format(epoch))
+        # torch.save(model.state_dict(), str(model_path))
+        eval_num += 1

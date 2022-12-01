@@ -24,10 +24,10 @@ from numpy import matlib
 from collections import defaultdict
 import time
 from itertools import repeat
-import pebm
-from pebm import Preprocessing as Pre
-from pebm.ebm import FiducialPoints as Fp
-from pebm.ebm import Biomarkers as Obm
+import pecg
+from pecg import Preprocessing as Pre
+from pecg.ecg import FiducialPoints as Fp
+from pecg.ecg import Biomarkers as Obm
 from scipy.io import loadmat
 from scipy.stats import norm
 import random

@@ -31,17 +31,16 @@ if __name__ == '__main__':
     # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
     # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
     # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
-    bad_bsqi = ['J621F4c4', '5921D0ce', '4018Fcff']
-    not_exist = cts.ids_vn + cts.ids_sn + cts.ids_tp + cts.ids_sp
+    not_exist = ['J621F4c4', '4018Fcff', 'N620D38d', 'A618A557']
     ids = not_exist
     Not_exist_list = []
-    # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
-    # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
-    for id_ in ids:
-        p_dir = pathlib.PurePath(features_path / id_)  # ML_model
-        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
-        if res == -1:
-            Not_exist_list.append(id_)
+    fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
+    features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
+    # for id_ in ids:
+    #     p_dir = pathlib.PurePath(features_path / id_)  # ML_model
+    #     res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
+    #     if res == -1:
+    #         Not_exist_list.append(id_)
     fe_process(Not_exist_list, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
     features_per_window(dataset, Not_exist_list, data_path, features_path, vt_wins=0, win_len=win_len)
 

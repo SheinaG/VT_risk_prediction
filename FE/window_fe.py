@@ -17,6 +17,8 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
         epltd_lead = np.load(ecg_path / id / 'epltd_0.npy')
+        fp = Fp.FiducialPoints(raw_lead, 200)
+        epltd_lead_2 = fp.epltd()
         # epltd_lead = epltd_lead[(epltd_lead >= starti)] - starti
         bsqi_list = []
         i = 0
