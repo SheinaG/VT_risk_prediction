@@ -59,7 +59,7 @@ def parse_global_args(parent, add_help=False):
 
     # TCN model:
     parser.add_argument('--activation', type=str, default='leakyRelu', help='which activation function to use')
-    parser.add_argument('--n_layers', type=int, default=4, help='how many layers are in the model')
+    parser.add_argument('--n_layers', type=int, default=2, help='how many layers are in the model')
     parser.add_argument('--ni', type=int, default=25, help='how many channels are in the model')
     parser.add_argument('--ks', type=int, default=17, help='filter size')
 

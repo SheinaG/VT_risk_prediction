@@ -184,7 +184,7 @@ class t_ansamble_set(Dataset):
         epoch_idxes = []
         for i in range(len(self.first_idexes)):
             iid = self.first_idexes[i] + epoch_idx
-            if epoch_idx > self.win_lens[i]:
+            if epoch_idx >= self.win_lens[i]:
                 iid = self.first_idexes[i] + epoch_idx % self.win_lens[i]
             epoch_idxes.append(iid)
         self.indexes = epoch_idxes
