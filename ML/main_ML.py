@@ -90,6 +90,6 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem41',
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem41_MS',
                                methods=['mrmr'],
-                               n_jobs=15, feature_selection=1, algo='XGB')
+                               n_jobs=15, feature_selection=0, algo='RF')

@@ -18,7 +18,7 @@ def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.
     ids_group = []
     n_win = []
     for i, id_ in enumerate(ids):
-        if id_ in cts.bad_bsqi:
+        if id_ in bad_bsqi:
             j = 0
             continue
         new_p = np.array(pd.read_excel((path / id_ / add_path), engine='openpyxl'))
