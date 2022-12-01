@@ -23,35 +23,19 @@ if __name__ == '__main__':
     data_path = cts.VTdb_path
     algo = 'RF'
     n_jobs = 10
+    bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
     # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
     # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
     # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, vt_wins=1, win_len=win_len)
     #
-    # ids = cts.ids_tn + cts.ids_sn
-    # fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
-    # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path)
-    # features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
-    not_exist = ['J621F4c4', '4018Fcff', 'N620D38d', 'A618A557']
-    ids = not_exist
-    Not_exist_list = []
-    fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
-    features_per_window(dataset, ids, data_path, features_path, vt_wins=0, win_len=win_len)
     # for id_ in ids:
     #     p_dir = pathlib.PurePath(features_path / id_)  # ML_model
     #     res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
     #     if res == -1:
     #         Not_exist_list.append(id_)
-    fe_process(Not_exist_list, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len)
-    features_per_window(dataset, Not_exist_list, data_path, features_path, vt_wins=0, win_len=win_len)
-
-    Not_exist_list2 = []
-    for id_ in ids:
-        p_dir = pathlib.PurePath(features_path / id_)  # ML_model
-        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
-        if res == -1:
-            Not_exist_list2.append(id_)
 
     for i in range(1, cts.NM + 1):
         train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',
                                methods=['ns'],
-                               n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx')
+                               n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
+                               bad_bsqi_ids=bad_bsqi_60)

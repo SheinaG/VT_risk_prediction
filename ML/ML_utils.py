@@ -10,7 +10,7 @@ multiply = 1
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 
-def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.xlsx'):
+def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.xlsx', bad_bsqi=cts.bad_bsqi):
     if model == 0:
         add_path = features_name
     elif model == 1:
@@ -45,10 +45,11 @@ def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.
     return dataset, y_d, ids_group, n_win
 
 
-def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10, features_name='features_nd.xlsx'):
+def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10, features_name='features_nd.xlsx',
+                   bad_bsqi_ids=cts.bad_bsqi):
     pool = multiprocessing.Pool(n_pools)
     in_pool = (len(ids) // n_pools) + 1
-    ids_pool, y_pool, pathes, models, features_names = [], [], [], [], []
+    ids_pool, y_pool, pathes, models, features_names, bad_bsqi_ids_s = [], [], [], [], [], []
 
     for j in range(n_pools):
         ids_pool += [ids[j * in_pool:min((j + 1) * in_pool, len(ids))]]
@@ -56,7 +57,8 @@ def create_dataset(ids, y=[], path='', model=0, return_num=False, n_pools=10, fe
         pathes += [path]
         models += [model]
         features_names += [features_name]
-    res = pool.starmap(create_part_dataset, zip(ids_pool, y_pool, pathes, models, features_names))
+        bad_bsqi_ids_s += [bad_bsqi_ids]
+    res = pool.starmap(create_part_dataset, zip(ids_pool, y_pool, pathes, models, features_names, bad_bsqi_ids_s))
     for i, res_i in enumerate(res):
         if i == 0:
             dataset = res_i[0]

@@ -33,7 +33,7 @@ def train_by_V_ratio():
 
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods='', feature_selection=0, n_jobs=10,
-                           algo='RF', features_name='features_nd.xlsx'):
+                           algo='RF', features_name='features_nd.xlsx', bad_bsqi_ids=cts.bad_bsqi):
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
@@ -43,11 +43,11 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
     # create dataset ( VT each grop)
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
-                                                        model=0, features_name=features_name)
+                                                        model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
     train_groups = split_to_group(train_ids_groups)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0,
-                                                     features_name=features_name)
+                                                     features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_test = model_features(x_test, model_type, with_dems=True)
 
     if feature_selection:
