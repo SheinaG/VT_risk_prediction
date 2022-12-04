@@ -1,3 +1,6 @@
+import sys
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
 from ML.ML_utils import *
 from utils.plots import *
 
@@ -271,6 +274,10 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
                                                           majority_vote=False, soft_lines=False)
         if method == 'median':
             prob = np.median(data, axis=0)
+            y_test_list, prob_list = divide_CI_groups(prob)
+            low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
+                                                          title='model ' + str(i), algo='median',
+                                                          majority_vote=False, soft_lines=False)
         if i == 0:
             prob_all = np.expand_dims(prob, axis=1).T
         else:
@@ -283,7 +290,7 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
     plt.ylim([0, 1])
     plt.xlim([0, 1])
     plt.grid()
-    plt.savefig(save_path / 'AUROC_per_patient.png', dpi=400, transparent=True)
+    plt.savefig(save_path / 'AUROC_per_patient_' + algo + '_' + method + '.png', dpi=400, transparent=True)
     plt.show()
 
     return prob_all
@@ -292,10 +299,9 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 if __name__ == '__main__':
     algo = 'XGB'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
-    # run_all_models('new_dem53', DATA_PATH, algo)
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_ns/')
 
-    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=1)
-    plot_test('new_dem41', DATA_PATH, algo, feature_selection=1, methods=['mrmr'])
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=1)
+    plot_test('new_dem41_ns', DATA_PATH, algo, feature_selection=1, methods=['ns'])
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

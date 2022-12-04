@@ -117,7 +117,7 @@ def plot_BS(opt_d, path_d, algo):
         plt.show()
 
 
-def train_val(opt_d, model_path):
+def train_val(opt_d, model_path, algo):
     columns = ['AUROC train', 'AUROC validation']
     train_val = pd.DataFrame(columns=columns, index=range(1, len(opt_d) + 1))
     for j in opt_d:
@@ -132,15 +132,15 @@ def train_val(opt_d, model_path):
         train_val['AUROC train'][j] = train_ms
         train_val['AUROC validation'][j] = val_ms
 
-    train_val.to_excel(model_path / 'all_model_train_val.xlsx')
+    train_val.to_excel(model_path / str('all_model_train_val_' + algo + '.xlsx'))
 
 
-def hyper_model(opt_d, path):
+def hyper_model(opt_d, path, algo):
     hyp_pd = pd.DataFrame(columns=opt_d[1].best_params_.keys())
     for i in range(1, cts.NM + 1):
         best_hyp = pd.DataFrame(opt_d[i].best_params_, columns=opt_d[i].best_params_.keys(), index=[i])
         hyp_pd = hyp_pd.append(best_hyp)
-    hyp_pd.to_excel(path / 'hyperparameters.xlsx')
+    hyp_pd.to_excel(path / str('hyperparameters_' + algo + '.xlsx'))
 
 
 if __name__ == '__main__':

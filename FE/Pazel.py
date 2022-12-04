@@ -1,13 +1,17 @@
+import sys
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
 from utils.base_packages import *
 import utils.consts as cts
-
 from FE.features_per_window import *
 from FE.window_fe import *
 from FE.statistical_test import *
 from ML.main_ML import train_prediction_model
 from ML.results import all_models
 from ML.from_win_to_rec import *
+
 warnings.filterwarnings("ignore", category=FutureWarning)
+
 
 if __name__ == '__main__':
     win_len_n = 'win_len_60'
@@ -25,7 +29,7 @@ if __name__ == '__main__':
     n_jobs = 10
     bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
     ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn
-    fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=1)
+    # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=1)
     # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, vt_wins=1, win_len=win_len)
     #
     # for id_ in ids:
@@ -34,7 +38,7 @@ if __name__ == '__main__':
     #     if res == -1:
     #         Not_exist_list.append(id_)
 
-    for i in range(1, cts.NM + 1):
+    for i in range(3, cts.NM + 1):
         train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',
                                methods=['ns'],
                                n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',

@@ -1,13 +1,10 @@
 import sys
 
-import numpy as np
-
-sys.path.append('/home/sheina/')
-from scipy.io import savemat
-
-from pebm import Preprocessing as Pre
-from parsing.base_VT_parser import *
+sys.path.append("/home/sheina/VT_risk_prediction/")
+sys.path.append("/home/sheina/ecg-kit/ecg-kit/examples")
 from ML.ML_utils import *
+from utils.base_packages import *
+from parsing.base_VT_parser import VtParser
 
 
 def ids_to_groups(ids, n_pools=10):
@@ -50,7 +47,6 @@ def raw_to_mat(ids):
             pre = Pre.Preprocessing(raw_rec_new, fs)
             raw_rec_new = pre.bpfilt()
             raw_rec_new = pre.notch(n_freq=50)
-            raw_rec_new = normalize_ecg_98(raw_rec_new)
             raw_lead = np.concatenate([raw_lead, np.expand_dims(raw_rec_new, axis=1)], axis=1)
             dic_ = {'signal': raw_lead, 'header': {'recname': id_, 'freq': fs, 'nsamp': len(raw_lead), 'nsig': 3,
                                                    'gain': [1, 1, 1], 'adczero': [0, 0, 0], 'units': ['mV', 'mV', 'mV'],

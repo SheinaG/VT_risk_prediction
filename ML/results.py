@@ -176,8 +176,8 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
                                                                                       results_dir, feature_selection,
                                                                                       features_str)
 
-    train_val(opt_d, model_path)
-    hyper_model(opt_d, model_path)
+    train_val(opt_d, model_path, algo)
+    hyper_model(opt_d, model_path, algo)
     # clac_probs(x_test_d, y_test_d, opt_d, model_path)
     if with_ext_test:
         results_ext = ext_test_set(opt_d, model_path, features_d, feature_selection, features_model)
@@ -185,7 +185,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     results = results.transpose()
     results = results.set_axis(cts.METRICS, axis=1)
     results = results.apply(f2)
-    results.to_excel(model_path / 'all_model_results.xlsx')
+    results.to_excel(model_path / str('all_model_results_' + algo + '.xlsx'))
 
     plt.style.use('bmh')
     fig = plt.plot([1])
@@ -209,7 +209,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     plt.xlabel('Model #')
     plt.legend(loc='upper left')
     plt.title('AUROC per model')
-    plt.savefig(model_path / 'auroc_bar.png', dpi=400, transparent=True)
+    plt.savefig(model_path / str('auroc_bar_' + algo + '.png'), dpi=400, transparent=True)
     plt.show()
 
     # feture importance
@@ -246,7 +246,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         axi.invert_yaxis()
     plt.tight_layout()
 
-    fig.savefig(model_path / 'importance_rf.png', dpi=400, transparent=True)
+    fig.savefig(model_path / str('importance_' + algo + '.png'), dpi=400, transparent=True)
     plt.show()
 
     prob_rf = {}
@@ -281,7 +281,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     plt.ylim([0, 1])
     plt.xlim([0, 1])
     plt.grid()
-    plt.savefig(model_path / 'AUROC.png', dpi=400, transparent=True)
+    plt.savefig(model_path / str('AUROC_' + algo + '.png'), dpi=400, transparent=True)
     plt.show()
 
 
@@ -295,7 +295,7 @@ def eval_one_model(results_dir, path):
 
 
 if __name__ == '__main__':
-    # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem/RF_5/')
+    eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_MS/RF_5/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_mrmr', dataset='new_dem41', feature_selection=1,
-               methods=['mrmr'], algo='RF')
+    # all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_MS', dataset='new_dem41', feature_selection=0,
+    #            methods=['ns'], algo='RF')
