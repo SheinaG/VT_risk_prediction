@@ -143,8 +143,8 @@ if __name__ == '__main__':
 
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
 
-    features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, pvc_path, vt_wins=1, win_len=30)
-    features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, data_path, ML_path, pvc_path, vt_wins=0,
+    # features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, pvc_path, vt_wins=1, win_len=30)
+    features_per_window('rbdb', cts.ids_sn, data_path, ML_path, pvc_path, vt_wins=0,
                         win_len=30)
     # features_per_window('rbdb', test_no_vt, data_path, ML_path, vt_wins=0)
     # features_per_window('rbdb', train_no_vt, data_path, ML_path, vt_wins=0)

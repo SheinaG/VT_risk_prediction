@@ -114,8 +114,8 @@ def train_one_epoch(epoch_index):
 
     last_loss = running_loss / (i + 1)  # loss per batch
     print('  batch {} loss: {}'.format(i + 1, last_loss))
-    wandb.log({"train batch loss": last_loss})
-    wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
+    wandb.log({"train batch loss": last_loss},
+              {"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
     # print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
     running_loss = 0.
     pred_all = []
@@ -163,8 +163,8 @@ for epoch in range(EPOCHS):
     # Track best performance, and save the model's state
     if val_auroc > val_auroc_b:
         val_auroc_b = val_auroc
-        wandb.log({"best val AUROC": val_auroc_b})
-        wandb.log({"eval_num": eval_num})
+        wandb.log({"best val AUROC": val_auroc_b},
+                  {"eval_num": eval_num})
         # if eval_num > 3:
         # model_path = run_config.models_dir + '/' + str(run_config.run_name + '_model_{}'.format(epoch))
         # torch.save(model.state_dict(), str(model_path))

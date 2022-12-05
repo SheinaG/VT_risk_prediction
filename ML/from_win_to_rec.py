@@ -290,18 +290,19 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
     plt.ylim([0, 1])
     plt.xlim([0, 1])
     plt.grid()
-    plt.savefig(save_path / 'AUROC_per_patient_' + algo + '_' + method + '.png', dpi=400, transparent=True)
+    plt.savefig(save_path / str('AUROC_per_patient_' + algo + '_' + method + '.png'), dpi=400, transparent=True)
     plt.show()
 
     return prob_all
 
 
 if __name__ == '__main__':
-    algo = 'XGB'
+    algo = 'RF'
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_ns/')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/WL_60/')
 
-    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=1)
-    plot_test('new_dem41_ns', DATA_PATH, algo, feature_selection=1, methods=['ns'])
+    #
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0)
+    plot_test('WL_60', DATA_PATH, algo, feature_selection=0, methods=['ns'])
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)

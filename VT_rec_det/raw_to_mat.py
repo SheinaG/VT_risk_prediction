@@ -1,5 +1,5 @@
+import os.path
 import sys
-
 sys.path.append("/home/sheina/VT_risk_prediction/")
 sys.path.append("/home/sheina/ecg-kit/ecg-kit/examples")
 from ML.ML_utils import *
@@ -28,13 +28,15 @@ def raw_to_mat(ids):
     lead2ids = []
     fs = 200
     for id_ in ids:
+        # if os.path.exists('/home/sheina/PVC/mats/' + id_ + '.mat'):
+        #     continue
         # first_lead
         raw_lead = np.expand_dims(np.load(ecg_path / 'normalized' / id_ / 'ecg_0.npy'), axis=1)
         epltd_lead = np.expand_dims(np.load(ecg_path / 'normalized' / id_ / 'epltd_0.npy'), axis=1)
         epltd = {'epltd_I': {'time': epltd_lead}}
         # second lead
         raw_rec_new = db.parse_raw_rec(id_, lead=1)
-        raw_rec_new = raw_rec_new[5 * 60 * fs:]
+        # raw_rec_new = raw_rec_new[5 * 60 * fs:]
         pre = Pre.Preprocessing(raw_rec_new, fs)
         raw_rec_new = pre.bpfilt()
         raw_rec_new = pre.notch(n_freq=50)
@@ -64,11 +66,28 @@ def raw_to_mat(ids):
     return lead2ids
 
 
-if __name__ == '__main__':
-    ids_tn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))
-    ids_sn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids.npy'))
-    ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
-    ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
+def run_pvcs(ids):
+    for id_ in ids:
+        example_file = id_ + '.mat'
+        import matlab.engine
+        eng = matlab.engine.start_matlab()
+        eng.cd(r'/home/sheina/ecg-kit/ecg-kit/examples', nargout=0)
+        eng.hbc(example_file, nargout=0)
 
-    ids_to_groups(ids_tp + ids_sp + ids_tn + ids_sn + ids_vn)
+
+def clear_place(ids):
+    pvc_path = '/home/sheina/PVC/mats/'
+    pvc_head = '_ECG_heartbeat_classifier.mat'
+    for id_ in ids:
+        if os.path.exists(pvc_path + id_ + pvc_head):
+            if os.path.exists(pvc_path + id_ + '.mat'):
+                os.remove(pvc_path + id_ + '.mat')
+
+
+if __name__ == '__main__':
+    # raw_to_mat(cts.ext_test_vt +cts.ext_test_no_vt)
+    # clear_place(cts.ids_tn + cts.ids_sp)
+    # ids_to_groups(cts.ext_test_vt +cts.ext_test_no_vt)
+    run_pvcs(cts.ext_test_vt + cts.ext_test_no_vt)
+    # pvc_path = '/home/sheina/PVC/'
+    # savemat(pvc_path + 'ids.mat', {'ids': cts.ext_test_vt + cts.ext_test_no_vt})

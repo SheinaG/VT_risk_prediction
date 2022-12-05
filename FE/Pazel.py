@@ -14,22 +14,21 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_60'
+    win_len_n = 'win_len_10'
     n_pools = 1
 
     dataset = 'rbdb'
-    win_len = 60
+    win_len = 10
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
     algo = 'RF'
     n_jobs = 10
-    bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
     ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn
-    # fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=1)
+    fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
     # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, vt_wins=1, win_len=win_len)
     #
     # for id_ in ids:
@@ -38,8 +37,8 @@ if __name__ == '__main__':
     #     if res == -1:
     #         Not_exist_list.append(id_)
 
-    for i in range(3, cts.NM + 1):
-        train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',
-                               methods=['ns'],
-                               n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
-                               bad_bsqi_ids=bad_bsqi_60)
+    # for i in range(3, cts.NM + 1):
+    #     train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',
+    #                            methods=['ns'],
+    #                            n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
+    #                            bad_bsqi_ids=bad_bsqi_60)

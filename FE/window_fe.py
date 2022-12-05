@@ -444,7 +444,7 @@ def df_replace_nans(path_df, name_df, manner):
 def run_on_dir(ids):
     for id_ in ids:
         p_dir = pathlib.PurePath(cts.ML_path / id_)  # ML_model
-        df_replace_nans(p_dir, 'features_nd.xlsx', 'mean')
+        df_replace_nans(p_dir, 'features_stand.xlsx', 'mean')
 
 
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
@@ -468,18 +468,18 @@ if __name__ == '__main__':
     win_len = 10
     win_len_n = 'WL_10'
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
-    # fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
+    fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'ML_model'
     # results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
-    ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn
-    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len)
+    ids = cts.ids_sn
+    # calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len)
     # calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30, stand=1)
     # calculate_pvc_features(md_test, 30)
     # calculate_fiducials_per_rec([cts.ids_sp[0]],
     #                             pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/'), 'rbdb')
-    # run_on_dir(cts.ids_sn + cts.ids_sp + cts.ids_tp + cts.ids_vn + cts.ids_tn)
+    run_on_dir(cts.ids_sn)
 # calculate_pvc_features(['1021Cd9d'], win_len = 1)
 # fe_dataset(ids_tn, dataset='rbdb', n_pools =10, win_len =1)
 # fe_process(aa, dataset='rbdb', win_len=1)

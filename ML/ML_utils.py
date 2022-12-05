@@ -151,7 +151,6 @@ def split_ids(tr_uv_p, tr_uv_n):
     return ids_train, ids_test, y_train, y_test
 
 
-
 def features_mrmr(X, features_model, features_mrmr, remove=0):
     if not remove:
         X_mrmr = np.zeros([X.shape[0], len(features_mrmr)])

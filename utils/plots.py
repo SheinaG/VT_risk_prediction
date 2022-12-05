@@ -143,5 +143,100 @@ def hyper_model(opt_d, path, algo):
     hyp_pd.to_excel(path / str('hyperparameters_' + algo + '.xlsx'))
 
 
+def plot_demographics(dataset, features_path):
+    if dataset == 'uvaf':
+        datase_load = 'uvafdb'
+    else:
+        datase_load = 'rbdb'
+    demographic_no_VT = pd.read_excel(features_path / 'VTn' / str('demographic_features_' + datase_load + '.xlsx'),
+                                      engine='openpyxl')
+    demographic_VT = pd.read_excel(features_path / 'VTp' / str('demographic_features_' + datase_load + '.xlsx'),
+                                   engine='openpyxl')
+
+    plt.style.use('bmh')
+
+    Age_VT = demographic_VT['age']
+    Age_no_VT = demographic_no_VT['age']
+    ratio = len(Age_no_VT) / len(Age_VT)
+    Age_all = np.concatenate([Age_VT, Age_no_VT], axis=0)
+    age_start = (np.min(Age_all) // 10) * 10
+    age_stop = ((np.max(Age_all) // 10) + 1) * 10
+    bins = np.linspace(int(age_start), int(age_stop), int((age_stop - age_start) // 10 + 1))
+    print(str(np.median(Age_all)))
+    print(str(np.percentile(Age_all, 75)) + '-' + str(np.percentile(Age_all, 25)))
+    plt.figure()
+    n, bins, patches = plt.hist([Age_VT, Age_no_VT], bins, label=['VT', 'Non-VT'], color=colors_six[:2])
+    for rec in patches[1]:
+        rec.set_height(rec.get_height() / ratio)
+    max_rec = 0
+    for patch in patches:
+        for rec in patch:
+            if rec.get_height() > max_rec:
+                max_rec = rec.get_height()
+    plt.ylim(0, max_rec)
+    y_vals = plt.yticks()
+    plt.yticks(y_vals[0], ['{:0.2f}'.format(x / len(Age_VT)) for x in y_vals[0]])
+    plt.legend(loc='upper right')
+    # plt.title('Age among '+dataset.upper()+' recordings', fontsize=14)
+    plt.xlabel('Age', fontsize=14)
+    plt.ylabel('Density', fontsize=14)
+    plt.tight_layout()
+    plt.savefig(features_path / 'stat_test' / str('age_' + dataset + '.png'))
+    plt.show()
+
+    gender_VT = list(demographic_VT['gender'])
+    gender_no_VT = list(demographic_no_VT['gender'])
+    plt.figure(figsize=[5, 5])
+    n, bins, patches = plt.hist([gender_VT, gender_no_VT], label=['VT', 'Non-VT'], color=colors_six[:2], bins=3)
+    for rec in patches[1]:
+        rec.set_height(rec.get_height() / ratio)
+    max_rec = 0
+    for patch in patches:
+        for rec in patch:
+            if rec.get_height() > max_rec:
+                max_rec = rec.get_height()
+    plt.ylim(0, max_rec)
+    y_vals = plt.yticks()
+    plt.yticks(y_vals[0], ['{:0.2f}'.format(x / len(gender_VT)) for x in y_vals[0]])
+    print(str(sum(np.asarray(gender_VT + gender_no_VT)) / len(gender_VT + gender_no_VT)))
+    plt.legend(loc='upper center')
+    plt.xlim([0, 1])
+    plt.xticks(range(2), ['Female', 'Male'], fontsize=14)
+    # plt.title('Sex among ' + dataset.upper() + ' recordings', fontsize=14)
+    plt.xlabel('Sex', fontsize=14)
+    plt.ylabel('Density', fontsize=14)
+
+    plt.tight_layout()
+    plt.savefig(features_path / 'stat_test' / str('gender_' + dataset + '.png'))
+    plt.show()
+
+
+def plot_norm_hist(data_list, legend_list, title, axis, bin_num, save_path):
+    plt.figure(figsize=[5, 5])
+    n, bins, patches = plt.hist(data_list, label=legend_list, color=cts.colors[:2], bins=bin_num)
+    ratio = len(data_list[1]) / len(data_list[2])
+    for rec in patches[1]:
+        rec.set_height(rec.get_height() / ratio)
+    max_rec = 0
+    for patch in patches:
+        for rec in patch:
+            if rec.get_height() > max_rec:
+                max_rec = rec.get_height()
+    plt.ylim(0, max_rec)
+    y_vals = plt.yticks()
+    plt.yticks(y_vals[0], ['{:0.2f}'.format(x / len(data_list[0])) for x in y_vals[0]])
+    print(str(sum(np.asarray(data_list[0] + data_list[1])) / len(data_list[0] + data_list[1])))
+    plt.legend(loc='upper center')
+    plt.xlim([range(len(axis))[0], range(len(axis))[1]])
+    plt.xticks(range(len(axis)), axis, fontsize=14)
+    # plt.title('Sex among ' + dataset.upper() + ' recordings', fontsize=14)
+    plt.xlabel('Sex', fontsize=14)
+    plt.ylabel('Density', fontsize=14)
+
+    plt.tight_layout()
+    plt.savefig(save_path / 'stat_test' / str(title + '.png'))
+    plt.show()
+
+
 if __name__ == '__main__':
     a = 5

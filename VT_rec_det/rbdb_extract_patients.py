@@ -320,6 +320,38 @@ def rbdb_new_dem(ids):
     return
 
 
+def calculate_demographic(name):
+    if name == 'uvafdb':
+
+        excel_sheet_no_VT = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/excel_sheet_no_VT_uvafdb.xlsx',
+                                          engine='openpyxl')
+        excel_sheet_VT = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/excel_sheet_VT_uvafdb.xlsx',
+                                       engine='openpyxl')
+        demographic_no_VT_xl = pd.DataFrame(columns=['age', 'gender'], index=list(excel_sheet_no_VT['Holter ID']))
+        demographic_VT_xl = pd.DataFrame(columns=['age', 'gender'], index=list(excel_sheet_VT['Holter ID']))
+        demographic_no_VT_xl['age'] = (np.asarray(excel_sheet_no_VT["Age (days)"]) + np.asarray(
+            excel_sheet_no_VT["Days from First"])) // DY
+        demographic_VT_xl['age'] = (np.asarray(excel_sheet_VT["Age (days)"]) + np.asarray(
+            excel_sheet_VT["Days from First"])) // DY
+        demographic_no_VT_xl['gender'] = np.asarray(pd.get_dummies(excel_sheet_no_VT['Gender'])['M'])
+        demographic_VT_xl['gender'] = np.asarray(pd.get_dummies(excel_sheet_VT['Gender'])['M'])
+        demographic_VT_xl.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/demographic_features_uvafdb.xlsx')
+        demographic_no_VT_xl.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/demographic_features_uvafdb.xlsx')
+    elif name == 'rbdb':
+        excel_sheet_no_VT = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/excel_sheet_no_VT_rbdb.xlsx',
+                                          engine='openpyxl')
+        excel_sheet_VT = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/excel_sheet_VT_rbdb.xlsx',
+                                       engine='openpyxl')
+        demographic_no_VT_xl = pd.DataFrame(columns=['age', 'gender'], index=list(excel_sheet_no_VT['holter_id']))
+        demographic_VT_xl = pd.DataFrame(columns=['age', 'gender'], index=list(excel_sheet_VT['holter_id']))
+        demographic_no_VT_xl['age'] = np.asarray(excel_sheet_no_VT["age_at_recording"])
+        demographic_VT_xl['age'] = np.asarray(excel_sheet_VT["age_at_recording"])
+        demographic_no_VT_xl['gender'] = np.asarray(pd.get_dummies(excel_sheet_no_VT['sex'])['M'])
+        demographic_VT_xl['gender'] = np.asarray(pd.get_dummies(excel_sheet_VT['sex'])['M'])
+        demographic_VT_xl.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/demographic_features_rbdb.xlsx')
+        demographic_no_VT_xl.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/demographic_features_rbdb.xlsx')
+
+
 def append_rhythms_array(self, pat, new_line, arr):
     start = 0
     end = -1

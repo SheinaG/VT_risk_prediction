@@ -28,7 +28,7 @@ import pecg
 from pecg import Preprocessing as Pre
 from pecg.ecg import FiducialPoints as Fp
 from pecg.ecg import Biomarkers as Obm
-from scipy.io import loadmat
+from scipy.io import loadmat, savemat
 from scipy.stats import norm
 import random
 from scipy.interpolate import interp1d
