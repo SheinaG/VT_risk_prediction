@@ -42,6 +42,8 @@ def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.
             dataset = np.concatenate([dataset, new_p], axis=0)
             y_d = np.concatenate([y_d, new_y], axis=1)
         n_win = n_win + [new_p.shape[0]]
+        if new_p.shape[0] == 0:
+            a = 5
     return dataset, y_d, ids_group, n_win
 
 

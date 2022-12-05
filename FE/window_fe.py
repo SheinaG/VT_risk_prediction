@@ -208,7 +208,7 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
 
     for id in ids:
         pebm_feat = {}
-        bsqi = np.load(bsqi_path / id / str('bsqi_0.npy'))
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
         fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl')
         i = 0
@@ -263,7 +263,7 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
     a = 5
 
 
-def fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path):
+def fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0):
     pool = multiprocessing.Pool(n_pools)
     in_pool = (len(ids) // n_pools) + 1
     ids_pool, dataset_pool = [], []

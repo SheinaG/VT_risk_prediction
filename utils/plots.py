@@ -143,6 +143,16 @@ def hyper_model(opt_d, path, algo):
     hyp_pd.to_excel(path / str('hyperparameters_' + algo + '.xlsx'))
 
 
+def hit_map_bsqi(bsqi_path, win_len=30):
+    if win_len == 30:
+        wl = 0
+    else:
+        wl = win_len
+    all_ids = list(set(cts.ids_sn + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn + cts.bad_bsqi))
+    for id_ in all_ids:
+        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(win_len) + '.npy'))
+
+
 def plot_demographics(dataset, features_path):
     if dataset == 'uvaf':
         datase_load = 'uvafdb'
@@ -211,10 +221,10 @@ def plot_demographics(dataset, features_path):
     plt.show()
 
 
-def plot_norm_hist(data_list, legend_list, title, axis, bin_num, save_path):
+def plot_norm_hist(data_list, legend_list, title, axis, xlabel, bin_num, save_path):
     plt.figure(figsize=[5, 5])
     n, bins, patches = plt.hist(data_list, label=legend_list, color=cts.colors[:2], bins=bin_num)
-    ratio = len(data_list[1]) / len(data_list[2])
+    ratio = len(data_list[1]) / len(data_list[0])
     for rec in patches[1]:
         rec.set_height(rec.get_height() / ratio)
     max_rec = 0
@@ -227,16 +237,49 @@ def plot_norm_hist(data_list, legend_list, title, axis, bin_num, save_path):
     plt.yticks(y_vals[0], ['{:0.2f}'.format(x / len(data_list[0])) for x in y_vals[0]])
     print(str(sum(np.asarray(data_list[0] + data_list[1])) / len(data_list[0] + data_list[1])))
     plt.legend(loc='upper center')
-    plt.xlim([range(len(axis))[0], range(len(axis))[1]])
-    plt.xticks(range(len(axis)), axis, fontsize=14)
+    plt.xlim([axis[0], axis[-1]])
+    plt.xticks([float('{:0.2f}'.format(x)) for x in axis], [float('{:0.2f}'.format(x)) for x in axis], fontsize=10)
     # plt.title('Sex among ' + dataset.upper() + ' recordings', fontsize=14)
-    plt.xlabel('Sex', fontsize=14)
+    plt.xlabel(xlabel, fontsize=14)
     plt.ylabel('Density', fontsize=14)
 
     plt.tight_layout()
-    plt.savefig(save_path / 'stat_test' / str(title + '.png'))
+    plt.savefig(save_path / str(title + '.png'))
     plt.show()
 
 
+def plot_V_ratio():
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+    exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
+    y_vt = np.ones([1, len(cts.ids_tp + cts.ids_sp)]).squeeze()
+    y_no_vt = np.ones([1, len(cts.ids_tn + cts.ids_sn + cts.ids_vn)]).squeeze()
+    data_vt, _, _ = create_dataset(cts.ids_tp + cts.ids_sp, y_vt, features_path, model=0,
+                                   features_name='features_nd.xlsx')
+    data_no_vt, _, _ = create_dataset(cts.ids_tn + cts.ids_sn + cts.ids_vn, y_no_vt, features_path, model=0,
+                                      features_name='features_nd.xlsx')
+
+    sample_features_xl = pd.read_excel(exmp_file, engine='openpyxl')
+    features_arr = np.asarray(sample_features_xl.columns[1:])
+    features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
+
+    data1 = data_vt[:, -9].astype(float)
+    q1 = np.quantile(data1, 0.01)
+    q99 = np.quantile(data1, 0.99)
+    data1_clean = data1[(data1 <= q99) & (data1 >= q1)]
+
+    data2 = data_no_vt[:, -9].astype(float)
+    q1 = np.quantile(data2, 0.01)
+    q99 = np.quantile(data2, 0.99)
+    data2_clean = data2[(data2 <= q99) & (data2 >= q1)]
+    data_list = [data1_clean.tolist(), data2_clean.tolist()]
+    legend_list = ['C1', 'C0']
+    title = "PVC's ratio histogram"
+    axis = np.linspace(0, 0.45, 10)
+    xlabel = '% of PVC beats'
+    bin_num = 10
+    save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/figures/')
+    plot_norm_hist(data_list, legend_list, title, axis, xlabel, bin_num, save_path)
+
+
 if __name__ == '__main__':
-    a = 5
+    plot_V_ratio()

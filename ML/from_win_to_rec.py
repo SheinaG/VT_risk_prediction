@@ -3,6 +3,7 @@ import sys
 sys.path.append("/home/sheina/VT_risk_prediction/")
 from ML.ML_utils import *
 from utils.plots import *
+from utils.base_packages import *
 
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
@@ -10,6 +11,7 @@ features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
 
 f2 = lambda x: list(map('{:.2f}'.format, x))
 MAX_WIN = cts.MAX_WIN
+MAX_WIN_60 = cts.MAX_WIN_60
 
 def list_duplicates_of(seq, item):
     start_at = -1
@@ -74,24 +76,28 @@ def divide_CI_groups(LR_probs):
     return y_test_list, LR_prob_list
 
 
-def organize_win_probabilities(n_win, x_as_list):
-    data = np.zeros([len(n_win), MAX_WIN])
+def organize_win_probabilities(n_win, x_as_list, win_len):
+    if win_len == 30:
+        max_win = cts.MAX_WIN
+    if win_len == 60:
+        max_win = cts.MAX_WIN_60
+    data = np.zeros([len(n_win), max_win])
     j_1 = 0
     j_2 = 0
     for i, n in enumerate(n_win):
         j_2 = j_2 + n_win[i]
         x_p = x_as_list[j_1:j_2]
         median_i = np.median(np.asarray(x_p))
-        if n_win[i] > MAX_WIN:
-            x_p = x_as_list[j_1:j_1 + MAX_WIN]
+        if n_win[i] > max_win:
+            x_p = x_as_list[j_1:j_1 + max_win]
             data[i, :] = np.asarray(x_p)
         else:
-            data[i, :] = np.asarray(x_p + [median_i] * (MAX_WIN - n_win[i]))
+            data[i, :] = np.asarray(x_p + [median_i] * (max_win - n_win[i]))
         j_1 = j_2
     return data
 
 
-def parse_hyperparameters(PATH, algo):
+def parse_hyperparameters(PATH, algo, groups):
     opt = joblib.load(PATH / 'opt.pkl')
     params = list(opt.best_params_.values())
     params_dict = {}
@@ -100,8 +106,9 @@ def parse_hyperparameters(PATH, algo):
     return params_dict
 
 
-def tev_LR(x, y, hyp_path, task):
+def tev_LR(x, y, hyp_path, task, groups):
     x.sort(axis=1)
+    logo = LeaveOneGroupOut()
     search_spaces = {
                         'penalty': ['none', 'l2'],
                         'tol': [1e-4, 1e-3, 1e-5],
@@ -113,13 +120,15 @@ def tev_LR(x, y, hyp_path, task):
     if task == 'train':
         # hyperparameters search
         lr = LogisticRegression(random_state=42, class_weight='balanced')
-        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=1)
+        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=1,
+                           cv=logo.split(x, y, groups=groups))
         clf.fit(x, y)
         prob = clf.predict_proba(x)[:, 1]
-        with open((hyp_path / 'LR.pkl'), 'wb') as f:
+        delattr(clf, 'cv')
+        with open((hyp_path / 'LR_CV.pkl'), 'wb') as f:
             joblib.dump(clf, f)
     if task == 'test':
-        LR_clf = joblib.load(hyp_path / 'LR.pkl')
+        LR_clf = joblib.load(hyp_path / 'LR_CV.pkl')
         prob = LR_clf.predict_proba(x)[:, 1]
     return prob
 
@@ -136,7 +145,7 @@ def tev_RF(x_train, y_train, x_val, params_dict, algo):
     return y_pred
 
 
-def split_and_collect(x_train, y_train, y_train_p, train_groups, n_win, hyp_path, algo):
+def split_and_collect(x_train, y_train, y_train_p, train_groups, n_win, hyp_path, algo, win_len=60):
     logo = LeaveOneGroupOut()
     params_dict = parse_hyperparameters(hyp_path, algo)
     y_pred = []
@@ -145,7 +154,7 @@ def split_and_collect(x_train, y_train, y_train_p, train_groups, n_win, hyp_path
         y_tt, y_tv = y_train[train_index], y_train[test_index]
         y_tv_pred = tev_RF(x_tt, y_tt, x_tv, params_dict, algo)
         y_pred = y_pred + y_tv_pred.tolist()
-    data = organize_win_probabilities(n_win, y_pred)
+    data = organize_win_probabilities(n_win, y_pred, win_len)
     proba = tev_LR(data, y_train_p, hyp_path, task='train')
     return proba
 
@@ -164,53 +173,39 @@ def opt_thresh_sp(proba, y_true_p, save_path, min_sp, task='train', algo='RF'):
     return thresh, Sp_, Se_
 
 
-def plot_results(prob, y_true, title, save_path, algo, method):
-    plt.figure()
-    plt.style.use('bmh')
-    Se, Sp, AUROC = {}, {}, {}
-    # columns = ['Se', 'Sp', 'AUROC']
-    res = {}
-    if title == 'train':
-        str_t = 'Roc curve for RBDB validation'
-    if title == 'test':
-        str_t = 'Roc curve for RBDB test'
-    if title == 'ext_test':
-        str_t = 'Roc curve for UVAF test'
-    for i in range(1, cts.NM + 1):
-        AUROC[i] = roc_auc_score(y_true, prob[i - 1, :])
-        tpr_rf, fpr_rf, ths = roc_curve(y_true, prob[i - 1, :])
-        plt.plot(tpr_rf, fpr_rf, cts.colors[i - 1], label='model ' + str(i) + ' (' + str(np.round(AUROC[i], 2)) + ')')
-        plt.plot(tpr_rf, tpr_rf, 'k')
-        plt.xlabel('1-Sp')
-        plt.ylabel('Se')
-        # Se[i] = Se_
-        # Sp[i] = Sp_
-
-    plt.legend(facecolor='white', framealpha=0.8, loc=4)
-    plt.xlim([0, 1])
-    plt.ylim([0, 1])
-    plt.title(str_t)
-    plt.savefig(save_path / str(title + '_' + method + '.png'), dpi=400, transparent=True)
-    plt.show()
-    res['AUROC'] = AUROC
-
-    results = pd.DataFrame.from_dict(res)
-    results = results.apply(f2)
-    results.to_excel(save_path / str(title + '_' + method + '_results.xlsx'))
-    return res
-
-
-def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['mrmr']):
+def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['mrmr'], win_len=60,
+                  features_name='features.xlsx'):
     # load data for all models
+    if win_len == 30:
+        bad_bsqi_ids = cts.bad_bsqi
+    if win_len == 60:
+        bad_bsqi_ids = cts.bad_bsqi_60
 
     y_train_p = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                                axis=1).squeeze()
     x_train, y_train, train_ids_groups, n_win = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train_p,
-                                                               path=DATA_PATH, model=0, return_num=True)
+                                                               path=DATA_PATH, model=0, return_num=True,
+                                                               features_name=features_name,
+                                                               bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
+    train_groups = split_to_group(cts.ids_tp + cts.ids_tn + cts.ids_vn)
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     x_test, y_test, _, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
-                                                   return_num=True)
+                                                   return_num=True, features_name=features_name,
+                                                   bad_bsqi_ids=bad_bsqi_ids)
     auroc_all = []
+    ids_train = cts.ids_tp + cts.ids_tn + cts.ids_vn
+    for id_ in bad_bsqi_ids:
+        if id_ in cts.ids_tn + cts.ids_vn:
+            id_ind = (cts.ids_tp + cts.ids_tn + cts.ids_vn).index(id_)
+            y_train_p = np.delete(y_train_p, id_ind)
+        if id_ in cts.ids_sn:
+            id_ind = (cts.ids_sp + cts.ids_sn).index(id_)
+            y_test_p = np.delete(y_test_p, id_ind)
+        if id_ in ids_train:
+            ids_train.remove(id_)
+
+    train_groups = split_to_group(ids_train)
+
     for i in range(1, cts.NM + 1):
         # train
         features_model = list(model_features(features_list, i, with_dems=True)[0])
@@ -225,19 +220,19 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
                 features = features_model
             x_train_model = features_mrmr(x_train_model, features_model, list(features), remove=0)
         y_pred = opt.predict_proba(x_train_model)[:, 1].tolist()
-        data = organize_win_probabilities(n_win, y_pred)
+        data = organize_win_probabilities(n_win, y_pred, win_len)
 
         # test
         x_test_model = model_features(x_test, i, with_dems=True)
         if feature_selection:
             x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
-        y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
-        data_test = organize_win_probabilities(n_win_test, y_pred)
+        y_pred_test = opt.predict_proba(x_test_model)[:, 1].tolist()
+        data_test = organize_win_probabilities(n_win_test, y_pred_test, win_len)
 
         if method == 'LR':
-            prob = tev_LR(data, y_train_p, model_path, task='train')
+            prob = tev_LR(data, y_train_p, model_path, task='train', groups=train_groups)
             opt_thresh_sp(prob, y_train_p, model_path, min_sp=90, task='train', algo=algo)
-            prob = tev_LR(data_test, y_test_p, model_path, task='test')
+            prob = tev_LR(data_test, y_test_p, model_path, task='test', groups=train_groups)
             AUROC = roc_auc_score(y_test_p, prob)
 
         if method == 'median':
@@ -249,31 +244,35 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     return prob
 
 
-def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr']):
+def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr'], win_len=60,
+              features_name='features.xlsx'):
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     _, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
-                                         return_num=True)
+                                         return_num=True, features_name=features_name, bad_bsqi_ids=cts.bad_bsqi_60)
+    LR_d = []
     fig = plt.figure()
     plt.style.use('bmh')
     for i in range(cts.NM):
-
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
         opt = joblib.load(hyp_path / 'opt.pkl')
+
         x_test_model = joblib.load(hyp_path / 'X_test.pkl')
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
-        data = organize_win_probabilities(n_win, y_pred)
+        data = organize_win_probabilities(n_win, y_pred, win_len)
         if method == 'LR':
+            LR_d.append(joblib.load(hyp_path / 'LR.pkl'))
+
             prob = tev_LR(data, y_test_p, hyp_path, task='test')
             y_test_list, prob_list = divide_CI_groups(prob)
             low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='LR',
                                                           majority_vote=False, soft_lines=False)
         if method == 'median':
-            prob = np.median(data, axis=0)
+            prob = np.median(data, axis=1)
             y_test_list, prob_list = divide_CI_groups(prob)
             low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='median',
@@ -293,16 +292,28 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
     plt.savefig(save_path / str('AUROC_per_patient_' + algo + '_' + method + '.png'), dpi=400, transparent=True)
     plt.show()
 
+    if method == 'LR':
+        train_val(LR_d, save_path, 'LR')
+
     return prob_all
 
 
 if __name__ == '__main__':
     algo = 'RF'
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/WL_60/')
 
     #
-    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0)
-    plot_test('WL_60', DATA_PATH, algo, feature_selection=0, methods=['ns'])
+    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=60, features_name='features.xlsx')
+    # plot_test('WL_60', DATA_PATH, algo, method='LR',feature_selection=0, methods=['ns'], win_len=60, features_name='features.xlsx')
+    # plot_test('new_dem41_mrmr', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['mrmr'], win_len=30, features_name='features_nd.xlsx')
+    # plot_test('new_dem41_ns', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['ns'],
+    #           win_len=30, features_name='features_nd.xlsx')
+    # plot_test('new_dem', DATA_PATH, algo='RF', method='median', feature_selection=0, methods=['ns'],
+    #           win_len=30, features_name='features_nd.xlsx')
+    # plot_test('new_dem41', DATA_PATH, algo='XGB', method='median', feature_selection=0, methods=['ns'],
+    #           win_len=30, features_name='features_nd.xlsx')
+
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)
