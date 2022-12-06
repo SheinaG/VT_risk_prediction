@@ -25,6 +25,7 @@ IMPLEMENTED_FEATURES = np.array(['cosEn', 'AFEv', 'OriginCount', 'IrrEv', 'PACEv
 # r-peaks:
 ANNOTATION_TYPES = np.array(['epltd0', 'xqrs', 'gqrs', 'rqrs', 'jqrs', 'wqrs', 'wavedet', 'wrqrs'])
 
+bad_bsqi_10 = ['F520H114']
 bad_bsqi = ['H8208813', '2A21F10e', 'F520H114', 'L620D996', 'M918Ccc4', 'N8218967']
 bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
 

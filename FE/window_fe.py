@@ -1,3 +1,6 @@
+import sys
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
 import utils.feature_comp as fc
 from ML.ML_utils import *
 from parsing.base_VT_parser import *
@@ -455,8 +458,8 @@ def run_on_dir(ids):
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
     for i, id_ in enumerate(ids):
         fs = 200
-        raw_lead = np.load(ecg_path / dataset / id_ / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / dataset / id_ / 'epltd_0.npy')
+        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy')
+        epltd_lead = np.load(ecg_path / id_ / 'epltd_0.npy')
         matlab_path = '/usr/local/MATLAB/R2021a/'
         fp = Fp.FiducialPoints(raw_lead, fs)
         fiducials = fp.wavedet(matlab_path, epltd_lead)
@@ -469,11 +472,11 @@ def calculate_fiducials_per_rec(ids, ecg_path, dataset):
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_10'
+    win_len_n = 'win_len_60'
     n_pools = 10
 
     dataset = 'uvafdb'
-    win_len = 10
+    win_len = 60
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
@@ -482,5 +485,4 @@ if __name__ == '__main__':
     data_path = cts.VTdb_path
     ids = cts.ext_test_vt + cts.ext_test_no_vt
 
-    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=win_len)
-#
+    calculate_fiducials_per_rec(ids, ecg_path, dataset)

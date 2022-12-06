@@ -32,27 +32,27 @@ if __name__ == '__main__':
     # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, features_path, vt_wins=1, win_len=win_len)
     # features_per_window(dataset, cts.ids_sn, data_path, features_path,features_path, vt_wins=0, win_len=win_len)
 
-    for id_ in ids:
-        if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
-            old_name = str(features_path / id_ / 'features_stand.xlsx')
-            new_name = str(features_path / id_ / 'features.xlsx')
-            os.rename(old_name, new_name)
-        if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
-            old_name = str(features_path / id_ / 'bm_features_stand.xlsx')
-            new_name = str(features_path / id_ / 'bm_features.xlsx')
-            os.rename(old_name, new_name)
-    #
-    Not_exist_list = []
-    for id_ in ids:
-        p_dir = pathlib.PurePath(features_path / id_)  # ML_model
-        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
-        if res == -1:
-            Not_exist_list.append(id_)
+    # for id_ in ids:
+    #     if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
+    #         old_name = str(features_path / id_ / 'features_stand.xlsx')
+    #         new_name = str(features_path / id_ / 'features.xlsx')
+    #         os.rename(old_name, new_name)
+    #     if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
+    #         old_name = str(features_path / id_ / 'bm_features_stand.xlsx')
+    #         new_name = str(features_path / id_ / 'bm_features.xlsx')
+    #         os.rename(old_name, new_name)
+    # #
+    # Not_exist_list = []
+    # for id_ in ids:
+    #     p_dir = pathlib.PurePath(features_path / id_)  # ML_model
+    #     res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
+    #     if res == -1:
+    #         Not_exist_list.append(id_)
 
     a = 5
 
-    # for i in range(3, cts.NM + 1):
-    #     train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',
-    #                            methods=['ns'],
-    #                            n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
-    #                            bad_bsqi_ids=bad_bsqi_60)
+    for i in range(1, cts.NM + 1):
+        train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_10',
+                               methods=['ns'],
+                               n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
+                               bad_bsqi_ids=cts.bad_bsqi_10)

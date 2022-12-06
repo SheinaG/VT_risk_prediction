@@ -191,6 +191,10 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     x_test, y_test, _, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                                    return_num=True, features_name=features_name,
                                                    bad_bsqi_ids=bad_bsqi_ids)
+    auroc_train = []
+    auroc_test = []
+    columns = ['AUROC train', 'AUROC test']
+    train_val = pd.DataFrame(columns=columns, index=range(1, cts.NM + 1))
     auroc_all = []
     ids_train = cts.ids_tp + cts.ids_tn + cts.ids_vn
     for id_ in bad_bsqi_ids:
@@ -233,14 +237,20 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
             opt_thresh_sp(prob, y_train_p, model_path, min_sp=90, task='train', algo=algo)
             prob = tev_LR(data_test, y_test_p, model_path, task='test', groups=train_groups)
             AUROC = roc_auc_score(y_test_p, prob)
+            auroc_all.append(AUROC)
 
         if method == 'median':
-            medians = np.median(data_test, axis=0)
-            AUROC = roc_auc_score(y_test_p, medians)
+            medians_train = np.median(data, axis=1)
+            AUROC_train = roc_auc_score(y_train_p, medians_train)
+            train_val['AUROC train'][i] = AUROC_train
+            medians_test = np.median(data_test, axis=1)
+            AUROC_test = roc_auc_score(y_test_p, medians_test)
+            train_val['AUROC test'][i] = AUROC_test
 
-        auroc_all.append(AUROC)
+    if method == 'median':
+        train_val.to_excel(all_path / 'train_test_median.xlsx')
     print(auroc_all)
-    return prob
+    return
 
 
 def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr'], win_len=60,
@@ -299,22 +309,49 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 if __name__ == '__main__':
     algo = 'RF'
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/WL_60/')
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
     #
-    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=60,
-                  features_name='features.xlsx')
-    plot_test('WL_60', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=60,
-              features_name='features.xlsx')
-    # plot_test('new_dem41_mrmr', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['mrmr'], win_len=30, features_name='features_nd.xlsx')
-    # plot_test('new_dem41_ns', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['ns'],
-    #           win_len=30, features_name='features_nd.xlsx')
-    # plot_test('new_dem', DATA_PATH, algo='RF', method='median', feature_selection=0, methods=['ns'],
-    #           win_len=30, features_name='features_nd.xlsx')
-    # plot_test('new_dem41', DATA_PATH, algo='XGB', method='median', feature_selection=0, methods=['ns'],
-    #           win_len=30, features_name='features_nd.xlsx')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem/')
+    run_one_model(all_path, DATA_PATH, algo, method='median', methods=['ns'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem', DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41/')
+    algo = 'XGB'
+    run_one_model(all_path, DATA_PATH, algo, method='median', methods=['ns'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41', DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
+    algo = 'RF'
+    run_one_model(all_path, DATA_PATH, algo, method='median', methods=['mrmr'], feature_selection=1, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/new_dem41_mrmr/')
+    algo = 'XGB'
+    run_one_model(all_path, DATA_PATH, algo, method='median', methods=['mrmr'], feature_selection=1, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['mrmr'], feature_selection=0, win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
 
     # run_one_model(model_path, 1, DATA_PATH)
     # plot_test(dataset, DATA_PATH, algo)
