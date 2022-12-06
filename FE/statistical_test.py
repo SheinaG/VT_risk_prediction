@@ -1,12 +1,45 @@
-import pathlib
-
-import matplotlib.pyplot as plt
-import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
-from scipy.stats import mannwhitneyu
-
 from ML.ML_utils import *
+
+
+def bsqi_stataictics(bsqi_path, win_len):
+    if win_len == 30:
+        wl = 0
+    else:
+        wl = win_len
+    not_exit_ids = []
+    excluded_recordings = []
+    initial_windows = 0
+    bad_bsqi_windows = 0
+    bsqi_all = []
+    bsqi_per_patient = pd.DataFrame()
+    all_ids = list(set(cts.ids_sn + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn + cts.bad_bsqi))
+    for id_ in all_ids:
+        try:
+            bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(wl) + '.npy'))
+        except FileNotFoundError:
+            not_exit_ids.append(id_)
+        if len(bsqi[bsqi < 0.8]) == len(bsqi):
+            excluded_recordings.append(id_)
+
+        if len(bsqi) == 0:
+            print(id_)
+        else:
+            median_bsqi = np.median(bsqi)
+            q75, q25 = np.percentile(bsqi, [99, 1])
+            iqr_bsqi = q75 - q25
+            initial_windows += len(bsqi)
+            bad_bsqi_windows += len(bsqi[bsqi < 0.8])
+            bsqi_all = bsqi_all + list(bsqi)
+            bsqi_per_patient = bsqi_per_patient.append(
+                pd.DataFrame([id_, len(bsqi), len(bsqi), median_bsqi, iqr_bsqi]).transpose(), ignore_index=True)
+
+    bsqi_per_patient = bsqi_per_patient.set_axis(
+        labels=['holter id', 'windows num', 'bad bsqi windows num', 'median_bsqi', 'iqr_bsqi'], axis=1)
+    bsqi_per_patient.to_excel(bsqi_path / 'bsqi_stat.xlsx')
+    np.save('', excluded_recordings)
+
+    print(str(initial_windows))
+    print(str(bad_bsqi_windows))
 
 
 def handel_strings(in_string):
@@ -164,8 +197,12 @@ def analyze_statistical_test(features_path, stat_path, exmp_file):
 
 
 if __name__ == '__main__':
+    win_len_n = 'rbdb'
+    win_len = 30
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     # perform_statistical_test(features_path, stat_path, exmp_file)
-    analyze_statistical_test(features_path, stat_path, exmp_file)
+    # analyze_statistical_test(features_path, stat_path, exmp_file)
+    bsqi_stataictics(bsqi_path, win_len)

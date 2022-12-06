@@ -15,7 +15,7 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 if __name__ == '__main__':
     win_len_n = 'win_len_10'
-    n_pools = 1
+    n_pools = 10
 
     dataset = 'rbdb'
     win_len = 10
@@ -26,16 +26,30 @@ if __name__ == '__main__':
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
     algo = 'RF'
-    n_jobs = 10
-    ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sp + cts.ids_tn
-    fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
-    # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, vt_wins=1, win_len=win_len)
+    ids = cts.ids_sp + cts.ids_vn + cts.ids_tp + cts.ids_sn + cts.ids_tn
+
+    # fe_dataset(cts.ids_sn, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
+    # features_per_window(dataset, cts.ids_sp + cts.ids_tp, data_path, features_path, features_path, vt_wins=1, win_len=win_len)
+    # features_per_window(dataset, cts.ids_sn, data_path, features_path,features_path, vt_wins=0, win_len=win_len)
+
+    for id_ in ids:
+        if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
+            old_name = str(features_path / id_ / 'features_stand.xlsx')
+            new_name = str(features_path / id_ / 'features.xlsx')
+            os.rename(old_name, new_name)
+        if os.path.exists(features_path / id_ / 'features_stand.xlsx'):
+            old_name = str(features_path / id_ / 'bm_features_stand.xlsx')
+            new_name = str(features_path / id_ / 'bm_features.xlsx')
+            os.rename(old_name, new_name)
     #
-    # for id_ in ids:
-    #     p_dir = pathlib.PurePath(features_path / id_)  # ML_model
-    #     res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
-    #     if res == -1:
-    #         Not_exist_list.append(id_)
+    Not_exist_list = []
+    for id_ in ids:
+        p_dir = pathlib.PurePath(features_path / id_)  # ML_model
+        res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
+        if res == -1:
+            Not_exist_list.append(id_)
+
+    a = 5
 
     # for i in range(3, cts.NM + 1):
     #     train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_60',

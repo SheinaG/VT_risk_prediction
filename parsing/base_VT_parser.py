@@ -30,7 +30,7 @@ class VtParser:
         self.val_n = list(np.load(cts.IDS_DIR / 'RBDB_val_no_VT_ids.npy'))
         self.ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
         self.ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
-        self.rbdb_ids = self.train_n + self.train_p + self.test_n + self.test_p + self.val_n
+        self.rbdb_ids = self.train_n + self.train_p + self.test_n + self.test_p + self.val_n + cts.bad_bsqi
         self.uvafdb_ids = self.ext_test_vt + self.ext_test_no_vt
 
     def dataset_split(self, rec):

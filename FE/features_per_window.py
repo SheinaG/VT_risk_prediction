@@ -43,14 +43,14 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
             bad_ids.append(id_)
             print(id_)
             continue
-        notExist = os.path.exists(features_path / str(id_) / 'bm_features_stand.xlsx')
+        notExist = os.path.exists(features_path / str(id_) / 'bm_features.xlsx')
         if not notExist:
             print(id_)
             continue
         hrv_vt = pd.read_excel(features_path / str(id_) / 'hrv_features.xlsx', engine='openpyxl')
         hrv_vt = hrv_vt.set_axis(hrv_vt['Unnamed: 0'], axis='index')
         hrv_vt = hrv_vt.drop(columns=['Unnamed: 0'])
-        bm_vt = pd.read_excel(features_path / str(id_) / 'bm_features_stand.xlsx', engine='openpyxl')
+        bm_vt = pd.read_excel(features_path / str(id_) / 'bm_features.xlsx', engine='openpyxl')
         bm_vt = bm_vt.set_axis(bm_vt['Unnamed: 0'], axis='index')
         bm_vt = bm_vt.drop(columns=['Unnamed: 0'])
         pvc_vt = pd.read_excel(pvc_path / str(id_) / 'pvc_features.xlsx', engine='openpyxl')

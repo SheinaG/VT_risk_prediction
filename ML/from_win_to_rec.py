@@ -121,7 +121,7 @@ def tev_LR(x, y, hyp_path, task, groups):
         # hyperparameters search
         lr = LogisticRegression(random_state=42, class_weight='balanced')
         clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=1,
-                           cv=logo.split(x, y, groups=groups))
+                           cv=logo.split(x, y, groups=groups), return_train_score=True)
         clf.fit(x, y)
         prob = clf.predict_proba(x)[:, 1]
         delattr(clf, 'cv')
@@ -187,7 +187,6 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
                                                                path=DATA_PATH, model=0, return_num=True,
                                                                features_name=features_name,
                                                                bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
-    train_groups = split_to_group(cts.ids_tp + cts.ids_tn + cts.ids_vn)
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     x_test, y_test, _, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                                    return_num=True, features_name=features_name,
@@ -204,7 +203,7 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         if id_ in ids_train:
             ids_train.remove(id_)
 
-    train_groups = split_to_group(ids_train)
+    train_groups = split_to_group(ids_train, split=41)
 
     for i in range(1, cts.NM + 1):
         # train
@@ -252,7 +251,7 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     _, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                          return_num=True, features_name=features_name, bad_bsqi_ids=cts.bad_bsqi_60)
-    LR_d = []
+    LR_d = {}
     fig = plt.figure()
     plt.style.use('bmh')
     for i in range(cts.NM):
@@ -264,9 +263,9 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
         y_pred = opt.predict_proba(x_test_model)[:, 1].tolist()
         data = organize_win_probabilities(n_win, y_pred, win_len)
         if method == 'LR':
-            LR_d.append(joblib.load(hyp_path / 'LR.pkl'))
+            LR_d[i + 1] = joblib.load(hyp_path / 'LR_CV.pkl')
 
-            prob = tev_LR(data, y_test_p, hyp_path, task='test')
+            prob = tev_LR(data, y_test_p, hyp_path, task='test', groups=[])
             y_test_list, prob_list = divide_CI_groups(prob)
             low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='LR',
@@ -300,13 +299,15 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 if __name__ == '__main__':
     algo = 'RF'
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     all_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/WL_60/')
 
     #
-    # run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=60, features_name='features.xlsx')
-    # plot_test('WL_60', DATA_PATH, algo, method='LR',feature_selection=0, methods=['ns'], win_len=60, features_name='features.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, method='LR', methods=['ns'], feature_selection=0, win_len=60,
+                  features_name='features.xlsx')
+    plot_test('WL_60', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=60,
+              features_name='features.xlsx')
     # plot_test('new_dem41_mrmr', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['mrmr'], win_len=30, features_name='features_nd.xlsx')
     # plot_test('new_dem41_ns', DATA_PATH, algo='RF', method='median', feature_selection=1, methods=['ns'],
     #           win_len=30, features_name='features_nd.xlsx')

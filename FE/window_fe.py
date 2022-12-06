@@ -6,7 +6,10 @@ from utils.base_packages import *
 
 def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     fs = 200
-    starti = 5 * 60 * fs
+    if dataset == 'rbdb':
+        starti = 5 * 60 * fs
+    else:
+        starti = 0
     db = VtParser()
     for id in ids:
         if not os.path.exists(bsqi_path / id):
@@ -257,8 +260,10 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
 
         bm = pd.DataFrame.from_dict(pebm_feat)
         bm = bm.transpose()
-        bm.to_excel(features_path / str(id) / 'bm_features_stand.xlsx')
-
+        if stand:
+            bm.to_excel(features_path / str(id) / 'bm_features_stand.xlsx')
+        else:
+            bm.to_excel(features_path / str(id) / 'bm_features.xlsx')
         print(str(id))
     a = 5
 
@@ -464,28 +469,18 @@ def calculate_fiducials_per_rec(ids, ecg_path, dataset):
 
 
 if __name__ == '__main__':
-    dataset = 'rbdb'
+    win_len_n = 'win_len_10'
+    n_pools = 10
+
+    dataset = 'uvafdb'
     win_len = 10
-    win_len_n = 'WL_10'
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
-    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'ML_model'
-    # results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
+    results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
-    ids = cts.ids_sn
-    # calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len)
-    # calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30, stand=1)
-    # calculate_pvc_features(md_test, 30)
-    # calculate_fiducials_per_rec([cts.ids_sp[0]],
-    #                             pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/'), 'rbdb')
-    run_on_dir(cts.ids_sn)
-# calculate_pvc_features(['1021Cd9d'], win_len = 1)
-# fe_dataset(ids_tn, dataset='rbdb', n_pools =10, win_len =1)
-# fe_process(aa, dataset='rbdb', win_len=1)
-# preprocess_ecg(['1419Fc22'], 200, 'rbdb', pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/'), plot=0)
-# calculate_bsqi(['1419Fc22'], 'rbdb',pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') , win_len=1)
-# calculate_pvc_features(ids_sn+ids_sp+ids_tp+ids_vn+ids_tn,  win_len =1)
-# ids_paths = ['RBDB_train_no_VT_ids.npy', 'RBDB_test_no_VT_ids.npy', 'RBDB_train_VT_ids.npy','RBDB_test_VT_ids.npy', 'RBDB_val_no_VT_ids.npy']
-# bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/normalized/')
-# clear_from_bad_bsqi(ids_paths, bsqi_path)
+    ids = cts.ext_test_vt + cts.ext_test_no_vt
+
+    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=win_len)
+#
