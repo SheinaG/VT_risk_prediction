@@ -455,6 +455,64 @@ def run_on_dir(ids):
         df_replace_nans(p_dir, 'features_stand.xlsx', 'mean')
 
 
+def calc_alter(ids, fiducials_path, features_path, bsqi_path, win_len):
+    fs = np.uint8(200)
+
+    for id in ids:
+        pebm_feat = {}
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl')
+        i = 0
+        start_win = 0
+        end_win = start_win + win_len * 60 * fs
+        qrs_all = fiducials[0]['qrs']
+
+        # if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
+        #     continue
+
+        while end_win < len(raw_lead):
+            if bsqi[i] < 0.8:
+                i = i + 1
+                start_win = end_win
+                end_win = start_win + win_len * 60 * fs
+                continue
+
+            fiducials_win = defaultdict(lambda: defaultdict(dict))
+            r_qrs_ind = np.where((qrs_all < end_win) & (qrs_all > start_win))
+            for fid_point in fiducials[0]:
+                all_fid = fiducials[0][fid_point]
+                win_fid = all_fid[r_qrs_ind[0][1]:r_qrs_ind[0][-2]] - start_win
+                fiducials_win[0][fid_point] = win_fid
+
+            # create fiducial win
+            signali = raw_lead[start_win:end_win]
+
+            pebm_feat_win = {}
+            bm = Obm.Biomarkers(signali, fs, fiducials_win)
+            raw_intervals, interval_stat = bm.intervals()
+            raw_waves, wave_stat = bm.waves()
+            for interval in interval_stat:
+                for stat in interval_stat[interval]:
+                    pebm_feat_win[stat + '_' + interval] = interval_stat[interval][stat]
+            for wave in wave_stat:
+                for stat in wave_stat[wave]:
+                    pebm_feat_win[stat + '_' + wave] = wave_stat[wave][stat]
+
+            pebm_feat['patiant_' + id + '_win_' + str(i)] = pebm_feat_win
+
+            i = i + 1
+            start_win = end_win
+            end_win = start_win + win_len * 60 * fs
+
+        bm = pd.DataFrame.from_dict(pebm_feat)
+        bm = bm.transpose()
+
+        bm.to_excel(features_path / str(id) / 'bm_features.xlsx')
+        print(str(id))
+    a = 5
+
+
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
     for i, id_ in enumerate(ids):
         fs = 200
@@ -475,7 +533,7 @@ if __name__ == '__main__':
     win_len_n = 'win_len_60'
     n_pools = 10
 
-    dataset = 'uvafdb'
+    dataset = 'rbdb'
     win_len = 60
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
@@ -483,6 +541,6 @@ if __name__ == '__main__':
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
-    ids = cts.ext_test_vt + cts.ext_test_no_vt
+    ids = cts.ext_test_no_vt[253:]
 
-    calculate_fiducials_per_rec(ids, ecg_path, dataset)
+    calc_alter(cts.ids_sp, fiducials_path, features_path, bsqi_path, win_len)

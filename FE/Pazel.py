@@ -1,13 +1,6 @@
 import sys
-
 sys.path.append("/home/sheina/VT_risk_prediction/")
-from utils.base_packages import *
-import utils.consts as cts
-from FE.features_per_window import *
-from FE.window_fe import *
-from FE.statistical_test import *
 from ML.main_ML import train_prediction_model
-from ML.results import all_models
 from ML.from_win_to_rec import *
 
 warnings.filterwarnings("ignore", category=FutureWarning)

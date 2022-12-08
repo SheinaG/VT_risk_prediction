@@ -129,7 +129,7 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
         new_dem_patient = new_dem_patient.set_axis(bm_vt.index, axis='index')
         hrv_vt = hrv_vt.set_axis(bm_vt.index, axis='index')
         no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient, new_dem_patient], axis=1, join='inner')
-        no_vt_features.to_excel(features_path / id_ / 'features_stand.xlsx')
+        no_vt_features.to_excel(features_path / id_ / 'features.xlsx')
 
     a = 5
 
@@ -141,11 +141,13 @@ if __name__ == '__main__':
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
     pvc_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/normalized/')
 
+    win_len_n = 'win_len_10'
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
+    ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
 
     # features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, pvc_path, vt_wins=1, win_len=30)
-    features_per_window('rbdb', cts.ids_sn, data_path, ML_path, pvc_path, vt_wins=0,
-                        win_len=30)
+    features_per_window('rbdb', ['5620G109'], data_path, ML_path, pvc_path, vt_wins=0,
+                        win_len=10)
     # features_per_window('rbdb', test_no_vt, data_path, ML_path, vt_wins=0)
     # features_per_window('rbdb', train_no_vt, data_path, ML_path, vt_wins=0)
 
