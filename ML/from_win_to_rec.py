@@ -195,6 +195,7 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     x_test, y_test, _, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
                                                    return_num=True, features_name=features_name,
                                                    bad_bsqi_ids=bad_bsqi_ids)
+    ff = 0
     auroc_train = []
     auroc_test = []
     columns = ['AUROC train', 'AUROC test']
@@ -222,6 +223,9 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         if feature_selection:
             features_str = str('features' + methods[0] + '.pkl')
             try:
+                StSc_fit = joblib.load(model_path / 'StSC.pkl')
+                x_train_model = StSc_fit.transform(x_train_model)
+                ff = 1
                 features = joblib.load(model_path / features_str)
             except FileNotFoundError:
                 features = features_model
@@ -232,7 +236,9 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         # test
         x_test_model = model_features(x_test, i, with_dems=True)
         if feature_selection:
-            x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
+            if ff == 1:
+                x_test_model = StSc_fit.transform(x_test_model)
+                x_test_model = features_mrmr(x_test_model, features_model, list(features), remove=0)
         y_pred_test = opt.predict_proba(x_test_model)[:, 1].tolist()
         data_test = organize_win_probabilities(n_win_test, y_pred_test, win_len)
 
@@ -246,13 +252,13 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         if method == 'median':
             medians_train = np.median(data, axis=1)
             AUROC_train = roc_auc_score(y_train_p, medians_train)
-            train_val['AUROC train'][i] = AUROC_train
+            train_val['AUROC train'][i] = np.around(AUROC_train, 2)
             medians_test = np.median(data_test, axis=1)
             AUROC_test = roc_auc_score(y_test_p, medians_test)
-            train_val['AUROC test'][i] = AUROC_test
+            train_val['AUROC test'][i] = np.around(AUROC_test, 2)
 
     if method == 'median':
-        train_val.round(2)
+        train_val = train_val.round(2)
         train_val.to_excel(all_path / str('train_test_median' + algo + '.xlsx'))
     print(auroc_all)
     return
@@ -321,9 +327,39 @@ if __name__ == '__main__':
     algo = 'XGB'
     run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['ns'], win_len=30,
                   features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
     run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['ns'], win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+    algo = 'RF'
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['ns'], win_len=30,
                   features_name='features_nd.xlsx')
     plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
               features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['ns'], win_len=30,
+                  features_name='features_nd.xlsx')
     plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
+              features_name='features_nd.xlsx')
+
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_mrmr'
+    dataset = 'new_dem41_mrmr'
+    algo = 'XGB'
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    algo = 'RF'
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
               features_name='features_nd.xlsx')

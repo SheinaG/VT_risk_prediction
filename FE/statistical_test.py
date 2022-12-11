@@ -101,16 +101,13 @@ def plot_violin_stst(data, n_arr, title, save_path):
     for partname in ('cbars', 'cmins', 'cmaxes', 'cmedians'):
         vp = violins[partname]
         vp.set_edgecolor(color)
-    axe.set_xlabel(handel_strings(title))
+    axe.set_ylabel(handel_strings(title))
     quartile11, medians1, quartile31 = np.percentile(data[0], [25, 50, 75])
     quartile12, medians2, quartile32 = np.percentile(data[1], [25, 50, 75])
     inds = range(1, 3)
     axe.scatter(inds, [medians1, medians2], marker='o', color='white', s=30, zorder=3)
     axe.vlines(inds, [quartile11, quartile12], [quartile31, quartile32], color=color, linestyle='-', lw=5)
-    axe.set_ylabel(r'$probability\ density$')
-    axe.legend(
-        ['%p = ' + str(n_arr[0]) + ', %w = ' + str(n_arr[1]), '%p = ' + str(n_arr[2]) + ', %w = ' + str(n_arr[3])],
-        loc=9, fontsize=10)
+    axe.set_xlabel(r'$probability\ density$')
     labels = [r'$C_0$', r'$C_1$']
     set_axis_style(axe, labels)
     plt.tight_layout()
@@ -196,22 +193,22 @@ def analyze_statistical_test(features_path, stat_path, exmp_file):
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_120'
-    win_len = 120
+    win_len_n = 'uvafdb'
+    win_len = 30
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     # perform_statistical_test(features_path, stat_path, exmp_file)
-    # analyze_statistical_test(features_path, stat_path, exmp_file)
-    # ids = cts.ids_sp +cts.ids_vn + cts.ids_sn+cts.bad_bsqi + cts.ids_tp +cts.ids_tn
+    analyze_statistical_test(features_path, stat_path, exmp_file)
+    # ids = cts.ext_test_no_vt
     # bsqi_stataictics(ids, bsqi_path, win_len)
 
-    mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
-    mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
-    std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
-    std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
-    stat, p = mannwhitneyu(mean_VT.astype(np.float32), mean_non_VT.astype(np.float32))
-    stat, p = mannwhitneyu(std_VT.astype(np.float32), std_non_VT.astype(np.float32))
+    # mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
+    # mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
+    # std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
+    # std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
+    # stat, p = mannwhitneyu(mean_VT.astype(np.float32), mean_non_VT.astype(np.float32))
+    # stat, p = mannwhitneyu(std_VT.astype(np.float32), std_non_VT.astype(np.float32))
 
     a = 5
