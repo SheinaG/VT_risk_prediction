@@ -7,11 +7,11 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_10'
+    win_len_n = 'win_len_120'
     n_pools = 10
 
     dataset = 'rbdb'
-    win_len = 10
+    win_len = 120
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
@@ -36,16 +36,17 @@ if __name__ == '__main__':
     #         os.rename(old_name, new_name)
     # #
     # Not_exist_list = []
+    # from FE.window_fe import *
     # for id_ in ids:
     #     p_dir = pathlib.PurePath(features_path / id_)  # ML_model
     #     res = df_replace_nans(p_dir, 'features.xlsx', 'mean')
     #     if res == -1:
     #         Not_exist_list.append(id_)
-
-    a = 5
+    #
+    # a = 5
 
     for i in range(1, cts.NM + 1):
-        train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_10',
+        train_prediction_model(features_path, cts.ML_RESULTS_DIR, model_type=i, dataset='WL_120',
                                methods=['ns'],
                                n_jobs=10, feature_selection=0, algo=algo, features_name='features.xlsx',
-                               bad_bsqi_ids=cts.bad_bsqi_10)
+                               bad_bsqi_ids=cts.bad_bsqi_120)

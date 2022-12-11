@@ -28,6 +28,7 @@ ANNOTATION_TYPES = np.array(['epltd0', 'xqrs', 'gqrs', 'rqrs', 'jqrs', 'wqrs', '
 bad_bsqi_10 = ['F520H114']
 bad_bsqi = ['H8208813', '2A21F10e', 'F520H114', 'L620D996', 'M918Ccc4', 'N8218967']
 bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
+bad_bsqi_120 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_120.npy'))
 
 duplicated_ids = ['8520F416', 'H520818b']
 
@@ -101,6 +102,7 @@ hyp_list = {'XGB': ['colsample_bytree', 'eta', 'gamma', 'max_depth', 'min_child_
             'RF': ['criterion', 'max_depth', 'max_features', 'min_samples_leaf', 'n_estimators']}
 MAX_WIN = 55
 MAX_WIN_60 = 27
+MAX_WIN_10 = 165
 ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
 ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
 ids_tn = list(set(list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy'))))

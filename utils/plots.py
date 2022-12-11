@@ -155,7 +155,7 @@ def hit_map_bsqi(bsqi_path, win_len=30):
 
 
 def plot_demographics(dataset, features_path):
-    if dataset == 'uvaf':
+    if dataset == ('uvaf' or 'uvafdb'):
         datase_load = 'uvafdb'
     else:
         datase_load = 'rbdb'
@@ -176,7 +176,7 @@ def plot_demographics(dataset, features_path):
     print(str(np.median(Age_all)))
     print(str(np.percentile(Age_all, 75)) + '-' + str(np.percentile(Age_all, 25)))
     plt.figure()
-    n, bins, patches = plt.hist([Age_VT, Age_no_VT], bins, label=['VT', 'Non-VT'], color=colors_six[:2])
+    n, bins, patches = plt.hist([Age_VT, Age_no_VT], bins, label=[r'$C_1$', r'$C_0$'], color=cts.colors[:2])
     for rec in patches[1]:
         rec.set_height(rec.get_height() / ratio)
     max_rec = 0
@@ -198,7 +198,7 @@ def plot_demographics(dataset, features_path):
     gender_VT = list(demographic_VT['gender'])
     gender_no_VT = list(demographic_no_VT['gender'])
     plt.figure(figsize=[5, 5])
-    n, bins, patches = plt.hist([gender_VT, gender_no_VT], label=['VT', 'Non-VT'], color=colors_six[:2], bins=3)
+    n, bins, patches = plt.hist([gender_VT, gender_no_VT], label=[r'$C_1$', r'$C_0$'], color=cts.colors[:2], bins=3)
     for rec in patches[1]:
         rec.set_height(rec.get_height() / ratio)
     max_rec = 0
@@ -283,4 +283,6 @@ def plot_V_ratio():
 
 
 if __name__ == '__main__':
-    plot_V_ratio()
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/')
+    dataset = 'rbdb'
+    plot_demographics(dataset, features_path)

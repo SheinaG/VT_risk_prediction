@@ -135,20 +135,26 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
 
 
 if __name__ == '__main__':
-    data_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/')
-    # ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/1/')
-    ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
-    pvc_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/normalized/')
-
     win_len_n = 'win_len_120'
-    md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
-    ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
+    n_pools = 10
 
-    features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, ML_path, vt_wins=1, win_len=120)
-    bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, data_path, ML_path, ML_path, vt_wins=0,
+    dataset = 'rbdb'
+    win_len = 120
+    ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
+    fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
+    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
+    results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
+    ML_path = cts.VTdb_path
+    algo = 'RF'
+
+    features_per_window('rbdb', cts.ids_tp + cts.ids_sp, ML_path, features_path, features_path, vt_wins=1, win_len=120)
+    bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
+                                  vt_wins=0,
                                   win_len=120)
-    a = 5
+    from FE.window_fe import *
+
+    fe_dataset(bad_ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
     # features_per_window('rbdb', ['5620G109'], data_path, ML_path, pvc_path, vt_wins=0,
     #                     win_len=10)
     # features_per_window('rbdb', test_no_vt, data_path, ML_path, vt_wins=0)

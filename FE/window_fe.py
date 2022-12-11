@@ -394,8 +394,9 @@ def four_pvc_in_a_row(ids):
         isExist = os.path.exists(pvc_path + id_ + pvc_head)
         bsqi = np.load(ecg_path / 'rbdb' / id_ / str('bsqi_0.npy'))
 
-        # elif os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str('/pvc_features.xlsx')):
-        #     continue
+        if os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str(
+                '/pvc_features.xlsx')):
+            continue
 
         HBC_mat = loadmat(pvc_path + id_ + pvc_head)
         bd_mat = loadmat(pvc_path + id_ + bd_head)
