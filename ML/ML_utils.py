@@ -6,7 +6,7 @@ from utils.base_packages import *
 
 
 multiply = 1
-
+f2 = lambda x: list(map('{:.2f}'.format, x))
 ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 
 
@@ -127,6 +127,15 @@ def norm_mean_std(ecg):
     std_ = np.std(rob_ecg)
     ecg = (ecg - mean_) / std_
     return ecg
+
+
+def norm_mean_std_abs(ecg):
+    q99, q1 = np.percentile(ecg, [99, 1])
+    rob_ecg = ecg[(ecg < q99) & (ecg > q1)]
+    mean_ = np.mean(rob_ecg)
+    std_ = np.std(rob_ecg)
+    ecg = (ecg - mean_) / std_
+    return ecg, mean_, std_
 
 
 def norm_rms(ecg):

@@ -140,6 +140,7 @@ def hyper_model(opt_d, path, algo):
     for i in range(1, cts.NM + 1):
         best_hyp = pd.DataFrame(opt_d[i].best_params_, columns=opt_d[i].best_params_.keys(), index=[i])
         hyp_pd = hyp_pd.append(best_hyp)
+    hyp_pd.round(2)
     hyp_pd.to_excel(path / str('hyperparameters_' + algo + '.xlsx'))
 
 

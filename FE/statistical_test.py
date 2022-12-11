@@ -35,7 +35,7 @@ def bsqi_stataictics(ids, bsqi_path, win_len):
     bsqi_per_patient = bsqi_per_patient.set_axis(
         labels=['holter id', 'windows num', 'bad bsqi windows num', 'median_bsqi', 'iqr_bsqi'], axis=1)
     bsqi_per_patient.to_excel(bsqi_path / 'bsqi_stat.xlsx')
-    np.save('', excluded_recordings)
+    np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_' + str(win_len) + '.npy', excluded_recordings)
 
     print(str(initial_windows))
     print(str(bad_bsqi_windows))
@@ -196,13 +196,22 @@ def analyze_statistical_test(features_path, stat_path, exmp_file):
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_10'
-    win_len = 10
+    win_len_n = 'win_len_120'
+    win_len = 120
     features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     # perform_statistical_test(features_path, stat_path, exmp_file)
     # analyze_statistical_test(features_path, stat_path, exmp_file)
-    ids = cts.ext_test_no_vt + cts.ext_test_vt
-    bsqi_stataictics(ids, bsqi_path, win_len)
+    # ids = cts.ids_sp +cts.ids_vn + cts.ids_sn+cts.bad_bsqi + cts.ids_tp +cts.ids_tn
+    # bsqi_stataictics(ids, bsqi_path, win_len)
+
+    mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
+    mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
+    std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
+    std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
+    stat, p = mannwhitneyu(mean_VT.astype(np.float32), mean_non_VT.astype(np.float32))
+    stat, p = mannwhitneyu(std_VT.astype(np.float32), std_non_VT.astype(np.float32))
+
+    a = 5

@@ -7,6 +7,43 @@ from parsing.base_VT_parser import *
 from utils.base_packages import *
 
 
+def calc_mean_std(ids, ecg_path, VT=1, win_len=30):
+    if win_len == 30:
+        wl = 0
+    else:
+        wl = win_len
+    fs = 200
+    all_winds_mean_ = []
+    all_winds_std_ = []
+    for id in ids:
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(wl) + '.npy'))
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        i = 0
+        start_win = 0
+        end_win = start_win + win_len * 60 * fs
+        while end_win < len(raw_lead):
+            if bsqi[i] < 0.8:
+                i = i + 1
+                start_win = end_win
+                end_win = start_win + win_len * 60 * fs
+                continue
+            # create fiducial win
+            signali = raw_lead[start_win:end_win]
+            sig_stnd, mean_, std_ = norm_mean_std_abs(signali)
+            all_winds_mean_.append(mean_)
+            all_winds_std_.append(std_)
+            i = i + 1
+            start_win = end_win
+            end_win = start_win + win_len * 60 * fs
+        print(str(id))
+    if VT:
+        np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy', all_winds_mean_)
+        np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy', all_winds_std_)
+    if not VT:
+        np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy', all_winds_mean_)
+        np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy', all_winds_std_)
+
+
 def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     fs = 200
     if dataset == 'rbdb':
@@ -17,8 +54,8 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
     for id in ids:
         if not os.path.exists(bsqi_path / id):
             os.makedirs(bsqi_path / id)
-        # if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
-        #     continue
+        if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
+            continue
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
@@ -170,8 +207,8 @@ def calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30):
         isExist = os.path.exists(features_path / str(id))
         if not isExist:
             os.makedirs(features_path / str(id))
-        # if os.path.exists(features_path / str(id) / 'hrv_features.xlsx'):
-        #     continue
+        if os.path.exists(features_path / str(id) / 'hrv_features.xlsx'):
+            continue
         while end_win < len(raw_lead):
             if bsqi[win] < 0.8:
                 win = win + 1
@@ -222,8 +259,8 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
         end_win = start_win + win_len * 60 * fs
         qrs_all = fiducials[0]['qrs']
 
-        # if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
-        #     continue
+        if os.path.exists(features_path / str(id) / 'bm_features.xlsx'):
+            continue
 
         while end_win < len(raw_lead):
             if bsqi[i] < 0.8:
@@ -300,8 +337,9 @@ def calculate_pvc_features(ids, bsqi_path, features_path, win_len):
         if not isExist:
             m_id.append(id_)
 
-        # elif os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str('/pvc_features.xlsx')):
-        #     continue
+        elif os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str(
+                '/pvc_features.xlsx')):
+            continue
         else:
             HBC_mat = loadmat(pvc_path + id_ + pvc_head)
             bd_mat = loadmat(pvc_path + id_ + bd_head)
@@ -530,11 +568,11 @@ def calculate_fiducials_per_rec(ids, ecg_path, dataset):
 
 
 if __name__ == '__main__':
-    win_len_n = 'win_len_60'
+    win_len_n = 'rbdb'
     n_pools = 10
 
     dataset = 'rbdb'
-    win_len = 60
+    win_len = 30
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
@@ -542,5 +580,7 @@ if __name__ == '__main__':
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     data_path = cts.VTdb_path
     ids = cts.ext_test_no_vt[253:]
-
-    calc_alter(cts.ids_sp, fiducials_path, features_path, bsqi_path, win_len)
+    ids = cts.ids_tp + cts.ids_vn + cts.ids_tn + cts.ids_sp + cts.ids_sn
+    # calc_mean_std(cts.ids_vn + cts.ids_tn + cts.ids_sn, ecg_path, VT=0, win_len=30)
+    # calc_mean_std(cts.ids_tp + cts.ids_sp, ecg_path, VT=1, win_len=30)
+    fe_dataset(cts.ids_sn, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)

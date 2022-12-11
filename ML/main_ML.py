@@ -89,7 +89,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_60.npy'))
+    bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_120.npy'))
     for i in range(3, cts.NM + 1):
         train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem41_stand',
                                methods=['mrmr'], features_name='features_stand.xlsx',

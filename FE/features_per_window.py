@@ -35,9 +35,9 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
         segments = pd.read_excel(data_path / 'VTp' / str('segments_array_' + dataset + '.xlsx'), engine='openpyxl')
 
     for id_ in ids:
-        # isExist = os.path.exists(features_path / str(id_) / 'features_nd.xlsx')
-        # if isExist:
-        #     continue
+        isExist = os.path.exists(features_path / str(id_) / 'features.xlsx')
+        if isExist:
+            continue
         notExist = os.path.exists(features_path / str(id_) / 'hrv_features.xlsx')
         if not notExist:
             bad_ids.append(id_)
@@ -131,7 +131,7 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
         no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient, new_dem_patient], axis=1, join='inner')
         no_vt_features.to_excel(features_path / id_ / 'features.xlsx')
 
-    a = 5
+    return bad_ids
 
 
 if __name__ == '__main__':
@@ -141,13 +141,16 @@ if __name__ == '__main__':
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/')
     pvc_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/normalized/')
 
-    win_len_n = 'win_len_10'
+    win_len_n = 'win_len_120'
     md_test = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/md_test.npy'))
     ML_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
 
-    # features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, pvc_path, vt_wins=1, win_len=30)
-    features_per_window('rbdb', ['5620G109'], data_path, ML_path, pvc_path, vt_wins=0,
-                        win_len=10)
+    features_per_window('rbdb', cts.ids_tp + cts.ids_sp, data_path, ML_path, ML_path, vt_wins=1, win_len=120)
+    bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, data_path, ML_path, ML_path, vt_wins=0,
+                                  win_len=120)
+    a = 5
+    # features_per_window('rbdb', ['5620G109'], data_path, ML_path, pvc_path, vt_wins=0,
+    #                     win_len=10)
     # features_per_window('rbdb', test_no_vt, data_path, ML_path, vt_wins=0)
     # features_per_window('rbdb', train_no_vt, data_path, ML_path, vt_wins=0)
 

@@ -81,7 +81,7 @@ def vt_segments(ids):
 
 
 
-f2 = lambda x: list(map('{:.2f}'.format, x))
+
 pos = [0, 1, 2, 3, 4]
 colors = ['#003049', '#245D7C', '#307DA6', '#5F6F77', '#773000']
 
@@ -297,5 +297,5 @@ def eval_one_model(results_dir, path):
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_stand/RF_4/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_stand', dataset='new_dem41', feature_selection=0,
-               methods=['mrmr'], algo='RF')
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_ns', dataset='new_dem41', feature_selection=1,
+               methods=['ns'], algo='XGB')

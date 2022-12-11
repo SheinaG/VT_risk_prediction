@@ -248,7 +248,8 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
             train_val['AUROC test'][i] = AUROC_test
 
     if method == 'median':
-        train_val.to_excel(all_path / 'train_test_median' + algo + '.xlsx')
+        train_val.round(2)
+        train_val.to_excel(all_path / str('train_test_median' + algo + '.xlsx'))
     print(auroc_all)
     return
 
@@ -308,43 +309,17 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 
 if __name__ == '__main__':
-    algo = 'XGB'
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_60/')
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    # plot_test('new_dem41_stand', DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_stand.xlsx')
-    # plot_test('new_dem41_stand', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_stand.xlsx')
-    # algo = 'XGB'
-    # plot_test('new_dem41', DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
-    # plot_test('new_dem41', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
-    # algo = 'RF'
-    # plot_test('new_dem', DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
-    # plot_test('new_dem', DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_10/')
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'WL_10'
+    dataset = 'WL_10'
     algo = 'RF'
-    plot_test('new_dem41_ns', DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
-    plot_test('new_dem41_ns', DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
-    # algo = 'XGB'
-    # plot_test('new_dem41_ns', DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
-    # plot_test('new_dem41_ns', DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
-    #           features_name='features_nd.xlsx')
-    algo = 'RF'
-    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    algo = 'XGB'
-    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    plot_test('new_dem41_mrmr', DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_mrmr'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
-                  features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='median', methods=['mrmr'], win_len=10,
+                  features_name='features.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['mrmr'], win_len=10,
+                  features_name='features.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=0, methods=['mrmr'], win_len=10,
+              features_name='features.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr'], win_len=10,
+              features_name='features.xlsx')
