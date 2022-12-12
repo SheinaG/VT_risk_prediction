@@ -79,7 +79,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
-    with open((path / 'opt.pkl'), 'wb') as f:
+    with open((path / 'opt_SSG.pkl'), 'wb') as f:
         joblib.dump(opt, f)
     with open((path / 'X_test.pkl'), 'wb') as f:
         joblib.dump(x_test, f)
@@ -89,8 +89,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
 if __name__ == "__main__":
     # train_by_V_ratio()
-    bad_bsqi_60 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/bad_bsqi/bad_bsqi_120.npy'))
-    for i in range(3, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='new_dem41_stand',
-                               methods=['mrmr'], features_name='features_stand.xlsx',
-                               n_jobs=15, feature_selection=0, algo='RF', bad_bsqi_ids=cts.bad_bsqi)
+    for i in range(1, cts.NM + 1):
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='ssg',
+                               methods=['mrmr'], features_name='features_nd.xlsx',
+                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)

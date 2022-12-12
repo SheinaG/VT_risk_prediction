@@ -28,24 +28,8 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         # },
         scoring=rc_scorer,
         n_iter=600,
-        cv=logo.split(train_pat_features, train_pat_labels, groups=groups),
+        cv=stratified_group_shuffle_split(train_pat_features, train_pat_labels, groups, train_size=0.75, n_splits=600),
         return_train_score=True, verbose=1, n_jobs=n_jobs)
-
-    # callback handler
-    def on_step(res):
-        path = set_path(algo, dataset, typ, results_dir)
-        if res.func_vals.shape[0] == 1:
-            results_c = pd.DataFrame(
-                columns=['combination', 'score'])
-        else:
-            results_c = pd.read_csv(path / 'results.csv')
-            results_c = results_c.set_axis(results_c['Unnamed: 0'], axis='index')
-            results_c = results_c.drop(columns=['Unnamed: 0'])
-        # c_iter = res.x_iters[-1]
-        # score =res.func_vals[-1]
-        # c_iter = c_iter.append(score)
-        results_c.loc[results_c.shape[0]] = [res.x_iters[-1], res.func_vals[-1]]
-        results_c.to_csv(path / 'results.csv')
 
     opt.fit(train_pat_features, train_pat_labels)  # callback=on_step
     delattr(opt, 'cv')

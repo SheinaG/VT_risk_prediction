@@ -329,6 +329,23 @@ def maximize_Se_plus_Sp(probas, y_true, beta=1):
 
 
 def calc_confidence_interval_of_array(x, confidence=0.95):
+    """
+    This code calculates the confidence interval of an array of numbers. The confidence interval is a range of values
+    that is expected to contain the true mean of the population with a certain level of confidence.
+
+    The code takes two arguments: x and confidence. x is the array of numbers for which we want to calculate the
+    confidence interval. confidence is a number between 0 and 1 that represents the level of confidence that we want to have
+    in the calculated interval. The default value of confidence is 0.95, which means that the calculated confidence interval will contain
+    the true mean of the population with 95% confidence.
+
+    The code first calculates the mean and standard deviation of the array x using the mean and std functions from the
+    NumPy library. It then calculates the critical value for the given confidence level using the ppf function from the
+    scipy.stats.norm module, which is a normal distribution object.
+
+    Finally, the code returns the lower and upper bounds of the confidence interval by subtracting and adding the product
+     of the standard deviation and the critical value divided by the square root of the length of the array to the mean.
+     This is a common way to calculate the confidence interval for a normally distributed population.
+    """
     m = x.mean()
     s = x.std()
     confidence = confidence
@@ -354,3 +371,45 @@ def mrmr_from_matlab(x_train, y_train):
             break
     X_new = x_train[new_features]
     return X_new, new_features
+
+
+import random
+
+
+def stratified_group_shuffle_split(X, y, groups, train_size=0.8, random_state=None, n_splits=10):
+    if random_state:
+        random.seed(random_state)
+
+    # Create a list of the unique groups and their corresponding labels
+    # unique_groups = [(g, y[i]) for i, g in enumerate(groups)]
+    neg_unique_groups = [(g, y[i]) for i, g in enumerate(groups[y == 0])]
+    pos_unique_groups = [(g, y[i]) for i, g in enumerate(groups[y == 1])]
+
+    # Split the list of groups into two lists: the training set and the test set
+
+    # test_groups = all others
+
+    # Create empty lists for the training and test sets
+    X_train, X_test, y_train, y_test = [], [], [], []
+
+    for i in range(n_splits):
+        random.shuffle(neg_unique_groups)
+        random.shuffle(pos_unique_groups)
+        train_groups = neg_unique_groups[:int(train_size * len(neg_unique_groups))] + pos_unique_groups[
+                                                                                      int(train_size * len(
+                                                                                          pos_unique_groups)):]
+        Xi_train, Xi_test, yi_train, yi_test = [], [], [], []
+        for g, label in neg_unique_groups + pos_unique_groups:
+            if (g, label) in train_groups:
+                Xi_train.append(X[groups.index(g)])
+                yi_train.append(label)
+            else:
+                Xi_test.append(X[groups.index(g)])
+                yi_test.append(label)
+
+            X_train.append(Xi_train)
+            X_test.append(Xi_test)
+            y_train.append(yi_train)
+            y_test.append(yi_test)
+
+        yield (X_train, y_train), (X_test, y_test)
