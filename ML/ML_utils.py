@@ -382,34 +382,84 @@ def stratified_group_shuffle_split(X, y, groups, train_size=0.8, random_state=No
 
     # Create a list of the unique groups and their corresponding labels
     # unique_groups = [(g, y[i]) for i, g in enumerate(groups)]
-    neg_unique_groups = [(g, y[i]) for i, g in enumerate(groups[y == 0])]
-    pos_unique_groups = [(g, y[i]) for i, g in enumerate(groups[y == 1])]
-
-    # Split the list of groups into two lists: the training set and the test set
-
-    # test_groups = all others
+    neg_unique_groups = list(set([(g, y[i]) for i, g in enumerate(np.asarray(groups)[y == 0])]))
+    pos_unique_groups = list(set([(g, y[i]) for i, g in enumerate(np.asarray(groups)[y == 1])]))
 
     # Create empty lists for the training and test sets
-    X_train, X_test, y_train, y_test = [], [], [], []
+    train, test = [], []
 
     for i in range(n_splits):
         random.shuffle(neg_unique_groups)
         random.shuffle(pos_unique_groups)
+        # Split the list of groups into two lists: the training set and the test set
         train_groups = neg_unique_groups[:int(train_size * len(neg_unique_groups))] + pos_unique_groups[
                                                                                       int(train_size * len(
                                                                                           pos_unique_groups)):]
-        Xi_train, Xi_test, yi_train, yi_test = [], [], [], []
+        train_idx, test_idx = [], []
         for g, label in neg_unique_groups + pos_unique_groups:
             if (g, label) in train_groups:
-                Xi_train.append(X[groups.index(g)])
-                yi_train.append(label)
+                train_idx += list(np.where(np.asarray(groups) == g)[0])
             else:
-                Xi_test.append(X[groups.index(g)])
-                yi_test.append(label)
+                test_idx += list(np.where(np.asarray(groups) == g)[0])
 
-            X_train.append(Xi_train)
-            X_test.append(Xi_test)
-            y_train.append(yi_train)
-            y_test.append(yi_test)
+        train.append(train_idx)
+        test.append(test_idx)
 
-        yield (X_train, y_train), (X_test, y_test)
+    yield train, test
+
+
+def qrs_adjust(ecg, qrs, fs, inputsign, tol=0.05, debug=0, debug_length_of_ecg=0, debug_fig_name="ecg_peaks.png"):
+    """
+    This function is used to adjust the qrs location by looking for a local min or max around the unput qrs points.
+    Adjusted from mhrv tooblox for matlab.
+      :param ecg:     array of ecg signal amplitude (mV)
+      :param qrs:     peak position (sample number)
+      :param fs:     sampling frequency (Hz)
+      :param inputsign:  sign of the peak to look for (-1 for negative and 1 for positive)
+      :param tol:     tolerance window (sec)
+      :param debug:    (boolean)
+      :return: cqrs:   adjusted (corrected) qrs positions (sample number)
+    """
+
+    # general
+    cqrs = np.zeros(qrs.shape).reshape(-1, 1)  # corrected qrs array
+    NB_qrs = len(qrs)
+    WINDOW = np.ceil(fs * tol)  # allow a maximum of tol in sec shift
+    NB_SAMPLES = len(ecg)
+    # local refinement to correct for sampling freq resolution
+    for i in range(NB_qrs):
+        if qrs[i] > WINDOW and qrs[i] + WINDOW < NB_SAMPLES:
+            if inputsign > 0:
+                indm = np.argmax(ecg[int(qrs[i] - WINDOW):int(qrs[i] + WINDOW)])
+            else:
+                indm = np.argmin(ecg[int(qrs[i] - WINDOW):int(qrs[i] + WINDOW)])
+            cqrs[i] = qrs[i] + indm - WINDOW
+        elif qrs[i] < WINDOW:
+            # managing left border
+            if inputsign > 0:
+                indm = np.argmax(ecg[1:int(qrs[i] + WINDOW)])
+            else:
+                indm = np.min(ecg[1:int(qrs[i] + WINDOW)])
+            cqrs[i] = indm
+        elif qrs[i] + WINDOW > NB_SAMPLES:
+            # managing right border
+            if inputsign > 0:
+                indm = np.argmax(ecg[int(qrs[i] - WINDOW):])
+            else:
+                indm = np.argmin(ecg[int(qrs[i] - WINDOW):])
+            cqrs[i] = qrs[i] + indm - WINDOW
+        else:
+            cqrs[i] = qrs[i]
+        cqrs = cqrs.reshape(1, -1).astype(int).flatten()
+    if debug:
+        if len(qrs) and len(cqrs):  # plot only if there are peaks found in qrs and in cqrs
+            length = debug_length_of_ecg
+            plt.figure(figsize=(20, 7))
+            plt.plot(ecg[:length])
+            plt.scatter(qrs[np.where(qrs < length)], ecg[qrs[np.where(qrs < length)]], marker='x', color='r',
+                        label='orig qrs')
+            plt.scatter(cqrs[np.where(cqrs < length)], ecg[cqrs[np.where(cqrs < length)]], marker='x', color='purple',
+                        label='corrected qrs')
+            plt.legend()
+            plt.savefig(debug_fig_name)
+    return cqrs

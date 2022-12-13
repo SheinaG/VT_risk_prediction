@@ -87,6 +87,28 @@ def set_axis_style(ax, labels):
     ax.set_xlim(0.25, len(labels) + 0.75)
 
 
+def plot_hist_stst(data, n_arr, title, save_path):
+    n_arr = np.round(n_arr, 2) * 100
+    plt.style.use('bmh')
+    plt.rcParams.update({'font.size': 16})
+    color = 'steelblue'
+    colors = ['dodgerblue', 'blue']
+    fig, axe = plt.subplots(nrows=2, ncols=1, figsize=(5, 5))
+    axe[0].histogram(data[0])
+
+    axe.set_ylabel(handel_strings(title))
+    quartile11, medians1, quartile31 = np.percentile(data[0], [25, 50, 75])
+    quartile12, medians2, quartile32 = np.percentile(data[1], [25, 50, 75])
+    inds = range(1, 3)
+    axe.scatter(inds, [medians1, medians2], marker='o', color='white', s=30, zorder=3)
+    axe.vlines(inds, [quartile11, quartile12], [quartile31, quartile32], color=color, linestyle='-', lw=5)
+    axe.set_xlabel(r'$probability\ density$')
+    labels = [r'$C_0$', r'$C_1$']
+    set_axis_style(axe, labels)
+    plt.tight_layout()
+    plt.savefig(str(save_path) + '.png')
+
+
 def plot_violin_stst(data, n_arr, title, save_path):
     n_arr = np.round(n_arr, 2) * 100
     plt.style.use('bmh')

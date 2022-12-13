@@ -76,7 +76,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         print(features_new)
 
     path = set_path(algo, dataset, model_type, results_dir)
-    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
+    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_ids_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
     with open((path / 'opt_SSG.pkl'), 'wb') as f:
@@ -92,4 +92,4 @@ if __name__ == "__main__":
     for i in range(1, cts.NM + 1):
         train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='ssg',
                                methods=['mrmr'], features_name='features_nd.xlsx',
-                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)
+                               n_jobs=15, feature_selection=0, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)

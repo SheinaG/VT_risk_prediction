@@ -83,6 +83,8 @@ def organize_win_probabilities(n_win, x_as_list, win_len):
         max_win = cts.MAX_WIN_60
     if win_len == 10:
         max_win = cts.MAX_WIN_10
+    if win_len == 120:
+        max_win = cts.MAX_WIN_120
     data = np.zeros([len(n_win), max_win])
     j_1 = 0
     j_2 = 0
@@ -182,6 +184,8 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         bad_bsqi_ids = cts.bad_bsqi
     if win_len == 60:
         bad_bsqi_ids = cts.bad_bsqi_60
+    if win_len == 120:
+        bad_bsqi_ids = cts.bad_bsqi_120
     if win_len == 10:
         bad_bsqi_ids = cts.bad_bsqi_10
 
@@ -319,47 +323,38 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 
 if __name__ == '__main__':
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_10/')
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_ns'
-    dataset = 'new_dem41_ns'
-    algo = 'XGB'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['ns'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['ns'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+    win_len = 120
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'WL_120'
+    dataset = 'WL_120'
     algo = 'RF'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['ns'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['ns'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['ns'], win_len=30,
-              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='median', methods=['ns'], win_len=win_len,
+                  features_name='features.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=win_len,
+              features_name='features.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['ns'], win_len=win_len,
+                  features_name='features.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=win_len,
+              features_name='features.xlsx')
 
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_mrmr'
-    dataset = 'new_dem41_mrmr'
-    algo = 'XGB'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    algo = 'RF'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
-              features_name='features_nd.xlsx')
+    # all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_mrmr'
+    # dataset = 'new_dem41_mrmr'
+    # algo = 'XGB'
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
+    #               features_name='features_nd.xlsx')
+    # plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+    #           features_name='features_nd.xlsx')
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
+    #               features_name='features_nd.xlsx')
+    # plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
+    #           features_name='features_nd.xlsx')
+    # algo = 'RF'
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=30,
+    #               features_name='features_nd.xlsx')
+    # plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=30,
+    #           features_name='features_nd.xlsx')
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=30,
+    #               features_name='features_nd.xlsx')
+    # plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=30,
+    #           features_name='features_nd.xlsx')

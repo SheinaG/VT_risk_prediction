@@ -297,5 +297,5 @@ def eval_one_model(results_dir, path):
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_stand/RF_4/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_ns', dataset='new_dem41', feature_selection=1,
-               methods=['ns'], algo='XGB')
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'WL_120', dataset='WL_120', feature_selection=0,
+               methods=['ns'], algo='RF')
