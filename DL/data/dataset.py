@@ -1,12 +1,9 @@
-import random
-
-import numpy as np
-
 from DL.DL_utiles.base_packages import *
+import DL.data.Augmentation as Ag
 
 
 class all_set(Dataset):
-    def __init__(self, task, win_len=6, transform=transforms.ToTensor()):
+    def __init__(self, task, win_len=6, transform=transforms.ToTensor(), run_config={}):
         if task in ['train', 'val', 'train_part', 'test']:
             DL_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/')
 
@@ -19,6 +16,10 @@ class all_set(Dataset):
         self.indexes = np.load(idx_filename)[::win_len]
         self.database = np.load(data_filename, mmap_mode='c')
         self.transform = transform
+        self.downsampling = run_config.downsampling
+        self.data_aug = run_config.data_aug
+        self.augment_list = run_config.augment_list
+        self.prob_augment_list = run_config.prob_augment_list
 
     def __len__(self):
         return len(self.targets)
@@ -31,6 +32,15 @@ class all_set(Dataset):
         label = self.targets[idx]
         if self.transform:
             ecg_win = self.transform(ecg_win)
+        if self.downsampling:
+            ecg_win = ecg_win[:, :, ::2]
+        if self.data_aug:
+            for i, aug_method in self.augment_list:
+                value = self.prob_augment_list[i]
+                prob = random.choices([1, 0], [value, 1 - value])
+                if prob:
+                    func = getattr(Ag, aug_method)
+                    ecg_win = func(ecg_win)
         return ecg_win, label
 
 

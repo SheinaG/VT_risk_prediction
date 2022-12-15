@@ -19,37 +19,35 @@ parameters:
   model:
     distribution: categorical
     values:
-      - TCN
+      - Xception1D
 
-  n_layers:
-    distribution: int_uniform
-    max: 10
-    min: 1
-
-  ni:
-    distribution: int_uniform
-    max: 80
-    min: 5
-
-  ks:
-    distribution: int_uniform
-    max: 99
-    min: 1
-
-  optimizer:
+  #  n_layers:
+  #    distribution: int_uniform
+  #    max: 10
+  #    min: 1
+  #
+  #  ni:
+  #    distribution: int_uniform
+  #    max: 80
+  #    min: 5
+  #
+  #  ks:
+  #    distribution: int_uniform
+  #    max: 99
+  #    min: 1
+  prob_augment_list:
     distribution: categorical
     values:
-      - PESG
-  size:
-    distribution: categorical
-    values:
-      - 30
+      - [ 0 ]
+      - [ 0.1 ]
+      - [ 0.3 ]
+      - [ 0.5 ]
+      - [ 0.8 ]
 
-  activation:
-    distribution: categorical
-    values:
-      - 'RelU'
-      - 'leakyRelu'
+
+
+
+
 
 
 program: ./DL/Exp_overfit.py

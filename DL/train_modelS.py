@@ -1,26 +1,24 @@
+from DL_utiles.base_packages import *
+from DL_utiles.helper import *
+from utils.consts import *
+
+sys.path.append("/home/sheina/VT_risk_prediction/")
+
 from models.OScnnS import OmniScaleCNN
 from models.TCNs import TCN
 from models.XceptoinTimeS import XceptionTime
-from utils.base_packages import *
-import utils.consts as cts
-
-sys.path.append('/home/sheina/tsai/')
-from dataset import all_set
-from utils.base_packages import *
+from models.Xception1D import Xception1D
+from data.dataset import one_set, overfit_set, t_ansamble_set, all_set
 from DL_utiles.parse_args import parse_global_args
 
 empty_parser = argparse.ArgumentParser()
 parser = parse_global_args(parent=empty_parser)
 run_config = parser.parse_args()
 
-
-
-
-
 wandb.init(project="VT_det", entity="sheina", config=run_config)
 run_config = argparse.Namespace(**wandb.config)
 run_config.run_name = wandb.run.name
-cts.set_all_seeds(run_config.seed)
+set_all_seeds(run_config.seed)
 
 fs = 200
 
@@ -28,24 +26,19 @@ if run_config.gpu == '':
     device = run_config.device
 else:
     device = "{}:{}".format(run_config.device, run_config.gpu)
-# device = run_config.device
-# if run_config.model == 'InceptionTime':
-#     model = InceptionTime(c_in=1, c_out=2)
+
 if run_config.model == 'OmniScaleCNN':
     model = OmniScaleCNN(c_in=1, c_out=2, seq_len=run_config.win_len ** 10 * 200)
 if run_config.model == 'XceptionTime':
     model = XceptionTime(c_in=1, c_out=2)
 if run_config.model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'ResNet':
-#     model = ResNet(c_in=1, c_out=2)
-# if run_config.model == 'TST':
-#     model = TST(c_in=1, c_out=2, seq_len=run_config.win_len**10*200, dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
-# if run_config.model == 'mWDN':
-#     model = mWDN(c_in=1, c_out=2, wavelet ='db1', seq_len=run_config.win_len**10*200)
+if run_config.model == 'Xception1D':
+    model = Xception1D(input_channel=1, n_classes=2)
 
 
 model = model.to(device)
+wandb.watch(model, log='all')
 results = {}
 
 if run_config.batch_size == 0:
@@ -56,14 +49,14 @@ if run_config.batch_size == 0:
     if run_config.win_len == 30:
         run_config.batch_size = 8
     if run_config.win_len == 60:
-        run_config.batch_size = 4
+        run_config.batch_size = 8
     if run_config.win_len == 180:
         run_config.batch_size = 1
     if run_config.win_len == 360:
         run_config.batch_size = 1
 
-train_set = all_set(task='train_part', win_len=run_config.win_len)
-val_set = all_set(task='val', win_len=run_config.win_len)
+train_set = all_set(task='train_part', win_len=run_config.win_len, run_config=run_config)
+val_set = all_set(task='val', win_len=run_config.win_len, run_config=run_config)
 if run_config.use_sampler:
     sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=0.5)
     train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, sampler=sampler)
@@ -79,10 +72,10 @@ if run_config.loss == 'AUCMLoss':
 if run_config.optimizer == 'Adam':
     optimizer = optim.Adam(model.parameters(), lr=run_config.lr)
 if run_config.optimizer == 'PESG':
-    optimizer = PESG(model, lr=run_config.lr, loss_fn=loss_fn, momentum=0.9, margin=1.0, epoch_decay=0.003,
-                     weight_decay=0.0001)
+    optimizer = PESG(model, lr=run_config.lr, loss_fn=loss_fn, momentum=0.9, margin=1.0, epoch_decay=0.03,
+                     weight_decay=0.001)
 
-timestamp = datetime.datetime.now()
+timestamp = datetime.now()
 epoch_gamma = 1
 
 
@@ -128,15 +121,12 @@ def train_one_epoch(epoch_index):
 
         # Gather data and report
         running_loss += loss.item()
-        if i % 1000 == 999:
-            last_loss = running_loss / 1000  # loss per batch
-            print('  batch {} loss: {}'.format(i + 1, last_loss))
-            wandb.log({"train batch loss": last_loss})
-            wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
-            print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
-            running_loss = 0.
-            pred_all = []
-            lab_all = []
+
+    last_loss = running_loss / (i + 1)  # loss per batch
+    print('batch {} loss: {}'.format(i + 1, last_loss))
+    wandb.log({"train batch loss": last_loss})
+    wandb.log({"train batch AUC": roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1])})
+    print(roc_auc_score(np.array(lab_all), np.array(pred_all)[:, 1]))
 
     return last_loss, pred_epoch, lab_epoch
 
@@ -177,5 +167,6 @@ for epoch in range(EPOCHS):
     # Track best performance, and save the model's state
     if val_auroc > val_auroc_b:
         val_auroc_b = val_auroc
+        wandb.log({"best val AUROC": val_auroc_b})
         model_path = run_config.models_dir + '/' + str(run_config.run_name + '_model_{}'.format(epoch))
         torch.save(model.state_dict(), str(model_path))

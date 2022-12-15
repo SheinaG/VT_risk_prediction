@@ -18,9 +18,9 @@ class SeparableConv(nn.Module):
     def __init__(self, input_channel, output_channel, kernel_size=1, stride=1, padding=0, dilation=1, bias=False):
         super().__init__()
         self.dwc = nn.Sequential(
-            nn.Conv2d(input_channel, input_channel, kernel_size, stride, padding, dilation, groups=input_channel,
+            nn.Conv1d(input_channel, input_channel, kernel_size, stride, padding, dilation, groups=input_channel,
                       bias=bias),
-            nn.Conv2d(input_channel, output_channel, 1, 1, 0, 1, 1, bias=bias)
+            nn.Conv1d(input_channel, output_channel, 1, 1, 0, 1, 1, bias=bias)
         )
 
     def forward(self, X):
@@ -32,8 +32,8 @@ class Block(nn.Module):
         super().__init__()
         if out_channel != input_channel or strides != 1:
             self.skipConnection = nn.Sequential(
-                nn.Conv2d(input_channel, out_channel, 1, stride=strides, bias=False),
-                nn.BatchNorm2d(out_channel)
+                nn.Conv1d(input_channel, out_channel, 1, stride=strides, bias=False),
+                nn.BatchNorm1d(out_channel)
             )
         else:
             self.skipConnection = None
@@ -43,19 +43,19 @@ class Block(nn.Module):
         filters = input_channel
         if grow_first:
             rep.append(self.relu)
-            rep.append(SeparableConv(input_channel, out_channel, 3, stride=1, padding=1, bias=False))
-            rep.append(nn.BatchNorm2d(out_channel))
+            rep.append(SeparableConv(input_channel, out_channel, 9, stride=1, padding=4, bias=False))
+            rep.append(nn.BatchNorm1d(out_channel))
             filters = out_channel
 
         for _ in range(reps - 1):
             rep.append(self.relu)
-            rep.append(SeparableConv(filters, filters, 3, stride=1, padding=1, bias=False))
-            rep.append(nn.BatchNorm2d(filters))
+            rep.append(SeparableConv(filters, filters, 9, stride=1, padding=4, bias=False))
+            rep.append(nn.BatchNorm1d(filters))
 
         if not grow_first:
             rep.append(self.relu)
-            rep.append(SeparableConv(input_channel, out_channel, 3, stride=1, padding=1, bias=False))
-            rep.append(nn.BatchNorm2d(out_channel))
+            rep.append(SeparableConv(input_channel, out_channel, 9, stride=1, padding=4, bias=False))
+            rep.append(nn.BatchNorm1d(out_channel))
 
         if not relu:
             rep = rep[1:]
@@ -63,7 +63,7 @@ class Block(nn.Module):
             rep[0] = nn.ReLU(inplace=False)
 
         if strides != 1:
-            rep.append(nn.MaxPool2d(3, strides, 1))
+            rep.append(nn.MaxPool1d(3, strides, 1))
 
         self.rep = nn.Sequential(*rep)
 
@@ -79,53 +79,53 @@ class Block(nn.Module):
         return X
 
 
-class Xception(nn.Module):
+class Xception1D(nn.Module):
     def __init__(self, input_channel, n_classes):
         super().__init__()
         self.n_classes = n_classes
         self.relu = nn.ReLU(inplace=True)
 
         self.initBlock = nn.Sequential(
-            nn.Conv2d(input_channel, 32, 3, 2, 1, bias=False),
-            nn.BatchNorm2d(32),
+            nn.Conv1d(input_channel, 8, 9, 2, 1, bias=False),
+            nn.BatchNorm1d(8),
             nn.ReLU(inplace=True),
 
-            nn.Conv2d(32, 64, kernel_size=3, padding=1, bias=False),
-            nn.BatchNorm2d(64),
+            nn.Conv1d(8, 16, kernel_size=9, padding=1, bias=False),
+            nn.BatchNorm1d(16),
             nn.ReLU(inplace=True)
         )
 
-        self.block1 = Block(64, 128, 2, 2, relu=False, grow_first=True)
-        self.block2 = Block(128, 256, 2, 2, relu=True, grow_first=True)
-        self.block3 = Block(256, 728, 2, 2, relu=True, grow_first=True)
+        self.block1 = Block(16, 32, 2, 2, relu=False, grow_first=True)
+        self.block2 = Block(32, 64, 2, 2, relu=True, grow_first=True)
+        self.block3 = Block(64, 128, 2, 2, relu=True, grow_first=True)
 
-        self.block4 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block5 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block6 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block7 = Block(728, 728, 3, 1, relu=True, grow_first=True)
+        self.block4 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block5 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block6 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block7 = Block(128, 128, 3, 1, relu=True, grow_first=True)
 
-        self.block8 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block9 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block10 = Block(728, 728, 3, 1, relu=True, grow_first=True)
-        self.block11 = Block(728, 728, 3, 1, relu=True, grow_first=True)
+        self.block8 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block9 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block10 = Block(128, 128, 3, 1, relu=True, grow_first=True)
+        self.block11 = Block(128, 128, 3, 1, relu=True, grow_first=True)
 
-        self.block12 = Block(728, 1024, 2, 2, relu=True, grow_first=False)
+        self.block12 = Block(128, 256, 2, 2, relu=True, grow_first=False)
 
-        self.conv3 = SeparableConv(1024, 1536, 3, 1, 1)
-        self.bn3 = nn.BatchNorm2d(1536)
+        self.conv3 = SeparableConv(256, 512, 3, 1, 1)
+        self.bn3 = nn.BatchNorm1d(512)
 
         # do relu here
-        self.conv4 = SeparableConv(1536, 2048, 3, 1, 1)
-        self.bn4 = nn.BatchNorm2d(2048)
+        self.conv4 = SeparableConv(512, 1024, 3, 1, 1)
+        self.bn4 = nn.BatchNorm1d(1024)
 
-        self.fc = nn.Linear(2048, self.n_classes)
+        self.fc = nn.Linear(1024, self.n_classes)
 
         # weight initialization
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+            if isinstance(m, nn.Conv1d):
+                n = m.kernel_size[0] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
+            elif isinstance(m, nn.BatchNorm1d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
@@ -153,7 +153,7 @@ class Xception(nn.Module):
         x = self.bn4(x)
         x = self.relu(x)
 
-        x = F.adaptive_avg_pool2d(x, (1, 1))
+        x = F.adaptive_avg_pool1d(x, 1)
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
