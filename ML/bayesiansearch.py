@@ -5,20 +5,22 @@ from utils.base_packages import *
 
 def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=False,
                weighting=True, n_jobs=20, typ=1, dataset='both', results_dir=cts.ML_RESULTS_DIR):
-    if weighting:
-        clf = cts.class_funcs[algo](class_weight='balanced', n_jobs=n_jobs)
-    else:
-        clf = cts.class_funcs[algo](n_jobs=n_jobs)
     if normalize:
         standartization = StandardScaler()
+    logo = LeaveOneGroupOut()
+    gss = GroupShuffleSplit(n_splits=4, test_size=0.25)
+    if algo == 'RF':
+        if weighting:
+            clf = cts.class_funcs[algo](class_weight='balanced', n_jobs=n_jobs)
+        else:
+            clf = cts.class_funcs[algo](n_jobs=n_jobs)
+        search_space = cts.search_spaces_RF
+    elif algo == 'XGB':
+        clf = cts.class_funcs[algo](n_jobs=n_jobs)
+        search_space = cts.search_spaces_XGB
     pipe = Pipeline([
         ('normalize', standartization), ('model', clf)
     ])
-    logo = LeaveOneGroupOut()
-    if algo == 'RF':
-        search_space = cts.search_spaces_RF
-    elif algo == 'XGB':
-        search_space = cts.search_spaces_XGB
     opt = BayesSearchCV(
         pipe,
         search_spaces=search_space,
@@ -28,7 +30,7 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         # },
         scoring=rc_scorer,
         n_iter=600,
-        cv=stratified_group_shuffle_split(train_pat_features, train_pat_labels, groups, train_size=0.75, n_splits=600),
+        cv=gss.split(train_pat_features, train_pat_labels, groups=groups),
         return_train_score=True, verbose=1, n_jobs=n_jobs)
 
     opt.fit(train_pat_features, train_pat_labels)  # callback=on_step

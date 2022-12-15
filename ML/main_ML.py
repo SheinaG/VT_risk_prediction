@@ -45,7 +45,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
                                                         model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
-    train_groups = split_to_group(train_ids_groups)
+    train_groups = split_to_group(train_ids_groups, split=383)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0,
                                                      features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_test = model_features(x_test, model_type, with_dems=True)
@@ -76,7 +76,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         print(features_new)
 
     path = set_path(algo, dataset, model_type, results_dir)
-    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_ids_groups,
+    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
     with open((path / 'opt_SSG.pkl'), 'wb') as f:
@@ -89,7 +89,8 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
 if __name__ == "__main__":
     # train_by_V_ratio()
+    warnings.filterwarnings('ignore')
     for i in range(1, cts.NM + 1):
         train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='ssg',
                                methods=['mrmr'], features_name='features_nd.xlsx',
-                               n_jobs=15, feature_selection=0, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)
+                               n_jobs=10, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)

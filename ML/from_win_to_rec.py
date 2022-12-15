@@ -26,12 +26,12 @@ def list_duplicates_of(seq, item):
             start_at = loc
     return locs
 
-def divide_CI_groups(LR_probs):
+def divide_CI_groups(LR_probs, ids):
     main_path = '/MLAIM/AIMLab/Shany/databases/rbafdb/documentation/RBAF_Holter_Info.xlsx'
     rbdb_info = pd.read_excel(main_path, engine='openpyxl')
     rbdb_info['holter_id'] = rbdb_info['holter_id'].astype(str)
     ids_db = []
-    ids_hid = cts.ids_sp + cts.ids_sn
+    ids_hid = ids
     for id_ in ids_hid:
         # find his patiant id:
         ids_db.append(rbdb_info[rbdb_info['holter_id'] == id_]['db_id'].values[0])
@@ -196,9 +196,10 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
                                                                features_name=features_name,
                                                                bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
-    x_test, y_test, _, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
-                                                   return_num=True, features_name=features_name,
-                                                   bad_bsqi_ids=bad_bsqi_ids)
+    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH,
+                                                                 model=0,
+                                                                 return_num=True, features_name=features_name,
+                                                                 bad_bsqi_ids=bad_bsqi_ids)
     ff = 0
     auroc_train = []
     auroc_test = []
@@ -206,15 +207,16 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     train_val = pd.DataFrame(columns=columns, index=range(1, cts.NM + 1))
     auroc_all = []
     ids_train = cts.ids_tp + cts.ids_tn + cts.ids_vn
+    ids_test = cts.ids_sp + cts.ids_sn
     for id_ in bad_bsqi_ids:
         if id_ in cts.ids_tn + cts.ids_vn:
-            id_ind = (cts.ids_tp + cts.ids_tn + cts.ids_vn).index(id_)
-            y_train_p = np.delete(y_train_p, id_ind)
+            y_train_p = y_train_p[:-1]
         if id_ in cts.ids_sn:
-            id_ind = (cts.ids_sp + cts.ids_sn).index(id_)
-            y_test_p = np.delete(y_test_p, id_ind)
+            y_test_p = y_test_p[:-1]
         if id_ in ids_train:
             ids_train.remove(id_)
+        if id_ in ids_test:
+            ids_test.remove(id_)
 
     train_groups = split_to_group(ids_train, split=41)
 
@@ -270,15 +272,31 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
 
 def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['mrmr'], win_len=60,
               features_name='features.xlsx'):
+    if win_len == 30:
+        bad_bsqi_ids = cts.bad_bsqi
+    if win_len == 60:
+        bad_bsqi_ids = cts.bad_bsqi_60
+    if win_len == 120:
+        bad_bsqi_ids = cts.bad_bsqi_120
+    if win_len == 10:
+        bad_bsqi_ids = cts.bad_bsqi_10
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
     _, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
-                                         return_num=True, features_name=features_name, bad_bsqi_ids=cts.bad_bsqi_60)
+                                         return_num=True, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     LR_d = {}
     fig = plt.figure()
     plt.style.use('bmh')
+
+    ids_test = cts.ids_sp + cts.ids_sn
+    for id_ in bad_bsqi_ids:
+        if id_ in cts.ids_sn:
+            y_test_p = y_test_p[:-1]
+        if id_ in ids_test:
+            ids_test.remove(id_)
+
     for i in range(cts.NM):
         hyp_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
             algo + '_' + str(i + 1))
@@ -291,13 +309,13 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
             LR_d[i + 1] = joblib.load(hyp_path / 'LR_CV.pkl')
 
             prob = tev_LR(data, y_test_p, hyp_path, task='test', groups=[])
-            y_test_list, prob_list = divide_CI_groups(prob)
+            y_test_list, prob_list = divide_CI_groups(prob, ids_test)
             low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='LR',
                                                           majority_vote=False, soft_lines=False)
         if method == 'median':
             prob = np.median(data, axis=1)
-            y_test_list, prob_list = divide_CI_groups(prob)
+            y_test_list, prob_list = divide_CI_groups(prob, ids_test)
             low_auroc_i, high_auroc_i = roc_plot_envelope(prob_list, y_test_list, K_test=45, augmentation=1, typ=i + 1,
                                                           title='model ' + str(i), algo='median',
                                                           majority_vote=False, soft_lines=False)
@@ -329,8 +347,8 @@ if __name__ == '__main__':
     all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'WL_120'
     dataset = 'WL_120'
     algo = 'RF'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='median', methods=['ns'], win_len=win_len,
-                  features_name='features.xlsx')
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='median', methods=['ns'], win_len=win_len,
+    #               features_name='features.xlsx')
     plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=win_len,
               features_name='features.xlsx')
     run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['ns'], win_len=win_len,

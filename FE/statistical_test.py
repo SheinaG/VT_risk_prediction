@@ -88,25 +88,31 @@ def set_axis_style(ax, labels):
 
 
 def plot_hist_stst(data, n_arr, title, save_path):
-    n_arr = np.round(n_arr, 2) * 100
-    plt.style.use('bmh')
-    plt.rcParams.update({'font.size': 16})
-    color = 'steelblue'
+    plt.figure(figsize=[5, 5])
+    axis = np.linspace(min(np.concatenate([data[0], data[1]])), max(np.concatenate([data[0], data[1]])), 10)
     colors = ['dodgerblue', 'blue']
-    fig, axe = plt.subplots(nrows=2, ncols=1, figsize=(5, 5))
-    axe[0].histogram(data[0])
-
-    axe.set_ylabel(handel_strings(title))
-    quartile11, medians1, quartile31 = np.percentile(data[0], [25, 50, 75])
-    quartile12, medians2, quartile32 = np.percentile(data[1], [25, 50, 75])
-    inds = range(1, 3)
-    axe.scatter(inds, [medians1, medians2], marker='o', color='white', s=30, zorder=3)
-    axe.vlines(inds, [quartile11, quartile12], [quartile31, quartile32], color=color, linestyle='-', lw=5)
-    axe.set_xlabel(r'$probability\ density$')
-    labels = [r'$C_0$', r'$C_1$']
-    set_axis_style(axe, labels)
+    n, bins, patches = plt.hist(data, label=[r'$C_0$', r'$C_1$'], color=colors, bins=10)
+    ratio = len(data[1]) / len(data[0])
+    for rec in patches[1]:
+        rec.set_height(rec.get_height() / ratio)
+    max_rec = 0
+    for patch in patches:
+        for rec in patch:
+            if rec.get_height() > max_rec:
+                max_rec = rec.get_height()
+    plt.ylim(0, max_rec)
+    y_vals = plt.yticks()
+    plt.yticks(y_vals[0], ['{:0.2f}'.format(x / len(data[0])) for x in y_vals[0]])
+    print(str(sum(np.concatenate([data[0], data[1]])) / len(np.concatenate([data[0], data[1]]))))
+    plt.legend(loc='upper center')
+    plt.xlim([min(np.concatenate([data[0], data[1]])), max(np.concatenate([data[0], data[1]]))])
+    plt.xticks([float('{:0.2f}'.format(x)) for x in axis], [float('{:0.2f}'.format(x)) for x in axis], fontsize=8)
+    # plt.title('Sex among ' + dataset.upper() + ' recordings', fontsize=14)
+    plt.xlabel(handel_strings(title), fontsize=14)
+    plt.ylabel(r'$Density$', fontsize=14)
     plt.tight_layout()
     plt.savefig(str(save_path) + '.png')
+    plt.show()
 
 
 def plot_violin_stst(data, n_arr, title, save_path):
@@ -208,8 +214,8 @@ def analyze_statistical_test(features_path, stat_path, exmp_file):
         nw2 = len(ids_group_n_clean) / len(ids_group_n)
         title = best_features[i]
         print(title)
-        plot_violin_stst([data2_clean, data1_clean], [np2, nw2, np1, nw1], title,
-                         stat_path / title)
+        plot_hist_stst([data2_clean, data1_clean], [np2, nw2, np1, nw1], title,
+                       stat_path / title)
 
     stat_df = pd.Dataframe(index=features_arrey, columns=['p-values', 'VT - median', 'Non VT median'])
 
@@ -222,7 +228,7 @@ if __name__ == '__main__':
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     # perform_statistical_test(features_path, stat_path, exmp_file)
-    # analyze_statistical_test(features_path, stat_path, exmp_file)
+    analyze_statistical_test(features_path, stat_path, exmp_file)
     # ids = cts.ext_test_no_vt
     # bsqi_stataictics(ids, bsqi_path, win_len)
 

@@ -262,6 +262,8 @@ def split_to_group(ids_group, split=41):
         groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups53.npy', allow_pickle=True)
     if split == 42:
         groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups2.npy', allow_pickle=True)
+    if split == 383:
+        groups = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_groups383.npy', allow_pickle=True)
     cv_groups = []
     for id_ in ids_group:
         for i, group in enumerate(groups):

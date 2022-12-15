@@ -51,7 +51,7 @@ from sklearn.model_selection import train_test_split
 from scipy.stats import mannwhitneyu
 from sklearn.feature_selection import RFE
 from sklearn.metrics import roc_auc_score, confusion_matrix, roc_curve, auc, precision_recall_curve
-from sklearn.model_selection import LeaveOneGroupOut, GridSearchCV
+from sklearn.model_selection import LeaveOneGroupOut, GridSearchCV, GroupShuffleSplit
 from skopt.plots import plot_objective
 import pymrmr
 from sklearn.preprocessing import StandardScaler

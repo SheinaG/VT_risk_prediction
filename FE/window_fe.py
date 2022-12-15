@@ -494,13 +494,6 @@ def run_on_dir(ids):
         df_replace_nans(p_dir, 'features_stand.xlsx', 'mean')
 
 
-def qrs_adjust(ids, ecg_path, tol=0.05):
-    for i, id_ in enumerate(ids):
-        fs = 200
-        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / id_ / 'epltd_0.npy')
-
-
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
     for i, id_ in enumerate(ids):
         fs = 200
