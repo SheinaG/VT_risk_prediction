@@ -35,7 +35,7 @@ def parse_global_args(parent, add_help=False):
     # data
 
     parser.add_argument('--win_len', default=60, type=int, choices=[1, 6, 30, 60, 180, 360])
-    parser.add_argument('--data_aug', default=False, type=str2bool, help='Use data augmentations')
+    parser.add_argument('--data_aug', default=True, type=str2bool, help='Use data augmentations')
     parser.add_argument('--downsampling', default=True, type=str2bool, help='Use downsampling to 100 Hz')
 
     # torch

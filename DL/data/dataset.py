@@ -17,9 +17,12 @@ class all_set(Dataset):
         self.database = np.load(data_filename, mmap_mode='c')
         self.transform = transform
         self.downsampling = run_config.downsampling
-        self.data_aug = run_config.data_aug
-        self.augment_list = run_config.augment_list
-        self.prob_augment_list = run_config.prob_augment_list
+        if task in ['train', 'train_part']:
+            self.data_aug = run_config.data_aug
+            self.augment_list = run_config.augment_list
+            self.prob_augment_list = run_config.prob_augment_list
+        else:
+            self.data_aug = False
 
     def __len__(self):
         return len(self.targets)
@@ -35,12 +38,12 @@ class all_set(Dataset):
         if self.downsampling:
             ecg_win = ecg_win[:, :, ::2]
         if self.data_aug:
-            for i, aug_method in self.augment_list:
+            for i, aug_method in enumerate(self.augment_list):
                 value = self.prob_augment_list[i]
                 prob = random.choices([1, 0], [value, 1 - value])
                 if prob:
                     func = getattr(Ag, aug_method)
-                    ecg_win = func(ecg_win)
+                    ecg_win = func(ecg_win, seed=idx)
         return ecg_win, label
 
 

@@ -72,8 +72,8 @@ if run_config.loss == 'AUCMLoss':
 if run_config.optimizer == 'Adam':
     optimizer = optim.Adam(model.parameters(), lr=run_config.lr)
 if run_config.optimizer == 'PESG':
-    optimizer = PESG(model, lr=run_config.lr, loss_fn=loss_fn, momentum=0.9, margin=1.0, epoch_decay=0.03,
-                     weight_decay=0.001)
+    optimizer = PESG(model, lr=run_config.lr, loss_fn=loss_fn, momentum=0.9, margin=1.0, epoch_decay=0.003,
+                     weight_decay=0.0001)
 
 timestamp = datetime.now()
 epoch_gamma = 1
