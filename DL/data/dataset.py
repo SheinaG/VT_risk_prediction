@@ -32,6 +32,8 @@ class all_set(Dataset):
         start = idx * self.win_len
         stop = (idx + 1) * self.win_len
         ecg_win = self.database[start:stop, :].reshape([1, self.win_len * 10 * 200])
+        if len(ecg_win) == 0:
+            a = 5
         label = self.targets[idx]
         if self.transform:
             ecg_win = self.transform(ecg_win)

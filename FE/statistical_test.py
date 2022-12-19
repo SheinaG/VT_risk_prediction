@@ -147,13 +147,18 @@ def perform_statistical_test(features_path, stat_path, exmp_file):
     y_no_vt = np.ones([1, len(cts.ids_tn + cts.ids_sn + cts.ids_vn)]).squeeze()
 
     # create dataset ( one VT each grop)
-    data_vt, _, _ = create_dataset(cts.ids_tp + cts.ids_sp, y_vt, features_path, model=0)
-    data_no_vt, _, _ = create_dataset(cts.ids_tn + cts.ids_sn + cts.ids_vn, y_no_vt, features_path, model=0)
+    data_vt, _, ids_group_p = create_dataset(cts.ids_tp + cts.ids_sp, y_vt, features_path, model=0)
+    data_no_vt, _, ids_group_n = create_dataset(cts.ids_tn + cts.ids_sn + cts.ids_vn, y_no_vt, features_path, model=0)
 
     sample_features_xl = pd.read_excel(exmp_file, engine='openpyxl')
     features_arr = np.asarray(sample_features_xl.columns[1:])
     features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
-    statistical_test_print = pd.DataFrame(columns=['mannwhitneyu', 'VT', 'Non-VT'], index=features_list[0])
+    statistical_test_print = pd.DataFrame(columns=['mannwhitneyu', 'VT', 'Non-VT', '% pos patients', '% pos windows',
+                                                   '% neg patients', '% neg windows'], index=features_list[0])
+    stat_summery_positive = pd.DataFrame(columns=['min', 'Q1', 'median', 'Q3', 'max', '% patients', '% windows'],
+                                         index=features_list[0])
+    stat_summery_negative = pd.DataFrame(columns=['min', 'Q1', 'median', 'Q3', 'max', '% patients', '% windows'],
+                                         index=features_list[0])
     statistical_test_alz = pd.DataFrame(columns=['mannwhitneyu'], index=features_list[0])
 
     for i, feature in enumerate(features_list[0]):
@@ -161,10 +166,28 @@ def perform_statistical_test(features_path, stat_path, exmp_file):
         data2 = data_no_vt[:, i].astype(np.float)
         median1 = np.around(np.median(data1), 2)
         median2 = np.around(np.median(data2), 2)
+        Q31 = np.around(np.percentile(data1, 75), 2)
+        Q11 = np.around(np.percentile(data1, 25), 2)
+        Q32 = np.around(np.percentile(data2, 75), 2)
+        Q12 = np.around(np.percentile(data2, 25), 2)
+        min1 = np.around(min(data1), 2)
+        max1 = np.around(max(data1), 2)
+        min2 = np.around(min(data2), 2)
+        max2 = np.around(max(data2), 2)
         iqr1 = np.around(np.percentile(data1, 75) - np.percentile(data1, 25), 2)
-        iqr2 = np.around(np.percentile(data1, 75) - np.percentile(data2, 25), 2)
+        iqr2 = np.around(np.percentile(data2, 75) - np.percentile(data2, 25), 2)
         statistical_test_print['VT'][feature] = str(median1) + '(' + str(iqr1) + ')'
         statistical_test_print['Non-VT'][feature] = str(median2) + '(' + str(iqr2) + ')'
+        q1 = np.quantile(data1, 0.01)
+        q99 = np.quantile(data1, 0.99)
+        ids_group_p_clean = np.asarray(ids_group_p)[(data1 <= q99) & (data1 >= q1)]
+        np1 = np.around(len(np.unique(ids_group_p_clean)) / 56, 2)
+        nw1 = np.around(len(ids_group_p_clean) / len(ids_group_p), 2)
+        q1 = np.quantile(data2, 0.01)
+        q99 = np.quantile(data2, 0.99)
+        ids_group_n_clean = np.asarray(ids_group_n)[(data2 <= q99) & (data2 >= q1)]
+        np2 = np.around(len(np.unique(ids_group_n_clean)) / len(np.unique(ids_group_n)), 2)
+        nw2 = np.around(len(ids_group_n_clean) / len(ids_group_n), 2)
         try:
             stat, p = mannwhitneyu(data1, data2)
             if p < 0.001:
@@ -175,9 +198,25 @@ def perform_statistical_test(features_path, stat_path, exmp_file):
         except:
             statistical_test_print['mannwhitneyu'][feature] = 1
             statistical_test_alz['mannwhitneyu'][feature] = 1
+        stat_summery_positive['min'][feature] = min1
+        stat_summery_positive['Q1'][feature] = Q11
+        stat_summery_positive['median'][feature] = median1
+        stat_summery_positive['Q3'][feature] = Q31
+        stat_summery_positive['max'][feature] = max1
+        stat_summery_positive['% patients'][feature] = np1
+        stat_summery_positive['% windows'][feature] = nw1
+        stat_summery_negative['min'][feature] = min2
+        stat_summery_negative['Q1'][feature] = Q12
+        stat_summery_negative['median'][feature] = median2
+        stat_summery_negative['Q3'][feature] = Q32
+        stat_summery_negative['max'][feature] = max2
+        stat_summery_negative['% patients'][feature] = np2
+        stat_summery_negative['% windows'][feature] = nw2
 
     statistical_test_alz.to_excel(stat_path / 'statistical_test_alz.xlsx')
     statistical_test_print.to_excel(stat_path / 'statistical_test_print.xlsx')
+    stat_summery_positive.to_excel(stat_path / 'stat_summery_positive.xlsx')
+    stat_summery_negative.to_excel(stat_path / 'stat_summery_negative.xlsx')
 
 
 def analyze_statistical_test(features_path, stat_path, exmp_file):
@@ -227,16 +266,16 @@ if __name__ == '__main__':
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
-    # perform_statistical_test(features_path, stat_path, exmp_file)
-    analyze_statistical_test(features_path, stat_path, exmp_file)
+    perform_statistical_test(features_path, stat_path, exmp_file)
+    # analyze_statistical_test(features_path, stat_path, exmp_file)
     # ids = cts.ext_test_no_vt
     # bsqi_stataictics(ids, bsqi_path, win_len)
 
-    mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
-    mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
-    std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
-    std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
-    stat, p = mannwhitneyu(mean_VT.astype(np.float32), mean_non_VT.astype(np.float32))
-    stat, p = mannwhitneyu(std_VT.astype(np.float32), std_non_VT.astype(np.float32))
+    # mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
+    # mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
+    # std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
+    # std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
+    # plot_hist_stst([mean_non_VT, mean_VT], [], 'mean', stat_path)
+    # plot_hist_stst([std_non_VT, std_VT], [], 'std', stat_path)
 
     a = 5

@@ -17,7 +17,7 @@ def data_transfer(win_len, X, y, fs=200):
         return X_t, y_t
 
 
-def load_on_disk(task='train'):
+def load_on_disk(task='test'):
     DL_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/')
     file_hp = DL_path / str("data_" + task + ".hdf5")
     X_file = h5py.File(file_hp, "r")
@@ -34,4 +34,4 @@ def load_on_disk(task='train'):
 
 
 if __name__ == '__main__':
-    load_on_disk(task='train_part')
+    load_on_disk(task='test')

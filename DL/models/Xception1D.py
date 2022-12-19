@@ -80,13 +80,13 @@ class Block(nn.Module):
 
 
 class Xception1D(nn.Module):
-    def __init__(self, input_channel, n_classes):
+    def __init__(self, input_channel, n_classes, ni=8, k=9):
         super().__init__()
         self.n_classes = n_classes
         self.relu = nn.ReLU(inplace=True)
 
         self.initBlock = nn.Sequential(
-            nn.Conv1d(input_channel, 8, 9, 2, 1, bias=False),
+            nn.Conv1d(input_channel, ni, k, 2, 1, bias=False),
             nn.BatchNorm1d(8),
             nn.ReLU(inplace=True),
 
