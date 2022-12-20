@@ -356,39 +356,35 @@ def calculate_demographic(name):
         demographic_no_VT_xl.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/demographic_features_rbdb.xlsx')
 
 
-def append_rhythms_array(self, pat, new_line, arr):
-    start = 0
-    end = -1
-    rhythms = np.array([int(i) for i in self.rlab_dict[pat][self.window_size]])
-    periods = np.concatenate(([0], np.where(np.diff(rhythms.astype(int)))[0] + 1, [len(rhythms) - 1]))
-    start_idx, end_idx = periods[:-1], periods[1:]
-    final_rhythms = rhythms[start_idx]
-    mask_rhythms = (final_rhythms == 14)  # We do not keep NSR as rhythm (keep just the VT rethem)
-    raw_rrt = self.rrt_dict[pat]
-    rrt = raw_rrt[:(len(raw_rrt) // self.window_size) * self.window_size].reshape(-1, self.window_size)
-    start_events, end_events = rrt[start_idx, 0], rrt[end_idx, 0]
-    mask_int_events = np.logical_and(start_events < end, end_events > start)
-    mask_rhythms = np.logical_and(mask_rhythms, mask_int_events)
-    start_events, end_events = start_events[mask_rhythms] - start, end_events[mask_rhythms] - start
-    end_events[end_events > (end - start)] = end - start
-    for i in range(len(start_events)):
-        arr[new_line + i, :] = [pat, start_events, end_events, end_events - start_events]
-    return arr, new_line + i + 1
+def rhythms_array(ids):
+    segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end'])
+    i = 0
+    start_events, end_events = [], []
+    for id_ in ids:
+        path = '/MLAIM/AIMLab/Sheina/databases/VTdb/rean_rbdb/'
+        txt_file = path + id_ + '_ecg_start_0_end_3_n_leads_3_rhythms.txt'
+        try:
+            with open(txt_file) as f:
+                lines = f.readlines()
+        except FileNotFoundError:
+            txt_file = path + id_ + '_ecg_start_0_end_2_n_leads_2_rhythms.txt'
+            with open(txt_file) as f:
+                lines = f.readlines()
+        f = 0
+        for line in lines:
+            if line == 'Beginning\tEnd\t\tClass\n':
+                f = 1
+            elif f == 1:
+                split_line = line.split('\t')
+                start_events.append(split_line[0])
+                end_events.append(split_line[1])
+                segments_array = segments_array.append(
+                    pd.DataFrame([[id_, split_line[0], split_line[1]]], columns=segments_array.columns))
+                i += 1
+    segments_array.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/segments_array_rbdb')
 
 
 if __name__ == '__main__':
-    # db = VtParser()
-    # segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
-    # j = 0
-    # for id in cts.ids_rbdb_VT:
-    #     rhythm_df = db.parse_reference_rhythm(id)
-    #     for i in rhythm_df.index:
-    #         segments_array.loc[j] = 0
-    #         segments_array.loc[j]['holter_id'] = id
-    #         segments_array.loc[j]['start'] = rhythm_df.loc[i]['Beginning']
-    #         segments_array.loc[j]['end'] = rhythm_df.loc[i]['End']
-    #         segments_array.loc[j]['len'] = segments_array.loc[j]['end'] - segments_array.loc[j]['start']
-    #         j = j + 1
-    # a = 5
-    split_train_to_k_folders(k_folders=38, split_way=3)
+    rhythms_array(cts.ids_conf + cts.ids_sp)
+    # split_train_to_k_folders(k_folders=38, split_way=3)
     # rbdb_new_dem(cts.ids_tn + cts.ids_sn + cts.ids_tp + cts.ids_sp + cts.ids_vn)

@@ -103,6 +103,8 @@ def preprocess_ecg(ids, fs, dataset, ecg_path, plot=0):
         notc_freq = 60  # power line in usa
     for id in ids:
         isExistecg = os.path.exists(ecg_path / id / 'ecg_0.npy')
+        if isExistecg:
+            continue
         raw_lead = db.parse_raw_rec(id, start=0, end=-1)
         # raw_lead = raw_ecg[0]
         if dataset == 'rbdb':
@@ -328,18 +330,18 @@ def fe_dataset(ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_pa
 def calculate_pvc_features(ids, bsqi_path, features_path, win_len):
     fs = 200
     m_id = []
+    if win_len == 30:
+        wl = 0
+    else:
+        wl = win_len
     for id_ in ids:
         pvc_path = '/home/sheina/PVC/mats/'
         pvc_head = '_ECG_heartbeat_classifier.mat'
         bd_head = '_QRS_detection.mat'
         isExist = os.path.exists(pvc_path + id_ + pvc_head)
-        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(win_len) + '.npy'), allow_pickle=True)
+        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(wl) + '.npy'), allow_pickle=True)
         if not isExist:
             m_id.append(id_)
-
-        elif os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str(
-                '/pvc_features.xlsx')):
-            continue
         else:
             HBC_mat = loadmat(pvc_path + id_ + pvc_head)
             bd_mat = loadmat(pvc_path + id_ + bd_head)
@@ -517,9 +519,10 @@ if __name__ == '__main__':
     dataset = 'uvafdb'
     win_len = 30
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
     features_path = cts.ML_path
+    # calculate_pvc_features(cts.ids_sp+cts.ids_vp+cts.ids_tp+cts.ids_vn+cts.ids_sn +cts.ids_tn, bsqi_path, features_path, win_len)
     # results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
     # data_path = cts.VTdb_path
     # ids = cts.ext_test_no_vt[253:]

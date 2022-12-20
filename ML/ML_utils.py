@@ -1,6 +1,3 @@
-import numpy as np
-import pandas as pd
-
 from utils import consts as cts
 from utils.base_packages import *
 

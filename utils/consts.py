@@ -112,6 +112,7 @@ ids_tp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_VT_ids
 ids_sp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_VT_ids.npy'))
 ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy'))
 ids_vp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_VT_ids.npy'))
+ids_conf = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/conf_ids.npy'))
 ids_VT = ids_sp + ids_tp + ext_test_vt
 
 # parameters for HRV

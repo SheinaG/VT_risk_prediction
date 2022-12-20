@@ -46,7 +46,7 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--loss', default='AUCMLoss', type=str, choices=['CE', 'wCE', 'focal', 'AUCMLoss'],
                         help='loss to use')
     parser.add_argument('--weight', default=36, type=int, help='The weight of the positive class')
-    parser.add_argument('--epochs', type=int, default=100, help='Total number of epochs')
+    parser.add_argument('--epochs', type=int, default=50, help='Total number of epochs')
     # parser.add_argument('--early-stop-patience', type=int, default=10, help='')
     # parser.add_argument('--val-step-every', type=int, default=1, help='run validation set every x number of epochs')
     parser.add_argument('--optimizer', default='PESG', type=str, choices=['AdamW', 'sgd', 'Adam', 'PESG'],

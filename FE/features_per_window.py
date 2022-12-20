@@ -35,9 +35,9 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
         segments = pd.read_excel(data_path / 'VTp' / str('segments_array_' + dataset + '.xlsx'), engine='openpyxl')
 
     for id_ in ids:
-        isExist = os.path.exists(features_path / str(id_) / 'features.xlsx')
-        if isExist:
-            continue
+        # isExist = os.path.exists(features_path / str(id_) / 'features.xlsx')
+        # if isExist:
+        #     continue
         notExist = os.path.exists(features_path / str(id_) / 'hrv_features.xlsx')
         if not notExist:
             bad_ids.append(id_)
@@ -119,7 +119,7 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
                 hrv_vt_win = hrv_vt_win.set_axis(bm_vt_win.index, axis='index')
                 vt_features = pd.concat([bm_vt_win, hrv_vt_win, pvc_vt_win, dem_vt_patient, new_dem_vt_patient], axis=1,
                                         join='inner')
-                vt_features.to_excel(features_path / id_ / 'vt_wins' / 'features_stand.xlsx')
+                vt_features.to_excel(features_path / id_ / 'vt_wins' / 'features_nd.xlsx')
 
         dem_ = pd.DataFrame(demographic_xl.loc[s + id_]).transpose()
         new_dem_ = pd.DataFrame(new_dem_xl.loc[s + id_]).transpose()
@@ -129,7 +129,7 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
         new_dem_patient = new_dem_patient.set_axis(bm_vt.index, axis='index')
         hrv_vt = hrv_vt.set_axis(bm_vt.index, axis='index')
         no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient, new_dem_patient], axis=1, join='inner')
-        no_vt_features.to_excel(features_path / id_ / 'features.xlsx')
+        no_vt_features.to_excel(features_path / id_ / 'features_nd.xlsx')
 
     return bad_ids
 
@@ -139,22 +139,23 @@ if __name__ == '__main__':
     n_pools = 10
 
     dataset = 'rbdb'
-    win_len = 120
+    win_len = 30
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
-    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
+    bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
-    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
+    features_path = cts.ML_path
     results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
+    pvc_path = features_path
     ML_path = cts.VTdb_path
     algo = 'RF'
 
-    features_per_window('rbdb', cts.ids_tp + cts.ids_sp, ML_path, features_path, features_path, vt_wins=1, win_len=120)
-    bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
-                                  vt_wins=0,
-                                  win_len=120)
-    from FE.window_fe import *
+    features_per_window('rbdb', cts.ids_conf, ML_path, features_path, pvc_path, vt_wins=1, win_len=win_len)
+    # bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
+    #                               vt_wins=0,
+    #                               win_len=120)
+    # from FE.window_fe import *
 
-    fe_dataset(bad_ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
+    # fe_dataset(bad_ids, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
     # features_per_window('rbdb', ['5620G109'], data_path, ML_path, pvc_path, vt_wins=0,
     #                     win_len=10)
     # features_per_window('rbdb', test_no_vt, data_path, ML_path, vt_wins=0)
