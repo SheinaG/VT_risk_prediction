@@ -21,20 +21,25 @@ parameters:
     values:
       - Xception1D
 
-  #  n_layers:
-  #    distribution: int_uniform
-  #    max: 10
-  #    min: 1
-  #
-  #  ni:
-  #    distribution: int_uniform
-  #    max: 80
-  #    min: 5
-  #
-  #  ks:
-  #    distribution: int_uniform
-  #    max: 99
-  #    min: 1
+  blocks:
+    distribution: int_uniform
+    max: 10
+    min: 1
+
+  ks:
+    distribution: categorical
+    values:
+      - 7
+      - 9
+      - 13
+      - 19
+      - 29
+
+  ni:
+    distribution: int_uniform
+    max: 20
+    min: 5
+
   prob_augment_list:
     distribution: categorical
     values:
@@ -44,10 +49,20 @@ parameters:
       - [ 0.5 ]
       - [ 0.8 ]
 
+  p_fc_drop:
+    min: 0.01
+    max: 0.8
+
+  sampling_rate:
+    distribution: categorical
+    values:
+      - 0.2
+      - 0.3
+      - 0.4
+      - 0.5
+      - 0.6
 
 
 
 
-
-
-program: ./DL/Exp_overfit.py
+program: ./DL/train_modelS.py

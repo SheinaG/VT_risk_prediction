@@ -10,14 +10,14 @@ from models.XceptoinTimeS import XceptionTime
 from models.Xception1D import Xception1D
 from data.dataset import one_set, overfit_set, t_ansamble_set, all_set
 
-win_len = 60
+win_len = 180
 model = 'Xception1D'
 device = 'cuda'
 gpu = ''
 parser = argparse.ArgumentParser()
 parser.add_argument('--downsampling', default=True, type=str2bool, help='Use downsampling to 100 Hz')
 run_config = parser.parse_args()
-batch_size = 128
+batch_size = 8
 
 if gpu == '':
     device = device
@@ -33,12 +33,13 @@ if model == 'TCN':
 if model == 'Xception1D':
     model = Xception1D(input_channel=1, n_classes=2)
 
-model = model.to(device)
-model_path = str(MODELS_DIR / 'genial-frost-185_model_80')
+model_path = str(MODELS_DIR / 'cerulean-salad-194_model_5')
 model.load_state_dict(torch.load(model_path, map_location=device))
+model = model.to(device)
+model.eval()
 results = {}
 
-val_set = all_set(task='val', win_len=win_len, run_config=run_config)
+val_set = all_set(task='test', win_len=win_len, run_config=run_config)
 test_loader = DataLoader(dataset=val_set, batch_size=batch_size)
 
 pred_all = []

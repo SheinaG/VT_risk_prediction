@@ -341,20 +341,20 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
 
 if __name__ == '__main__':
-    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-    win_len = 120
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'WL_120'
-    dataset = 'WL_120'
-    algo = 'RF'
-    # run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='median', methods=['ns'], win_len=win_len,
-    #               features_name='features.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=0, methods=['ns'], win_len=win_len,
-              features_name='features.xlsx')
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['ns'], win_len=win_len,
-                  features_name='features.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, methods=['ns'], win_len=win_len,
-              features_name='features.xlsx')
+    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
+    win_len = 30
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'ssg_mrmr'
+    dataset = 'ssg_mrmr'
+    algo = 'XGB'
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=win_len,
+              features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=win_len,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=win_len,
+              features_name='features_nd.xlsx')
 
     # all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'new_dem41_mrmr'
     # dataset = 'new_dem41_mrmr'

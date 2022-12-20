@@ -266,15 +266,15 @@ if __name__ == '__main__':
     stat_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/')
     exmp_file = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/C720Dc84/features_nd.xlsx')
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
-    perform_statistical_test(features_path, stat_path, exmp_file)
+    # perform_statistical_test(features_path, stat_path, exmp_file)
     # analyze_statistical_test(features_path, stat_path, exmp_file)
     # ids = cts.ext_test_no_vt
     # bsqi_stataictics(ids, bsqi_path, win_len)
 
-    # mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
-    # mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
-    # std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
-    # std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
+    mean_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_VT.npy')
+    mean_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/mean_no_VT.npy')
+    std_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_VT.npy')
+    std_non_VT = np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/stat_test/std_no_VT.npy')
     # plot_hist_stst([mean_non_VT, mean_VT], [], 'mean', stat_path)
     # plot_hist_stst([std_non_VT, std_VT], [], 'std', stat_path)
 

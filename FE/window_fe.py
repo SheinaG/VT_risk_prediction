@@ -16,8 +16,8 @@ def calc_mean_std(ids, ecg_path, VT=1, win_len=30):
     all_winds_mean_ = []
     all_winds_std_ = []
     for id in ids:
-        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(wl) + '.npy'))
-        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(wl) + '.npy'), allow_pickle=True)
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy', allow_pickle=True)
         i = 0
         start_win = 0
         end_win = start_win + win_len * 60 * fs
@@ -56,10 +56,10 @@ def calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=10):
             os.makedirs(bsqi_path / id)
         if os.path.exists(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy')):
             continue
-        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy', allow_pickle=True)
         xqrs_lead = db.parse_annotation(id, type='xqrs')
         xqrs_lead = xqrs_lead[(xqrs_lead >= starti)] - starti
-        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy')
+        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy', allow_pickle=True)
         # epltd_lead = epltd_lead[(epltd_lead >= starti)] - starti
         bsqi_list = []
         i = 0
@@ -162,7 +162,7 @@ def preprocess_ecg(ids, fs, dataset, ecg_path, plot=0):
         raw_lead2 = norm_rms(raw_lead)
         raw_lead3 = norm_mean_std(raw_lead)
         fp = Fp.FiducialPoints(raw_lead, fs)
-        epltd_lead = fp.epltd
+        epltd_lead = fp.epltd()
 
         np.save(ecg_path / id / 'ecg_0.npy', raw_lead)
         np.save(ecg_path / id / 'epltd_0.npy', epltd_lead)
@@ -198,9 +198,9 @@ def calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30):
     fs = 200
 
     for id in ids:
-        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
-        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy')
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'), allow_pickle=True)
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy', allow_pickle=True)
+        epltd_lead = np.load(ecg_path / id / 'epltd_0.npy', allow_pickle=True)
         start_win = 0
         end_win = start_win + fs * win_len * 60
         win = 0
@@ -251,9 +251,9 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
 
     for id in ids:
         pebm_feat = {}
-        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'))
-        raw_lead = np.load(ecg_path / id / 'ecg_0.npy')
-        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl')
+        bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'), allow_pickle=True)
+        raw_lead = np.load(ecg_path / id / 'ecg_0.npy', allow_pickle=True)
+        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl', allow_pickle=True)
         i = 0
         start_win = 0
         end_win = start_win + win_len * 60 * fs
@@ -333,7 +333,7 @@ def calculate_pvc_features(ids, bsqi_path, features_path, win_len):
         pvc_head = '_ECG_heartbeat_classifier.mat'
         bd_head = '_QRS_detection.mat'
         isExist = os.path.exists(pvc_path + id_ + pvc_head)
-        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(win_len) + '.npy'))
+        bsqi = np.load(bsqi_path / id_ / str('bsqi_' + str(win_len) + '.npy'), allow_pickle=True)
         if not isExist:
             m_id.append(id_)
 
@@ -392,7 +392,7 @@ def four_pvc_in_a_row(ids):
         pvc_head = '_ECG_heartbeat_classifier.mat'
         bd_head = '_QRS_detection.mat'
         isExist = os.path.exists(pvc_path + id_ + pvc_head)
-        bsqi = np.load(ecg_path / 'rbdb' / id_ / str('bsqi_0.npy'))
+        bsqi = np.load(ecg_path / 'rbdb' / id_ / str('bsqi_0.npy'), allow_pickle=True)
 
         if os.path.exists('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/' + str(win_len) + '/' + str(id_) + str(
                 '/pvc_features.xlsx')):
@@ -420,13 +420,13 @@ def four_pvc_in_a_row(ids):
 
 def clear_from_bad_bsqi(ids_paths, bsqi_path):
     IDS_main = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/')
-    bad_IDS = list(np.load(IDS_main / 'low_bsqi_IDS.npy'))
-    no_PVCs_IDS = list(np.load(IDS_main / 'no_PVCs_IDS.npy'))
+    bad_IDS = list(np.load(IDS_main / 'low_bsqi_IDS.npy'), allow_pickle=True)
+    no_PVCs_IDS = list(np.load(IDS_main / 'no_PVCs_IDS.npy'), allow_pickle=True)
     for path_ in ids_paths:
         ids = list(np.load(IDS_main / path_))
         for id_ in ids:
             try:
-                bsqi = np.load(bsqi_path / id_ / 'bsqi_0.npy')
+                bsqi = np.load(bsqi_path / id_ / 'bsqi_0.npy', allow_pickle=True)
                 g_b = bsqi[bsqi >= 0.8]
                 if len(g_b) < 2:
                     if id_ not in bad_IDS:
@@ -443,14 +443,14 @@ def clear_from_bad_bsqi(ids_paths, bsqi_path):
 
 def add_standardization_to_pecg(ids, ecg_path, features_path):
     for id_ in ids:
-        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy')
+        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy', allow_pickle=True)
         bm_vt = pd.read_excel(features_path / str(id_) / 'bm_features.xlsx', engine='openpyxl')
         bm_vt = bm_vt.set_axis(bm_vt['Unnamed: 0'], axis='index')
         bm_vt = bm_vt.drop(columns=['Unnamed: 0'])
 
 
 def fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len):
-    # preprocess_ecg(ids, fs, dataset, save_path, plot=0)
+    preprocess_ecg(ids, 200, dataset, ecg_path, plot=0)
     calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=win_len)
     calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=win_len)
     calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=win_len)
@@ -497,8 +497,8 @@ def run_on_dir(ids):
 def calculate_fiducials_per_rec(ids, ecg_path, dataset):
     for i, id_ in enumerate(ids):
         fs = 200
-        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy')
-        epltd_lead = np.load(ecg_path / id_ / 'epltd_0.npy')
+        raw_lead = np.load(ecg_path / id_ / 'ecg_0.npy', allow_pickle=True)
+        epltd_lead = np.load(ecg_path / id_ / 'epltd_0.npy', allow_pickle=True)
         matlab_path = '/usr/local/MATLAB/R2021a/'
         fp = Fp.FiducialPoints(raw_lead, fs)
         fiducials = fp.wavedet(matlab_path, epltd_lead)
@@ -514,16 +514,18 @@ if __name__ == '__main__':
     win_len_n = 'rbdb'
     n_pools = 10
 
-    dataset = 'rbdb'
+    dataset = 'uvafdb'
     win_len = 30
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / win_len_n
     fiducials_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / 'fiducials'
-    features_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/') / 'win_len' / win_len_n
-    results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
-    data_path = cts.VTdb_path
-    ids = cts.ext_test_no_vt[253:]
-    ids = cts.ids_tp + cts.ids_vn + cts.ids_tn + cts.ids_sp + cts.ids_sn
+    features_path = cts.ML_path
+    # results_dir = cts.ML_RESULTS_DIR / 'logo_cv' / win_len_n
+    # data_path = cts.VTdb_path
+    # ids = cts.ext_test_no_vt[253:]
+    # ids = cts.ids_tp + cts.ids_vn + cts.ids_tn + cts.ids_sp + cts.ids_sn
     # calc_mean_std(cts.ids_vn + cts.ids_tn + cts.ids_sn, ecg_path, VT=0, win_len=30)
     # calc_mean_std(cts.ids_tp + cts.ids_sp, ecg_path, VT=1, win_len=30)
-    fe_dataset(cts.ids_sn, n_pools, dataset, win_len, ecg_path, bsqi_path, fiducials_path, features_path, stand=0)
+    fe_dataset(cts.ext_test_no_vt + cts.ext_test_no_vt,
+               n_pools=10, dataset='uvafdb', win_len=30, ecg_path=ecg_path
+               , bsqi_path=bsqi_path, fiducials_path=fiducials_path, features_path=features_path, stand=0)

@@ -29,12 +29,13 @@ def parse_global_args(parent, add_help=False):
                         choices=['XceptionTime', 'InceptionTime', 'TCN', 'ResNet', 'OmniScaleCNN', 'LSTM_FCN', 'LSTM',
                                  'RNN', 'Xception1D'], help='which model to train')
     parser.add_argument('--conv_dropout', default=0, type=float, help='how mach dropout to use')
-    parser.add_argument('--fc_dropout', default=0, type=float, help='how mach dropout to use')
+    parser.add_argument('--p_fc_drop', default=0, type=float, help='how mach dropout to use')
     parser.add_argument('--use_sampler', default=True, type=str2bool, help='if to use sampler or not')
+    parser.add_argument('--sampling_rate', default=0.5, type=float, help='The ratio of positive class to sample')
 
     # data
 
-    parser.add_argument('--win_len', default=60, type=int, choices=[1, 6, 30, 60, 180, 360])
+    parser.add_argument('--win_len', default=180, type=int, choices=[1, 6, 30, 60, 180, 360])
     parser.add_argument('--data_aug', default=True, type=str2bool, help='Use data augmentations')
     parser.add_argument('--downsampling', default=True, type=str2bool, help='Use downsampling to 100 Hz')
 
@@ -45,22 +46,22 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--loss', default='AUCMLoss', type=str, choices=['CE', 'wCE', 'focal', 'AUCMLoss'],
                         help='loss to use')
     parser.add_argument('--weight', default=36, type=int, help='The weight of the positive class')
-    parser.add_argument('--epochs', type=int, default=1000, help='Total number of epochs')
+    parser.add_argument('--epochs', type=int, default=100, help='Total number of epochs')
     # parser.add_argument('--early-stop-patience', type=int, default=10, help='')
     # parser.add_argument('--val-step-every', type=int, default=1, help='run validation set every x number of epochs')
     parser.add_argument('--optimizer', default='PESG', type=str, choices=['AdamW', 'sgd', 'Adam', 'PESG'],
                         help='which optimizer to use')
     # parser.add_argument('--scheduler_patience', default=5, type=int, help='patience of reduce lr on plateau')
-    parser.add_argument('--lr', type=float, default=0.8, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=0.05, help='Learning rate')
     # parser.add_argument('--weight_decay', type=float, default=1e-4, help='Regularization term')
-    parser.add_argument('--batch_size', type=int, default=32, help='training batch size')
+    parser.add_argument('--batch_size', type=int, default=16, help='training batch size')
     parser.add_argument('--size', type=int, default=16, help='overfit size')
     parser.add_argument('--batch-size-val', type=int, default=4, help='validation batch size')
     parser.add_argument('--batch-size-test', type=int, default=4, help='test batch size')
 
     # TCN model:
     parser.add_argument('--activation', type=str, default='leakyRelu', help='which activation function to use')
-    parser.add_argument('--n_layers', type=int, default=2, help='how many layers are in the model')
+    parser.add_argument('--blocks', type=int, default=2, help='how many layers are in the model')
     parser.add_argument('--ni', type=int, default=25, help='how many channels are in the model')
     parser.add_argument('--ks', type=int, default=17, help='filter size')
 

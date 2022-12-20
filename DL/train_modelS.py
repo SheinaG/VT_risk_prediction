@@ -34,31 +34,31 @@ if run_config.model == 'XceptionTime':
 if run_config.model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
 if run_config.model == 'Xception1D':
-    model = Xception1D(input_channel=1, n_classes=2)
-
+    model = Xception1D(input_channel=1, n_classes=2, ni=run_config.ni, k=run_config.ks, blocks=run_config.blocks,
+                       p_fc_drop=run_config.p_fc_drop)
 
 model = model.to(device)
 wandb.watch(model, log='all')
 results = {}
 
-if run_config.batch_size == 0:
-    if run_config.win_len == 1:
-        run_config.batch_size = 128
-    if run_config.win_len == 6:
-        run_config.batch_size = 32
-    if run_config.win_len == 30:
-        run_config.batch_size = 8
-    if run_config.win_len == 60:
-        run_config.batch_size = 8
-    if run_config.win_len == 180:
-        run_config.batch_size = 1
-    if run_config.win_len == 360:
-        run_config.batch_size = 1
+# if run_config.batch_size == 0:
+#     if run_config.win_len == 1:
+#         run_config.batch_size = 128
+#     if run_config.win_len == 6:
+#         run_config.batch_size = 32
+#     if run_config.win_len == 30:
+#         run_config.batch_size = 8
+#     if run_config.win_len == 60:
+#         run_config.batch_size = 8
+#     if run_config.win_len == 180:
+#         run_config.batch_size = 1
+#     if run_config.win_len == 360:
+#         run_config.batch_size = 1
 
 train_set = all_set(task='train_part', win_len=run_config.win_len, run_config=run_config)
 val_set = all_set(task='val', win_len=run_config.win_len, run_config=run_config)
 if run_config.use_sampler:
-    sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=0.5)
+    sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=run_config.sampling_rate)
     train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, sampler=sampler)
 else:
     train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, shuffle=True)
