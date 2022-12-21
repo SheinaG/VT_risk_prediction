@@ -1,6 +1,7 @@
 from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
+from ML.cv_methods import *
 
 
 def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=False,
@@ -9,6 +10,7 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         standartization = StandardScaler()
     logo = LeaveOneGroupOut()
     gss = GroupShuffleSplit(n_splits=4, test_size=0.25)
+    Ocv = OneCrossValidation()
     if algo == 'RF':
         if weighting:
             clf = cts.class_funcs[algo](class_weight='balanced', n_jobs=n_jobs)
@@ -30,7 +32,7 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         # },
         scoring=rc_scorer,
         n_iter=600,
-        cv=gss.split(train_pat_features, train_pat_labels, groups=groups),
+        cv=Ocv.split(train_pat_features, train_pat_labels, groups=groups),
         return_train_score=True, verbose=1, n_jobs=n_jobs)
 
     opt.fit(train_pat_features, train_pat_labels)  # callback=on_step

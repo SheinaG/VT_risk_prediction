@@ -21,11 +21,12 @@ def rebuild_clf(x_train, y_train, x_test, y_test, params_dict, algo):
 
 
 def train_by_V_ratio():
-    y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
+    y_train = np.concatenate([np.ones([1, len(cts.ids_tp + cts.ids_vp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                              axis=1).squeeze()
     y_test = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
 
-    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=cts.ML_path,
+    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_vp + cts.ids_tn + cts.ids_vn, y_train,
+                                                        path=cts.ML_path,
                                                         model=0)
     x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=cts.ML_path, model=0)
     v_train = x_train[:, -10]
@@ -37,12 +38,13 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
-    y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
+    y_train = np.concatenate([np.ones([1, len(cts.ids_tp + cts.ids_vp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
                              axis=1).squeeze()
     y_test = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train, path=DATA_PATH,
+    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_vp + cts.ids_tn + cts.ids_vn, y_train,
+                                                        path=DATA_PATH,
                                                         model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
     train_groups = split_to_group(train_ids_groups, split=383)
@@ -76,7 +78,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         print(features_new)
 
     path = set_path(algo, dataset, model_type, results_dir)
-    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_groups,
+    opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_ids_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
     with open((path / 'opt_SSG.pkl'), 'wb') as f:
@@ -90,7 +92,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     warnings.filterwarnings('ignore')
-    for i in range(1, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='ssg',
+    for i in range(2, cts.NM + 1):
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ocv',
                                methods=['mrmr'], features_name='features_nd.xlsx',
                                n_jobs=10, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)

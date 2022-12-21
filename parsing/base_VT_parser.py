@@ -28,6 +28,7 @@ class VtParser:
         self.test_n = list(np.load(cts.IDS_DIR / 'RBDB_test_no_VT_ids.npy'))
         self.test_p = list(np.load(cts.IDS_DIR / 'RBDB_test_VT_ids.npy'))
         self.val_n = list(np.load(cts.IDS_DIR / 'RBDB_val_no_VT_ids.npy'))
+        self.val_p = list(np.load(cts.IDS_DIR / 'RBDB_val_VT_ids.npy'))
         self.ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
         self.ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
         self.rbdb_ids = self.train_n + self.train_p + self.test_n + self.test_p + self.val_n + cts.bad_bsqi
@@ -146,7 +147,7 @@ class VtParser:
     def get_labels(self, rec_list):
         labels = {}
         for rec_list in rec_list:
-            if rec_list in self.test_p + self.train_p + self.ext_test_vt:
+            if rec_list in self.test_p + self.train_p + self.ext_test_vt + cts.ids_vp:
                 y = 1
             else:
                 y = 0

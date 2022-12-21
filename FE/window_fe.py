@@ -255,7 +255,7 @@ def calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_p
         pebm_feat = {}
         bsqi = np.load(bsqi_path / id / str('bsqi_' + str(win_len) + '.npy'), allow_pickle=True)
         raw_lead = np.load(ecg_path / id / 'ecg_0.npy', allow_pickle=True)
-        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl', allow_pickle=True)
+        fiducials = joblib.load(fiducials_path / id / 'fiducials.pkl')
         i = 0
         start_win = 0
         end_win = start_win + win_len * 60 * fs
@@ -335,6 +335,9 @@ def calculate_pvc_features(ids, bsqi_path, features_path, win_len):
     else:
         wl = win_len
     for id_ in ids:
+        isExist = os.path.exists(features_path / str(id_) / 'features_n.xlsx')
+        if isExist:
+            continue
         pvc_path = '/home/sheina/PVC/mats/'
         pvc_head = '_ECG_heartbeat_classifier.mat'
         bd_head = '_QRS_detection.mat'
@@ -452,10 +455,6 @@ def add_standardization_to_pecg(ids, ecg_path, features_path):
 
 
 def fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len):
-    preprocess_ecg(ids, 200, dataset, ecg_path, plot=0)
-    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len=win_len)
-    calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=win_len)
-    calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=win_len)
     calculate_pvc_features(ids, bsqi_path, features_path, win_len)
 
 

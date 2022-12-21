@@ -61,15 +61,28 @@ class OneCrossValidation:
     def split(cls, x, y, groups: np.ndarray = None):
         """Returns to a grouped time series split generator."""
         # The min max index must be sorted in the range
-        test_indices, train_indices = []
-        for group in groups:
+        test_indices, train_indices = [], []
+        for i, group in enumerate(groups):
 
             if group in cts.ids_vn + cts.ids_vp:
-                test_indices.append(groups.index(group))
+                test_indices.append(i)
             else:
-                train_indices.append(groups.index(group))
+                train_indices.append(i)
 
-            if len(test_indices) > 0:
-                # Yielding to training and testing indices
-                # for cross-validation generator
-                yield train_indices, test_indices
+        yield train_indices, test_indices
+
+# class OneCrossValidation:
+#
+#     @classmethod
+#     def split(cls, x, y, groups: np.ndarray = None):
+#         """Returns to a grouped time series split generator."""
+#         # The min max index must be sorted in the range
+#         test_indices, train_indices = [], []
+#
+#
+#                 test_indices = np.where()
+#             else:
+#                 train_indices.append(groups.index(group))
+#
+#
+#             yield train_indices, test_indices
