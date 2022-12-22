@@ -18,7 +18,10 @@ def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.
         if id_ in bad_bsqi:
             j = 0
             continue
-        new_p = np.array(pd.read_excel((path / id_ / add_path), engine='openpyxl'))
+        try:
+            new_p = np.array(pd.read_excel((path / id_ / add_path), engine='openpyxl'))
+        except:
+            print(id_)
 
         if multiply:
             if id_ in cts.ids_VT:

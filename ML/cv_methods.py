@@ -1,3 +1,5 @@
+import random
+
 from utils import consts as cts
 from utils.base_packages import *
 
@@ -55,6 +57,27 @@ class CustomCrossValidation:
                 yield training_indices, test_indices
 
 
+class ConfCrossValidation:
+
+    @classmethod
+    def split(cls, x, y, groups: np.ndarray = None):
+        """Returns to a grouped time series split generator."""
+        # The min max index must be sorted in the range
+        train_n = cts.ids_tn + cts.ids_vn
+
+        random.shuffle(train_n)
+        random.shuffle(cts.ids_conf)
+
+        test_indices, train_indices = [], []
+        for i, group in enumerate(groups):
+            if group in train_n[:200] + cts.ids_conf[:10]:
+                test_indices.append(i)
+            else:
+                train_indices.append(i)
+
+        yield train_indices, test_indices
+
+
 class OneCrossValidation:
 
     @classmethod
@@ -70,19 +93,3 @@ class OneCrossValidation:
                 train_indices.append(i)
 
         yield train_indices, test_indices
-
-# class OneCrossValidation:
-#
-#     @classmethod
-#     def split(cls, x, y, groups: np.ndarray = None):
-#         """Returns to a grouped time series split generator."""
-#         # The min max index must be sorted in the range
-#         test_indices, train_indices = [], []
-#
-#
-#                 test_indices = np.where()
-#             else:
-#                 train_indices.append(groups.index(group))
-#
-#
-#             yield train_indices, test_indices

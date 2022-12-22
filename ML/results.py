@@ -105,14 +105,14 @@ def intrp_model(path, features_model, results_dir, feature_selection, features_s
 
 
 def ext_test_set(opt_d, model_path, features, features_selection, features_model):
-    ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
-    ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
+    ext_test_vt = cts.ext_test_vt
+    ext_test_no_vt = cts.ext_test_no_vt
     y_ext = np.concatenate([np.ones([1, len(ext_test_vt)]), np.zeros([1, len(ext_test_no_vt)])], axis=1).squeeze()
 
     x_ext, y_ext, ext_ids_groups = create_dataset(ext_test_vt + ext_test_no_vt, y_ext, path=DATA_PATH,
-                                                  model=0, n_pools=1)
+                                                  model=0, n_pools=10, features_name='features_n.xlsx')
     results_ext = {}
-    for i in range(1, cts.NM + 1):
+    for i in range(2, cts.NM):
         x_ext_i = model_features(x_ext, i)
         if features_selection:
             x_ext_i = features_mrmr(x_ext_i, list(features_model[i][0]), list(features[i]))
@@ -160,7 +160,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     features_str = ''
 
     dataset_n = dataset
-    with_ext_test = False
+    with_ext_test = True
     exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/1020D818/features_nd.xlsx', engine='openpyxl')
     # exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1419Ec09/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(exmp_features.columns[1:])
@@ -191,7 +191,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     fig = plt.plot([1])
     AUROC = [results_d[1][6], results_d[2][6], results_d[3][6], results_d[4][6], results_d[5][6]]
     if with_ext_test:
-        AUROC_ext = [results_ext[1][6], results_ext[2][6], results_ext[3][6], results_ext[4][6], results_ext[5][6]]
+        AUROC_ext = [0, results_ext[2][6], results_ext[3][6], results_ext[4][6], 0]
     x_axis = np.arange(cts.NM)
     plt.bar(x_axis - 0.2, AUROC, 0.4, color=(colors_six[0]), label='RBDB test set')
     if with_ext_test:
@@ -204,7 +204,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     max_auroc = np.max(AUROC)
     if with_ext_test:
         max_auroc = np.max(AUROC + AUROC_ext)
-    plt.ylim((min_auc - 0.1, max_auroc + 0.1))
+    plt.ylim((max(min_auc - 0.1, 0.4), max_auroc + 0.1))
     plt.ylabel('AUROC')
     plt.xlabel('Model #')
     plt.legend(loc='upper left')
@@ -229,6 +229,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
             for j in range(len(importance_arrayi)):
                 index = list(features_model[i][0]).index(features[j])
                 importance_array[index] = importance_arrayi[j]
+
         else:
             n_F = np.minimum(n_F_max, len(features_model[i][0]))
             importance_array = opt_d[i].best_estimator_.named_steps.model.feature_importances_
@@ -240,7 +241,10 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         stic_list = []
 
         for j in range(n_F):
-            stic_list.append(features_model[i][0][indices[j]])
+            if features_model[i][0][indices[j]] == 'gender':
+                stic_list.append('sex')
+            else:
+                stic_list.append(features_model[i][0][indices[j]])
         axi.set_yticks(range(n_F))
         axi.set_yticklabels(stic_list, rotation='horizontal', fontsize=16)
         axi.invert_yaxis()
@@ -268,13 +272,13 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         y_test_list, y_pred_list = test_samples(prob_rf[i][:, 1], y_test_d[i], 100)
         low_auroc_i, high_auroc_i = roc_plot_envelope(y_pred_list, y_test_list, K_test=100, augmentation=1, typ=i,
                                                       title='model ' + str(i),
-                                                      majority_vote=False, soft_lines=False)
+                                                      majority_vote=False, soft_lines=False, algo=algo)
 
         low_auroc.append(low_auroc_i)
         high_auroc.append(high_auroc_i)
         # plt.plot(tpr_rf, tpr_rf, 'k')
-    plt.legend(facecolor='white', framealpha=0.8, loc=4)
 
+    plt.legend(facecolor='white', framealpha=0.8, loc=4)
     plt.title('Receiving operating curve')
     plt.xlabel('1-Sp')
     plt.ylabel('Se')
@@ -297,5 +301,6 @@ def eval_one_model(results_dir, path):
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_stand/RF_4/')
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'ssg_mrmr', dataset='ssg_mrmr', feature_selection=1,
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'new_dem41_mrmr', dataset='new_dem41_mrmr',
+               feature_selection=1,
                methods=['mrmr'], algo='XGB')

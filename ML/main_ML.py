@@ -34,7 +34,7 @@ def train_by_V_ratio():
 
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods='', feature_selection=0, n_jobs=10,
-                           algo='RF', features_name='features_nd.xlsx', bad_bsqi_ids=cts.bad_bsqi):
+                           algo='RF', features_name='features_nd.xlsx', bad_bsqi_ids=cts.bad_bsqi, fs_dataset=''):
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
@@ -54,34 +54,48 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
     if feature_selection:
         dataset = dataset + '_' + '_'.join(methods)
-        StSC = StandardScaler()
-        StSc_fit = StSC.fit(x_train)
-        X_stsc_train = StSc_fit.transform(x_train)
-        x_test = StSc_fit.transform(x_test)
-        X_df = pd.DataFrame(X_stsc_train, columns=features_model)
+        path = set_path(algo, dataset, model_type, results_dir)
         features_all = features_model
-        for method in methods:
-            if method == 'ns':
-                X_df, removed_features = remove_not_significant(X_df, y_train)
-                x_test = features_mrmr(x_test, list(features_all), list(removed_features), remove=1)
-                features_new = x_test.columns
-            else:
-                X_df, features_new = feature_selection_func(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
+        if len(fs_dataset) == 0:
+            StSC = StandardScaler()
+            StSc_fit = StSC.fit(x_train)
+            X_stsc_train = StSc_fit.transform(x_train)
+            x_test = StSc_fit.transform(x_test)
+            X_df = pd.DataFrame(X_stsc_train, columns=features_model)
+            for method in methods:
+                if method == 'ns':
+                    X_df, removed_features = remove_not_significant(X_df, y_train)
+                    x_test = features_mrmr(x_test, list(features_all), list(removed_features), remove=1)
+                    features_new = x_test.columns
+                else:
+                    X_df, features_new = feature_selection_func(X_df, y_train, method, n_jobs=n_jobs, num=f_n)
+                    x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=0)
+                x_train = X_df
+                with open((path / str('features' + method + '.pkl')), 'wb') as f:
+                    joblib.dump(features_new, f)
+                features_all = features_new
+
+        else:
+            fs_dataset_path = set_path(algo, fs_dataset, model_type, results_dir)
+            StSC = joblib.load(fs_dataset_path / 'StSC.pkl')
+            X_stsc_train = StSC.transform(x_train)
+            x_test = StSC.transform(x_test)
+            # X_df = pd.DataFrame(X_stsc_train, columns=features_model)
+            for method in methods:
+                features_str = 'features' + method + '.pkl'
+                features_new = joblib.load(fs_dataset_path / features_str)
                 x_test = features_mrmr(x_test, list(features_all), list(features_new), remove=0)
-            x_train = X_df
-            path = set_path(algo, dataset, model_type, results_dir)
-            with open((path / str('features' + method + '.pkl')), 'wb') as f:
-                joblib.dump(features_new, f)
-            features_all = features_new
+                x_train = features_mrmr(X_stsc_train, list(features_all), list(features_new), remove=0)
+
         with open((path / 'StSC.pkl'), 'wb') as f:
-            joblib.dump(StSc_fit, f)
+            joblib.dump(StSC, f)
         print(features_new)
 
     path = set_path(algo, dataset, model_type, results_dir)
     opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_ids_groups,
                         weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
 
-    with open((path / 'opt_SSG.pkl'), 'wb') as f:
+    with open((path / 'opt.pkl'), 'wb') as f:
         joblib.dump(opt, f)
     with open((path / 'X_test.pkl'), 'wb') as f:
         joblib.dump(x_test, f)
@@ -93,6 +107,7 @@ if __name__ == "__main__":
     # train_by_V_ratio()
     warnings.filterwarnings('ignore')
     for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ocv',
+        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ccv',
                                methods=['mrmr'], features_name='features_nd.xlsx',
-                               n_jobs=10, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi)
+                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi,
+                               fs_dataset='ssg_mrmr')

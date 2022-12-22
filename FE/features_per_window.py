@@ -36,8 +36,7 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
 
     for id_ in ids:
         isExist = os.path.exists(features_path / str(id_) / 'features_n.xlsx')
-        if isExist:
-            continue
+
         notExist = os.path.exists(features_path / str(id_) / 'hrv_features.xlsx')
         if not notExist:
             bad_ids.append(id_)
@@ -152,9 +151,10 @@ if __name__ == '__main__':
     pvc_path = features_path
     ML_path = cts.VTdb_path
     algo = 'RF'
-
-    features_per_window(dataset, cts.ext_test_no_vt[26:], ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
-    features_per_window(dataset, cts.ext_test_vt, ML_path, features_path, pvc_path, vt_wins=1, win_len=win_len)
+    missing_ids = ['UVA2643', 'UVA0978', 'UVA2135', 'UVA1267', 'UVA0429', 'UVA0704', 'UVA0102', 'UVA1581', 'UVA2437',
+                   'UVA1867']
+    features_per_window(dataset, ['UVA2683'], ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
+    # features_per_window(dataset, cts.ext_test_vt, ML_path, features_path, pvc_path, vt_wins=1, win_len=win_len)
     # bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
     #                               vt_wins=0,
     #                               win_len=120)

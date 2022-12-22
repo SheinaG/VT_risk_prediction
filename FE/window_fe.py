@@ -455,6 +455,9 @@ def add_standardization_to_pecg(ids, ecg_path, features_path):
 
 
 def fe_process(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len):
+    calculate_bsqi(ids, dataset, ecg_path, bsqi_path, win_len)
+    calculate_hrv(ids, dataset, ecg_path, bsqi_path, features_path, win_len=30)
+    calculate_pebm(ids, dataset, ecg_path, bsqi_path, fiducials_path, features_path, win_len=30, stand=0)
     calculate_pvc_features(ids, bsqi_path, features_path, win_len)
 
 
@@ -528,6 +531,6 @@ if __name__ == '__main__':
     # ids = cts.ids_tp + cts.ids_vn + cts.ids_tn + cts.ids_sp + cts.ids_sn
     # calc_mean_std(cts.ids_vn + cts.ids_tn + cts.ids_sn, ecg_path, VT=0, win_len=30)
     # calc_mean_std(cts.ids_tp + cts.ids_sp, ecg_path, VT=1, win_len=30)
-    fe_dataset(cts.ext_test_no_vt + cts.ext_test_no_vt,
+    fe_dataset(cts.ext_test_vt,
                n_pools=10, dataset='uvafdb', win_len=30, ecg_path=ecg_path
                , bsqi_path=bsqi_path, fiducials_path=fiducials_path, features_path=features_path, stand=0)
