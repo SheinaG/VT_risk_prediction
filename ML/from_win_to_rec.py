@@ -101,7 +101,7 @@ def organize_win_probabilities(n_win, x_as_list, win_len):
     return data
 
 
-def parse_hyperparameters(PATH, algo, groups):
+def parse_hyperparameters(PATH, algo):
     opt = joblib.load(PATH / 'opt.pkl')
     params = list(opt.best_params_.values())
     params_dict = {}

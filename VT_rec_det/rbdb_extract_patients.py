@@ -387,4 +387,4 @@ def rhythms_array(ids):
 if __name__ == '__main__':
     # rhythms_array(cts.ids_conf + cts.ids_sp)
     # split_train_to_k_folders(k_folders=38, split_way=3)
-    rbdb_new_dem(cts.ids_conf)
+    rbdb_new_dem(cts.ids_vp)

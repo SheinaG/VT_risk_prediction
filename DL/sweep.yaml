@@ -13,8 +13,9 @@ parameters:
     values:
       - "0"
   lr:
-    min: 0.001
-    max: 0.5
+    distribution: inv_log_uniform
+    min: 2.3
+    max: 6.9
 
   model:
     distribution: categorical
@@ -24,7 +25,7 @@ parameters:
   blocks:
     distribution: int_uniform
     max: 10
-    min: 1
+    min: 3
 
   ks:
     distribution: categorical
@@ -43,7 +44,6 @@ parameters:
   prob_augment_list:
     distribution: categorical
     values:
-      - [ 0 ]
       - [ 0.1 ]
       - [ 0.3 ]
       - [ 0.5 ]

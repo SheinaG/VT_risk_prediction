@@ -38,12 +38,13 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
-    y_train = np.concatenate([np.ones([1, len(cts.ids_tp + cts.ids_vp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
-                             axis=1).squeeze()
+    y_train = np.concatenate(
+        [np.ones([1, len(cts.ids_tp + cts.ids_vp)]), np.zeros([1, len(cts.ids_tn_part + cts.ids_vn)])],
+        axis=1).squeeze()
     y_test = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_vp + cts.ids_tn + cts.ids_vn, y_train,
+    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_vp + cts.ids_tn_part + cts.ids_vn, y_train,
                                                         path=DATA_PATH,
                                                         model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
@@ -89,6 +90,8 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
         with open((path / 'StSC.pkl'), 'wb') as f:
             joblib.dump(StSC, f)
+        with open((path / str('features' + method + '.pkl')), 'wb') as f:
+            joblib.dump(features_new, f)
         print(features_new)
 
     path = set_path(algo, dataset, model_type, results_dir)
@@ -106,8 +109,9 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     warnings.filterwarnings('ignore')
-    for i in range(2, cts.NM + 1):
-        train_prediction_model(cts.ML_path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ccv',
-                               methods=['mrmr'], features_name='features_nd.xlsx',
-                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi,
-                               fs_dataset='ssg_mrmr')
+    path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
+    for i in range(1, cts.NM + 1):
+        train_prediction_model(path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ocv_120',
+                               methods=['mrmr'], features_name='features.xlsx',
+                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi_120,
+                               fs_dataset='')
