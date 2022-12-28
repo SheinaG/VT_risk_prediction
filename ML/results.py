@@ -1,3 +1,7 @@
+import os
+
+import matplotlib.pyplot as plt
+
 from ML.ML_utils import *
 from utils import consts as cts
 from utils.base_packages import *
@@ -6,12 +10,8 @@ from utils.plots import *
 
 from ML.from_win_to_rec import tev_RF, parse_hyperparameters
 
-# DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
-# path_all = cts.RESULTS_DIR/"logo_cv" / algo
-
 colors_six = ['#307DA6', '#A65730', '#6F30A6', '#A6304F', '#A69E30', '#30A640']
 light_colors = ['#B0E7FF', '#FFD7B0', '#BFC0FF', '#EFB0DF', '#FFEEB0', '#C0FFD0']
-DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
 features_list = choose_right_features(np.expand_dims(features_arr, axis=0))
@@ -22,27 +22,29 @@ def results_per_WS(ids=cts.ids_sn + cts.ids_sp, ):
         a = 5
 
 
-def calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods=['mrmr'], all_path=[]):
+def calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods=['mrmr'], all_path=[],
+                       bad_bsqi_ids=cts.bad_bsqi, features_name='features.xlsx', data_path=[]):
+    calc_test = True
     # load train_data
     if train_part:
         y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn_part)])],
                                  axis=1).squeeze()
-        x_train, y_train = create_dataset(cts.ids_tp + cts.ids_tn_part, y_train, path=DATA_PATH,
-                                          model=0, features_name='features_nd',
-                                          bad_bsqi_ids=cts.bad_bsqi_ids_30)
+        x_train, y_train, _ = create_dataset(cts.ids_tp + cts.ids_tn_part, y_train, path=data_path,
+                                             model=0, features_name=features_name,
+                                             bad_bsqi_ids=bad_bsqi_ids)
 
     else:
         y_train = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn)])],
                                  axis=1).squeeze()
-        x_train, y_train = create_dataset(cts.ids_tp + cts.ids_tn, y_train, path=DATA_PATH,
-                                          model=0, features_name='features_nd',
-                                          bad_bsqi_ids=cts.bad_bsqi_ids_30)
+        x_train, y_train, _ = create_dataset(cts.ids_tp + cts.ids_tn, y_train, path=data_path,
+                                             model=0, features_name=features_name,
+                                             bad_bsqi_ids=bad_bsqi_ids)
 
     y_val = np.concatenate([np.ones([1, len(cts.ids_vp)]), np.zeros([1, len(cts.ids_vn)])],
                            axis=1).squeeze()
-    x_val, y_val = create_dataset(cts.ids_vp + cts.ids_vn, y_val, path=DATA_PATH,
-                                  model=0, features_name='features_nd',
-                                  bad_bsqi_ids=cts.bad_bsqi_ids_30)
+    x_val, y_val, _ = create_dataset(cts.ids_vp + cts.ids_vn, y_val, path=data_path,
+                                     model=0, features_name=features_name,
+                                     bad_bsqi_ids=bad_bsqi_ids)
     # Choose right features
     for i in range(1, cts.NM + 1):
         # train
@@ -64,9 +66,17 @@ def calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods
             x_train_model = features_mrmr(x_train_model, features_model, list(features), remove=0)
             x_val_model = features_mrmr(x_val_model, features_model, list(features), remove=0)
         # load params dict
+
         param_dict = parse_hyperparameters(model_path, algo)
 
-        y_pred = tev_RF(x_train=x_train_model, y_train=y_train, x_val=x_val_model, params_dict=param_dict, algo=algo)
+        y_pred, clf = tev_RF(x_train=x_train_model, y_train=y_train, x_val=x_val_model, params_dict=param_dict,
+                             algo=algo)
+        if calc_test:
+            x_test = joblib.load(model_path / 'X_test.pkl')
+            y_test = joblib.load(model_path / 'y_test.pkl')
+            y_test_pred = clf.predict_proba(x_test)[:, 1]
+            roc = roc_auc_score(y_test, y_test_pred)
+            print(roc)
         # calculate best val
         best_TH = maximize_f_beta(y_pred, y_val)
         # save thresh
@@ -148,7 +158,7 @@ pos = [0, 1, 2, 3, 4]
 colors = ['#003049', '#245D7C', '#307DA6', '#5F6F77', '#773000']
 
 
-def intrp_model(path, features_model, results_dir, feature_selection, features_str=''):
+def intrp_model(path, features_model, results_dir, feature_selection, features_str='', threshold=None):
     # load model:
     opt = joblib.load(path / 'opt.pkl')
     x_test = joblib.load(path / 'X_test.pkl')
@@ -161,7 +171,7 @@ def intrp_model(path, features_model, results_dir, feature_selection, features_s
             features = joblib.load(path / features_str)
         except FileNotFoundError:
             features = features_model[0]
-    results_ts = eval(opt, x_test, y_test)
+    results_ts = eval(opt, x_test, y_test, threshold)
 
     return opt, results_ts, x_test, y_test, features
 
@@ -185,6 +195,23 @@ def ext_test_set(opt_d, model_path, features, features_selection, features_model
     results = results.apply(f2)
     results.to_excel(model_path / 'results_ext.xlsx')
     return results_ext
+
+
+def plot_ML_learning_curve(all_path, algo='XGB'):
+    plt.style.use('bmh')
+    fig = plt.plot([1])
+    for i in range(2, cts.NM + 1):
+        model_path = all_path / str(algo + '_' + str(i))
+        opt = joblib.load(model_path / 'opt.pkl')
+        curve = opt.cv_results_['mean_test_score']
+        x_axe = np.arange(1, len(curve) + 1)
+        plt.plot(x_axe, curve, '.', linestyle="None", label='model ' + str(i))
+    plt.legend()
+    plt.xlabel('step')
+    plt.ylabel('AUROC score')
+    plt.title('ML learning curve')
+    plt.ylim([0.4, 0.7])
+    plt.show()
 
 
 def clac_probs(x_test, y_test, opt, model_path):
@@ -234,13 +261,15 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
             features_str = str('features' + methods[0] + '.pkl')
         path_d[i] = pathlib.PurePath(model_path / str(algo + '_' + str(i)))
         features_model[i] = model_features(features_list, i, with_dems=True)
+        if os.path.exists(path_d[i] / str('thresh_' + algo + '.pkl')):
+            threshold = joblib.load(path_d[i] / str('thresh_' + algo + '.pkl'))
         opt_d[i], results_d[i], x_test_d[i], y_test_d[i], features_d[i] = intrp_model(path_d[i], features_model[i],
                                                                                       results_dir, feature_selection,
-                                                                                      features_str)
+                                                                                      features_str, threshold=threshold)
 
     train_val(opt_d, model_path, algo)
     hyper_model(opt_d, model_path, algo)
-    # clac_probs(x_test_d, y_test_d, opt_d, model_path)
+
     if with_ext_test:
         results_ext = ext_test_set(opt_d, model_path, features_d, feature_selection, features_model)
     results = pd.DataFrame.from_dict(results_d)
@@ -321,7 +350,6 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     for i in range(1, cts.NM + 1):
         prob_rf[i] = opt_d[i].predict_proba(x_test_d[i])
 
-        calc_on_validation()
 
     fig = plt.figure()
     plt.style.use('bmh')
@@ -362,9 +390,13 @@ def eval_one_model(results_dir, path):
 
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_stand/RF_4/')
-    calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods=['mrmr'],
-                       all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'Ocv_120_mrmr')
+    DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_10/')
+    # DATA_PATH = cts.ML_path
+    # plot_ML_learning_curve(all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'Ocv_mrmr', algo='XGB')
+    # calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods=['mrmr'],
+    #                    all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'Ocv_10_mrmr', bad_bsqi_ids= cts.bad_bsqi_10,
+    #                    features_name='features.xlsx', data_path=DATA_PATH)
 
-    # all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'Ocv_120_mrmr', dataset='Ocv_120_mrmr',
-    #            feature_selection=1,
-    #            methods=['mrmr'], algo='XGB')
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'Ocv_120_mrmr', dataset='Ocv_120_mrmr',
+               feature_selection=1,
+               methods=['mrmr'], algo='XGB')

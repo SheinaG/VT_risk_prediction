@@ -31,9 +31,10 @@ if model == 'XceptionTime':
 if model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
 if model == 'Xception1D':
-    model = Xception1D(input_channel=1, n_classes=2)
+    model = Xception1D(input_channel=1, n_classes=2, ni=16, k=29, blocks=5,
+                       p_fc_drop=0)
 
-model_path = str(MODELS_DIR / 'cerulean-salad-194_model_5')
+model_path = str(MODELS_DIR / 'genial-sweep-12_model_3')
 model.load_state_dict(torch.load(model_path, map_location=device))
 model = model.to(device)
 model.eval()

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def jitter(x, seed, sigma=0.4):
+def jitter(x, seed, sigma=0.7):
     np.random.seed(seed)
     # https://arxiv.org/pdf/1706.00527.pdf
     augmentation = x + np.random.normal(loc=0., scale=sigma, size=x.shape)

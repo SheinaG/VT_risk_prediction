@@ -114,6 +114,13 @@ ids_vn = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_id
 ids_vp = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_VT_ids.npy'))
 ids_conf = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/conf_ids.npy'))
 pat_conf = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/conf_pat.npy'))
+ids_sp_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/ids_sp_2.npy'))
+ids_vp_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/ids_vp_2.npy'))
+ids_tp_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/ids_tp_2.npy'))
+ids_sn_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/test_no_vt_2.npy'))
+ids_vn_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/val_no_vt_2.npy'))
+ids_tn_2 = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/train_no_vt_2.npy'))
+ids_tn_2_part = ids_tn_2[:300]
 ids_tn_part = ids_tn[:300]
 ids_VT = ids_sp + ids_tp + ext_test_vt
 

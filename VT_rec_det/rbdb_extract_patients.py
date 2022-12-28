@@ -1,6 +1,9 @@
+import random
+
 from utils.base_packages import *
 from parsing.base_VT_parser import *
 from utils.plot_ecg import plot_ecg_fig_MD
+from varname import nameof
 
 
 def create_segments_array(plot=1):
@@ -150,23 +153,21 @@ def train_val_test_split():
     xl_no_vt = pd.read_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTn/excel_sheet_no_VT_rbdb.xlsx', engine='openpyxl')
     xl_no_vt = xl_no_vt.drop_duplicates(subset='holter_id')
     print(xl_no_vt.shape)
-    test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy'))
-    for id_ in test_no_vt:
-        if not xl_no_vt[xl_no_vt["holter_id"] == id_].index.values:
-            test_no_vt.remove(id_)
-            print(id_)
-        xl_no_vt = xl_no_vt.drop(xl_no_vt[xl_no_vt["holter_id"] == id_].index.values)
-    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_test_no_VT_ids.npy', test_no_vt)
-    xl_no_vt = xl_no_vt.sort_values('db_id')
-    db_ids_val = list(set(list(xl_no_vt["db_id"])))[:165]
-    xl_val = pd.DataFrame(columns=xl_no_vt.columns)
-    for id_ in db_ids_val:
-        xl_val = xl_val.append(xl_no_vt[xl_no_vt["db_id"] == id_])
-        xl_no_vt = xl_no_vt.drop(xl_no_vt[xl_no_vt["db_id"] == id_].index.values)
-    val_no_vt_h = list(xl_val['holter_id'])
-    train_val_no_vt_h = list(xl_no_vt['holter_id'])
-    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_val_no_VT_ids.npy', val_no_vt_h)
-    # np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/RBDB_train_no_VT_ids.npy', train_val_no_vt_h)
+    list_no_vt_db = list(set(list(xl_no_vt["db_id"])))
+    random.shuffle(list_no_vt_db)
+    test_no_vt = list_no_vt_db[:130]
+    val_no_vt = list_no_vt_db[130:260]
+    train_no_vt = list_no_vt_db[260:]
+    lists = [test_no_vt, val_no_vt, train_no_vt]
+    list_names = ['test_no_vt', 'val_no_vt', 'train_no_vt']
+
+    for i, list_ in enumerate(lists):
+        list_no_vt = []
+        for id_ in list_:
+            list_no_vt.append(xl_no_vt[xl_no_vt["db_id"] == id_]["holter_id"].values[0])
+            xl_no_vt = xl_no_vt.drop(xl_no_vt[xl_no_vt["db_id"] == id_].index.values)
+        np.save('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/' + list_names[i] + '_2.npy', list_no_vt)
+
     a = 5
 
 
@@ -387,4 +388,5 @@ def rhythms_array(ids):
 if __name__ == '__main__':
     # rhythms_array(cts.ids_conf + cts.ids_sp)
     # split_train_to_k_folders(k_folders=38, split_way=3)
-    rbdb_new_dem(cts.ids_vp)
+    train_val_test_split()
+    # rbdb_new_dem(cts.ids_vp)

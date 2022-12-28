@@ -34,7 +34,7 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         scoring=rc_scorer,
         n_iter=50,
         cv=Ocv.split(train_pat_features, train_pat_labels, groups=groups),
-        return_train_score=True, verbose=1, n_jobs=n_jobs)
+        return_train_score=True, verbose=1, n_jobs=n_jobs, refit=False)
 
     opt.fit(train_pat_features, train_pat_labels)  # callback=on_step
     delattr(opt, 'cv')

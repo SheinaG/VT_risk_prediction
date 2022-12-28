@@ -146,7 +146,7 @@ def tev_RF(x_train, y_train, x_val, params_dict, algo):
                                 n_jobs=10)  # RandomForestClassifier(**params_dict, n_jobs=10, class_weight='balanced')
     clf.fit(x_train, y_train)
     y_pred = clf.predict_proba(x_val)[:, 1]
-    return y_pred
+    return y_pred, clf
 
 
 def split_and_collect(x_train, y_train, y_train_p, train_groups, n_win, hyp_path, algo, win_len=60):
