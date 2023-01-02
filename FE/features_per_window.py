@@ -23,11 +23,11 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
     demographic_no_VT_xl = demographic_no_VT_xl.drop(columns=['Unnamed: 0'])
     demographic_xl = demographic_VT_xl.append(demographic_no_VT_xl)
     demographic_xl = demographic_xl[~demographic_xl.index.duplicated()]
-    # path_to_new_dem = '/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/new_dem.xlsx'
-    # new_dem_xl = pd.read_excel(path_to_new_dem, engine='openpyxl')
-    # new_dem_xl = new_dem_xl.set_axis(new_dem_xl['holter id'], axis='index')
-    # new_dem_xl = new_dem_xl.drop_duplicates(subset=['holter id'], keep='first')
-    # new_dem_xl = new_dem_xl.drop(columns=['holter id', 'Unnamed: 0'])
+    path_to_new_dem = '/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/new_dem.xlsx'
+    new_dem_xl = pd.read_excel(path_to_new_dem, engine='openpyxl')
+    new_dem_xl = new_dem_xl.set_axis(new_dem_xl['holter id'], axis='index')
+    new_dem_xl = new_dem_xl.drop_duplicates(subset=['holter id'], keep='first')
+    new_dem_xl = new_dem_xl.drop(columns=['holter id', 'Unnamed: 0'])
 
     bad_ids = []
     fs = 200
@@ -114,25 +114,26 @@ def features_per_window(dataset, ids, data_path, features_path, pvc_path, vt_win
 
             if len(bm_vt_win) > 0:
                 dem_vt = pd.DataFrame(demographic_xl.loc[s + id_])
-                # new_dem_vt = pd.DataFrame(new_dem_xl.loc[s + id_])
+                new_dem_vt = pd.DataFrame(new_dem_xl.loc[s + id_])
                 dem_vt_patient = pd.concat([dem_vt] * len(bm_vt_win), axis=1).transpose()
-                # new_dem_vt_patient = pd.concat([new_dem_vt] * len(bm_vt_win), axis=1).transpose()
+                new_dem_vt_patient = pd.concat([new_dem_vt] * len(bm_vt_win), axis=1).transpose()
                 dem_vt_patient = dem_vt_patient.set_axis(bm_vt_win.index, axis='index')
-                # new_dem_vt_patient = new_dem_vt_patient.set_axis(bm_vt_win.index, axis='index')
+                new_dem_vt_patient = new_dem_vt_patient.set_axis(bm_vt_win.index, axis='index')
                 hrv_vt_win = hrv_vt_win.set_axis(bm_vt_win.index, axis='index')
-                vt_features = pd.concat([bm_vt_win, hrv_vt_win, pvc_vt_win, dem_vt_patient], axis=1,
+                vt_features = pd.concat([bm_vt_win, hrv_vt_win, pvc_vt_win, dem_vt_patient, new_dem_vt_patient], axis=1,
                                         join='inner')  # , new_dem_vt_patient
-                vt_features.to_excel(features_path / id_ / 'vt_wins' / 'features_n.xlsx')
+                vt_features.to_excel(features_path / id_ / 'vt_wins' / 'features_nd.xlsx')
 
         dem_ = pd.DataFrame(demographic_xl.loc[s + id_]).transpose()
-        # new_dem_ = pd.DataFrame(new_dem_xl.loc[s + id_]).transpose()
+        new_dem_ = pd.DataFrame(new_dem_xl.loc[s + id_]).transpose()
         dem_patient = pd.concat([dem_] * len(bm_vt), axis=0)
-        # new_dem_patient = pd.concat([new_dem_] * len(bm_vt), axis=0)
+        new_dem_patient = pd.concat([new_dem_] * len(bm_vt), axis=0)
         dem_patient = dem_patient.set_axis(bm_vt.index, axis='index')
-        # new_dem_patient = new_dem_patient.set_axis(bm_vt.index, axis='index')
+        new_dem_patient = new_dem_patient.set_axis(bm_vt.index, axis='index')
         hrv_vt = hrv_vt.set_axis(bm_vt.index, axis='index')
-        no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient], axis=1, join='inner')  # , new_dem_patient
-        no_vt_features.to_excel(features_path / id_ / 'features_n.xlsx')
+        no_vt_features = pd.concat([bm_vt, hrv_vt, pvc_vt, dem_patient, new_dem_patient], axis=1,
+                                   join='inner')  # , new_dem_patient
+        no_vt_features.to_excel(features_path / id_ / 'features_nd.xlsx')
 
     return bad_ids
 
@@ -141,7 +142,7 @@ if __name__ == '__main__':
     win_len_n = 'win_len_120'
     n_pools = 10
 
-    dataset = 'uvafdb'
+    dataset = 'rbdb'
     win_len = 30
     ecg_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
     bsqi_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/preprocessed_data/') / dataset
@@ -153,7 +154,7 @@ if __name__ == '__main__':
     algo = 'RF'
     missing_ids = ['UVA2643', 'UVA0978', 'UVA2135', 'UVA1267', 'UVA0429', 'UVA0704', 'UVA0102', 'UVA1581', 'UVA2437',
                    'UVA1867']
-    features_per_window(dataset, ['UVA2683'], ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
+    features_per_window(dataset, ['3B209611'], ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
     # features_per_window(dataset, cts.ext_test_vt, ML_path, features_path, pvc_path, vt_wins=1, win_len=win_len)
     # bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
     #                               vt_wins=0,

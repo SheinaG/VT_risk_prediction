@@ -31,7 +31,8 @@ class VtParser:
         self.val_p = list(np.load(cts.IDS_DIR / 'RBDB_val_VT_ids.npy'))
         self.ext_test_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_VT_ids.npy'))
         self.ext_test_no_vt = list(np.load('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/UVAF_non_VT_ids.npy'))
-        self.rbdb_ids = self.train_n + self.train_p + self.test_n + self.test_p + self.val_n + cts.bad_bsqi
+        self.rbdb_ids = self.train_n + self.train_p + self.test_n + self.test_p + self.val_n + cts.bad_bsqi + [
+            '3B209611']
         self.uvafdb_ids = self.ext_test_vt + self.ext_test_no_vt
 
     def dataset_split(self, rec):
@@ -214,9 +215,9 @@ class VtParser:
             return train_df
         if task == 'test':
             test_df = pd.DataFrame(columns=['holter_id', 'th_id', 'y'])
-            y = np.asarray([0] * len(cts.ids_sn) + [1] * len(cts.ids_sp))
-            test_df['holter_id'] = np.asarray(cts.ids_sn + cts.ids_sp)
-            test_df['th_id'] = np.asarray(range(len(cts.ids_sn + cts.ids_sp)))
+            y = np.asarray([0] * len(cts.ids_sn_2) + [1] * len(cts.ids_sp_2))
+            test_df['holter_id'] = np.asarray(cts.ids_sn_2 + cts.ids_sp_2)
+            test_df['th_id'] = np.asarray(range(len(cts.ids_sn_2 + cts.ids_sp_2)))
             test_df['y'] = y
             return test_df
         if task == 'all':
@@ -230,8 +231,8 @@ class VtParser:
             all_df['y'] = y
             return all_df
         if task == 'train_part':
-            train_n = list(np.load(cts.IDS_DIR / 'RBDB_train_no_VT_ids.npy'))[:200]
-            train_p = list(np.load(cts.IDS_DIR / 'RBDB_train_VT_ids.npy'))
+            train_n = cts.ids_tn_2[:200]
+            train_p = cts.ids_tp_2
             train_df = pd.DataFrame(columns=['holter_id', 'th_id', 'y'])
             y = np.asarray([0] * len(train_n) + [1] * len(train_p))
             train_df['holter_id'] = np.asarray(train_n + train_p)
@@ -240,9 +241,9 @@ class VtParser:
             return train_df
         if task == 'val':
             train_df = pd.DataFrame(columns=['holter_id', 'th_id', 'y'])
-            y = np.asarray([0] * len(cts.ids_vn) + [1] * len(cts.ids_vp))
-            train_df['holter_id'] = np.asarray(cts.ids_vn + cts.ids_vp)
-            train_df['th_id'] = np.asarray(range(len(cts.ids_vn + cts.ids_vp)))
+            y = np.asarray([0] * len(cts.ids_vn_2) + [1] * len(cts.ids_vp_2))
+            train_df['holter_id'] = np.asarray(cts.ids_vn_2 + cts.ids_vp_2)
+            train_df['th_id'] = np.asarray(range(len(cts.ids_vn_2 + cts.ids_vp_2)))
             train_df['y'] = y
             return train_df
 

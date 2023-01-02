@@ -39,18 +39,21 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
     f_n = cts.num_selected_features_model[model_type - 1]
 
     y_train = np.concatenate(
-        [np.ones([1, len(cts.ids_tp + cts.ids_vp)]), np.zeros([1, len(cts.ids_tn_part + cts.ids_vn)])],
+        [np.ones([1, len(cts.ids_tp_2 + cts.ids_vp_2)]), np.zeros([1, len(cts.ids_tn_part_2 + cts.ids_vn_2)])],
         axis=1).squeeze()
-    y_test = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
+    y_test = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp + cts.ids_vp + cts.ids_tn_part + cts.ids_vn, y_train,
+    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2,
+                                                        y_train,
                                                         path=DATA_PATH,
                                                         model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
-    train_groups = split_to_group(train_ids_groups, split=383)
-    x_test, y_test, test_ids_groups = create_dataset(cts.ids_sp + cts.ids_sn, y_test, path=DATA_PATH, model=0,
-                                                     features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
+    # train_groups = split_to_group(train_ids_groups, split=383)
+    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp_2 + cts.ids_sn_2, y_test, path=DATA_PATH,
+                                                                 model=0,
+                                                                 features_name=features_name, bad_bsqi_ids=bad_bsqi_ids,
+                                                                 return_num=True)
     x_test = model_features(x_test, model_type, with_dems=True)
 
     if feature_selection:
@@ -104,14 +107,19 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
         joblib.dump(x_test, f)
     with open((path / 'y_test.pkl'), 'wb') as f:
         joblib.dump(y_test, f)
+    with open((path.parent / 'n_win_test.pkl'), 'wb') as f:
+        joblib.dump(n_win_test, f)
+    with open((path.parent / 'test_ids.pkl'), 'wb') as f:
+        joblib.dump(test_ids_groups, f)
 
 
 if __name__ == "__main__":
     # train_by_V_ratio()
     warnings.filterwarnings('ignore')
-    path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
+    # path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
+    path = cts.ML_path
     for i in range(1, cts.NM + 1):
-        train_prediction_model(path, cts.ML_RESULTS_DIR, model_type=i, dataset='Ocv_120',
-                               methods=['mrmr'], features_name='features.xlsx',
-                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi_120,
+        train_prediction_model(path, cts.ML_RESULTS_DIR, model_type=i, dataset='split_2_30_vs',
+                               methods=['mrmr'], features_name='features_nd.xlsx',
+                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi,
                                fs_dataset='')

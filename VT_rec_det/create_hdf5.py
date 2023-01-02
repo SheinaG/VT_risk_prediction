@@ -127,7 +127,7 @@ def add_data(db, data_filename, list_ids, range, part_pat):
 
 
 if __name__ == '__main__':
-    task = 'val'  # 'test'
+    task = 'train_part'  # 'test'
     data_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("data_" + task + ".hdf5")
     idx_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("idx_" + task + ".npy")
     label_filename = '/MLAIM/AIMLab/Sheina/databases/VTdb/DL/train/' + str("labels_" + task + ".npy")

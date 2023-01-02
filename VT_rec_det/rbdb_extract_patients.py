@@ -3,7 +3,7 @@ import random
 from utils.base_packages import *
 from parsing.base_VT_parser import *
 from utils.plot_ecg import plot_ecg_fig_MD
-from varname import nameof
+
 
 
 def create_segments_array(plot=1):
@@ -388,5 +388,5 @@ def rhythms_array(ids):
 if __name__ == '__main__':
     # rhythms_array(cts.ids_conf + cts.ids_sp)
     # split_train_to_k_folders(k_folders=38, split_way=3)
-    train_val_test_split()
-    # rbdb_new_dem(cts.ids_vp)
+    # train_val_test_split()
+    rbdb_new_dem(cts.ids_vp + cts.ids_vn + cts.ids_tp + cts.ids_tn + cts.ids_sp + cts.ids_sn)
