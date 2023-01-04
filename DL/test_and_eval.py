@@ -31,16 +31,16 @@ if model == 'XceptionTime':
 if model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
 if model == 'Xception1D':
-    model = Xception1D(input_channel=1, n_classes=2, ni=16, k=29, blocks=5,
+    model = Xception1D(input_channel=1, n_classes=2, ni=14, k=39, blocks=8,
                        p_fc_drop=0)
 
-model_path = str(MODELS_DIR / 'genial-sweep-12_model_3')
+model_path = str(MODELS_DIR / 'sleek-galaxy-1030_model_29')
 model.load_state_dict(torch.load(model_path, map_location=device))
 model = model.to(device)
 model.eval()
 results = {}
 
-val_set = all_set(task='test', win_len=win_len, run_config=run_config)
+val_set = all_set(task='val', win_len=win_len, run_config=run_config)
 test_loader = DataLoader(dataset=val_set, batch_size=batch_size)
 
 pred_all = []

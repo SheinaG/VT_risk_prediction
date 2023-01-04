@@ -34,4 +34,4 @@ def load_on_disk(task='test'):
 
 
 if __name__ == '__main__':
-    load_on_disk(task='val')
+    load_on_disk(task='test')

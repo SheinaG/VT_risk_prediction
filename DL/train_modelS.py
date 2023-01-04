@@ -56,7 +56,7 @@ results = {}
 #         run_config.batch_size = 1
 
 train_set = all_set(task='train_part', win_len=run_config.win_len, run_config=run_config)
-val_set = all_set(task='val', win_len=run_config.win_len, run_config=run_config)
+val_set = all_set(task='test', win_len=run_config.win_len, run_config=run_config)
 if run_config.use_sampler:
     sampler = DualSampler(train_set, run_config.batch_size, sampling_rate=run_config.sampling_rate)
     train_loader = DataLoader(dataset=train_set, batch_size=run_config.batch_size, sampler=sampler)

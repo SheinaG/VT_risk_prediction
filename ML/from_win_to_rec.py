@@ -4,6 +4,7 @@ sys.path.append("/home/sheina/VT_risk_prediction/")
 from ML.ML_utils import *
 from utils.plots import *
 from utils.base_packages import *
+from ML.cv_methods import *
 
 exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/V720H339/features_nd.xlsx', engine='openpyxl')
 features_arr = np.asarray(exmp_features.columns[1:])
@@ -113,19 +114,20 @@ def parse_hyperparameters(PATH, algo):
 def tev_LR(x, y, hyp_path, task, groups):
     x.sort(axis=1)
     logo = LeaveOneGroupOut()
+    Ocv = OneCrossValidation()
     search_spaces = {
-                        'penalty': ['none', 'l2'],
+                        # 'penalty': [ 'l2'],
                         'tol': [1e-4, 1e-3, 1e-5],
                         'C': [0.1, 1, 10],
                         'random_state': [0, 3, 20],
-                        'solver': ['newton-cg', 'lbfgs', 'liblinear'],
+                        'solver': ['newton-cg', 'lbfgs'],
                         'max_iter': [100, 1000]
                     },
     if task == 'train':
         # hyperparameters search
         lr = LogisticRegression(random_state=42, class_weight='balanced')
-        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=1,
-                           cv=logo.split(x, y, groups=groups), return_train_score=True)
+        clf = GridSearchCV(lr, search_spaces, scoring=rc_scorer, n_jobs=20,
+                           cv=Ocv.split(x, y, groups=groups), return_train_score=True)
         clf.fit(x, y)
         prob = clf.predict_proba(x)[:, 1]
         delattr(clf, 'cv')
@@ -189,14 +191,16 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     if win_len == 10:
         bad_bsqi_ids = cts.bad_bsqi_10
 
-    y_train_p = np.concatenate([np.ones([1, len(cts.ids_tp)]), np.zeros([1, len(cts.ids_tn + cts.ids_vn)])],
-                               axis=1).squeeze()
-    x_train, y_train, train_ids_groups, n_win = create_dataset(cts.ids_tp + cts.ids_tn + cts.ids_vn, y_train_p,
-                                                               path=DATA_PATH, model=0, return_num=True,
-                                                               features_name=features_name,
-                                                               bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
-    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
-    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH,
+    y_train_p = np.concatenate(
+        [np.ones([1, len(cts.ids_tp_2 + cts.ids_vp_2)]), np.zeros([1, len(cts.ids_tn_part_2 + cts.ids_vn_2)])],
+        axis=1).squeeze()
+    x_train, y_train, train_ids_groups, n_win = create_dataset(
+        cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2, y_train_p,
+        path=DATA_PATH, model=0, return_num=True,
+        features_name=features_name,
+        bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
+    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
+    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp_2 + cts.ids_sn_2, y_test_p, path=DATA_PATH,
                                                                  model=0,
                                                                  return_num=True, features_name=features_name,
                                                                  bad_bsqi_ids=bad_bsqi_ids)
@@ -206,19 +210,19 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     columns = ['AUROC train', 'AUROC test']
     train_val = pd.DataFrame(columns=columns, index=range(1, cts.NM + 1))
     auroc_all = []
-    ids_train = cts.ids_tp + cts.ids_tn + cts.ids_vn
-    ids_test = cts.ids_sp + cts.ids_sn
+    ids_train = cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2
+    ids_test = cts.ids_sp_2 + cts.ids_sn_2
     for id_ in bad_bsqi_ids:
-        if id_ in cts.ids_tn + cts.ids_vn:
+        if id_ in cts.ids_tn_part_2 + cts.ids_vn_2:
             y_train_p = y_train_p[:-1]
-        if id_ in cts.ids_sn:
+        if id_ in cts.ids_sn_2:
             y_test_p = y_test_p[:-1]
         if id_ in ids_train:
             ids_train.remove(id_)
         if id_ in ids_test:
             ids_test.remove(id_)
 
-    train_groups = split_to_group(ids_train, split=41)
+    #train_groups = split_to_group(ids_train, split=41)
 
     for i in range(1, cts.NM + 1):
         # train
@@ -249,9 +253,9 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
         data_test = organize_win_probabilities(n_win_test, y_pred_test, win_len)
 
         if method == 'LR':
-            prob = tev_LR(data, y_train_p, model_path, task='train', groups=train_groups)
+            prob = tev_LR(data, y_train_p, model_path, task='train', groups=ids_train)
             opt_thresh_sp(prob, y_train_p, model_path, min_sp=90, task='train', algo=algo)
-            prob = tev_LR(data_test, y_test_p, model_path, task='test', groups=train_groups)
+            prob = tev_LR(data_test, y_test_p, model_path, task='test', groups=ids_test)
             AUROC = roc_auc_score(y_test_p, prob)
             auroc_all.append(AUROC)
 
@@ -283,14 +287,14 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
     save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
 
     # test
-    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
-    _, y_test, _, n_win = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH, model=0,
+    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
+    _, y_test, _, n_win = create_dataset(cts.ids_sp_2 + cts.ids_sn_2, y_test_p, path=DATA_PATH, model=0,
                                          return_num=True, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     LR_d = {}
     fig = plt.figure()
     plt.style.use('bmh')
 
-    ids_test = cts.ids_sp + cts.ids_sn
+    ids_test = cts.ids_sp_2 + cts.ids_sn_2
     for id_ in bad_bsqi_ids:
         if id_ in cts.ids_sn:
             y_test_p = y_test_p[:-1]
@@ -344,8 +348,8 @@ if __name__ == '__main__':
     # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     win_len = 30
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'ssg_mrmr'
-    dataset = 'ssg_mrmr'
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'split_2_30_vs_mrmr'
+    dataset = 'split_2_30_vs_mrmr'
     algo = 'XGB'
     run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
                   features_name='features_nd.xlsx')

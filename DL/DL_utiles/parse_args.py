@@ -29,9 +29,9 @@ def parse_global_args(parent, add_help=False):
                         choices=['XceptionTime', 'InceptionTime', 'TCN', 'ResNet', 'OmniScaleCNN', 'LSTM_FCN', 'LSTM',
                                  'RNN', 'Xception1D'], help='which model to train')
     parser.add_argument('--conv_dropout', default=0, type=float, help='how mach dropout to use')
-    parser.add_argument('--p_fc_drop', default=0, type=float, help='how mach dropout to use')
+    parser.add_argument('--p_fc_drop', default=0.5, type=float, help='how mach dropout to use')
     parser.add_argument('--use_sampler', default=True, type=str2bool, help='if to use sampler or not')
-    parser.add_argument('--sampling_rate', default=0.5, type=float, help='The ratio of positive class to sample')
+    parser.add_argument('--sampling_rate', default=0.3, type=float, help='The ratio of positive class to sample')
 
     # data
 
@@ -52,7 +52,7 @@ def parse_global_args(parent, add_help=False):
     parser.add_argument('--optimizer', default='PESG', type=str, choices=['AdamW', 'sgd', 'Adam', 'PESG'],
                         help='which optimizer to use')
     # parser.add_argument('--scheduler_patience', default=5, type=int, help='patience of reduce lr on plateau')
-    parser.add_argument('--lr', type=float, default=0.05, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=0.07512, help='Learning rate')
     # parser.add_argument('--weight_decay', type=float, default=1e-4, help='Regularization term')
     parser.add_argument('--batch_size', type=int, default=16, help='training batch size')
     parser.add_argument('--size', type=int, default=16, help='overfit size')
@@ -61,11 +61,11 @@ def parse_global_args(parent, add_help=False):
 
     # TCN model:
     parser.add_argument('--activation', type=str, default='leakyRelu', help='which activation function to use')
-    parser.add_argument('--blocks', type=int, default=2, help='how many layers are in the model')
-    parser.add_argument('--ni', type=int, default=25, help='how many channels are in the model')
-    parser.add_argument('--ks', type=int, default=17, help='filter size')
+    parser.add_argument('--blocks', type=int, default=8, help='how many layers are in the model')
+    parser.add_argument('--ni', type=int, default=14, help='how many channels are in the model')
+    parser.add_argument('--ks', type=int, default=39, help='filter size')
 
     parser.add_argument('--augment_list', type=list, default=['jitter'], help='What data augmentation to apply')
-    parser.add_argument('--prob_augment_list', type=list, default=[0.3], help='What data augmentation to apply')
+    parser.add_argument('--prob_augment_list', type=list, default=[0.5], help='What data augmentation to apply')
 
     return parser

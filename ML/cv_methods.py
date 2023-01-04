@@ -87,7 +87,7 @@ class OneCrossValidation:
         test_indices, train_indices = [], []
         for i, group in enumerate(groups):
 
-            if group in cts.ids_vn + cts.ids_vp:
+            if group in cts.ids_vn_2 + cts.ids_vp_2:
                 test_indices.append(i)
             else:
                 train_indices.append(i)
