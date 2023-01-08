@@ -296,7 +296,7 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
 
     ids_test = cts.ids_sp_2 + cts.ids_sn_2
     for id_ in bad_bsqi_ids:
-        if id_ in cts.ids_sn:
+        if id_ in cts.ids_sn_2:
             y_test_p = y_test_p[:-1]
         if id_ in ids_test:
             ids_test.remove(id_)
@@ -329,7 +329,7 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
             prob_all = np.concatenate([prob_all, np.expand_dims(prob, axis=1).T], axis=0)
 
     plt.legend(facecolor='white', framealpha=0.8, loc=4)
-    plt.title('Receiving operating curve')
+    # plt.title('Receiving operating curve')
     plt.xlabel('1-Sp')
     plt.ylabel('Se')
     plt.ylim([0, 1])
@@ -351,10 +351,10 @@ if __name__ == '__main__':
     all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'split_2_30_vs_mrmr'
     dataset = 'split_2_30_vs_mrmr'
     algo = 'XGB'
-    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
-                  features_name='features_nd.xlsx')
-    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=win_len,
-              features_name='features_nd.xlsx')
+    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
+    #               features_name='features_nd.xlsx')
+    # plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=win_len,
+    #           features_name='features_nd.xlsx')
     run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=win_len,
                   features_name='features_nd.xlsx')
     plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=win_len,

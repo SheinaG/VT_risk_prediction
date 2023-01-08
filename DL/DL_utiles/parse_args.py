@@ -35,7 +35,7 @@ def parse_global_args(parent, add_help=False):
 
     # data
 
-    parser.add_argument('--win_len', default=180, type=int, choices=[1, 6, 30, 60, 180, 360])
+    parser.add_argument('--win_len', default=60, type=int, choices=[1, 6, 30, 60, 180, 360])
     parser.add_argument('--data_aug', default=True, type=str2bool, help='Use data augmentations')
     parser.add_argument('--downsampling', default=True, type=str2bool, help='Use downsampling to 100 Hz')
 
@@ -62,8 +62,8 @@ def parse_global_args(parent, add_help=False):
     # TCN model:
     parser.add_argument('--activation', type=str, default='leakyRelu', help='which activation function to use')
     parser.add_argument('--blocks', type=int, default=8, help='how many layers are in the model')
-    parser.add_argument('--ni', type=int, default=14, help='how many channels are in the model')
-    parser.add_argument('--ks', type=int, default=39, help='filter size')
+    parser.add_argument('--ni', type=int, default=16, help='how many channels are in the model')
+    parser.add_argument('--ks', type=int, default=9, help='filter size')
 
     parser.add_argument('--augment_list', type=list, default=['jitter'], help='What data augmentation to apply')
     parser.add_argument('--prob_augment_list', type=list, default=[0.5], help='What data augmentation to apply')

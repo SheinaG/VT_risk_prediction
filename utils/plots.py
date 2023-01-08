@@ -50,7 +50,6 @@ def roc_plot_envelope(y_preds, y_tests, K_test, augmentation, typ, title='', alg
     plt.ylim([0.0, 1.05])
     plt.xlabel('1-Sp')
     plt.ylabel('Se')
-    plt.title(title)
     plt.legend(loc="lower right")
     plt.tight_layout()
     return low_auroc, high_auroc

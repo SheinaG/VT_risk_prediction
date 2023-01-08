@@ -532,6 +532,6 @@ if __name__ == '__main__':
     # ids = cts.ids_tp + cts.ids_vn + cts.ids_tn + cts.ids_sp + cts.ids_sn
     # calc_mean_std(cts.ids_vn + cts.ids_tn + cts.ids_sn, ecg_path, VT=0, win_len=30)
     # calc_mean_std(cts.ids_tp + cts.ids_sp, ecg_path, VT=1, win_len=30)
-    fe_dataset(['3B209611'],
-               n_pools=1, dataset='rbdb', win_len=30, ecg_path=ecg_path
-               , bsqi_path=bsqi_path, fiducials_path=fiducials_path, features_path=features_path, stand=0)
+    # fe_dataset(['3B209611'],
+    #            n_pools=1, dataset='rbdb', win_len=30, ecg_path=ecg_path
+    #            , bsqi_path=bsqi_path, fiducials_path=fiducials_path, features_path=features_path, stand=0)

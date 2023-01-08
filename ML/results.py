@@ -250,7 +250,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
     features_str = ''
 
     dataset_n = dataset
-    with_ext_test = False
+    with_ext_test = True
     exmp_features = pd.read_excel(cts.VTdb_path / 'ML_model/1020D818/features_nd.xlsx', engine='openpyxl')
     # exmp_features = pd.read_excel(cts.VTdb_path + 'ML_model/1419Ec09/features.xlsx', engine='openpyxl')
     features_arr = np.asarray(exmp_features.columns[1:])
@@ -320,9 +320,11 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
             burden = np.sum((data > thresh) * 1, 1) / cts.MAX_WIN
             axe = axes[j - 1]
             axe.bar(range(len(test_ids)), burden[:len(test_ids)], color=colors[j - 1])
+            axe.axhline(y=np.median(burden[len(test_ids):]), color='k', linestyle='-')
             axe.set_xticks(range(len(test_ids)))
             axe.set_xticklabels(range(len(test_ids)), rotation='horizontal', fontsize=16)
-            axe.set_title('model_' + str(j))
+            axe.set_title('model ' + str(j))
+            axe.set_ylim([0, 1])
         plt.savefig(model_path / 'VT_burden_per_patient.png')
         plt.show()
 
@@ -390,7 +392,7 @@ def all_models(model_path, results_dir=cts.ML_RESULTS_DIR, dataset='rbdb_10', al
         # plt.plot(tpr_rf, tpr_rf, 'k')
 
     plt.legend(facecolor='white', framealpha=0.8, loc=4)
-    plt.title('Receiving operating curve')
+    # plt.title('Receiving operating curve')
     plt.xlabel('1-Sp')
     plt.ylabel('Se')
     plt.ylim([0, 1])
@@ -411,13 +413,13 @@ def eval_one_model(results_dir, path):
 
 if __name__ == '__main__':
     # eval_one_model(cts.ML_RESULTS_DIR, 'logo_cv/new_dem41_stand/RF_4/')
-    # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_10/')
+    #DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_10/')
     DATA_PATH = cts.ML_path
-    plot_ML_learning_curve(all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_mrmr', algo='XGB')
+    plot_ML_learning_curve(all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_vs_mrmr', algo='XGB')
     calc_on_validation(train_part=True, algo='XGB', feature_selection=1, methods=['mrmr'],
-                       all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_mrmr', bad_bsqi_ids=cts.bad_bsqi,
+                       all_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_vs_mrmr', bad_bsqi_ids=cts.bad_bsqi,
                        features_name='features_nd.xlsx', data_path=DATA_PATH)
 
-    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_mrmr', dataset='split_2_30_mrmr',
+    all_models(model_path=cts.ML_RESULTS_DIR / "logo_cv" / 'split_2_30_vs_mrmr', dataset='split_2_30_vs_mrmr',
                feature_selection=1,
                methods=['mrmr'], algo='XGB')
