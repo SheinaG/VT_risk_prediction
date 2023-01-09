@@ -81,13 +81,15 @@ class ConfCrossValidation:
 class OneCrossValidation:
 
     @classmethod
-    def split(cls, x, y, groups: np.ndarray = None):
+    def split(cls, x, y, groups: np.ndarray = None, split_=0):
         """Returns to a grouped time series split generator."""
         # The min max index must be sorted in the range
+        ids_vn = list(np.load(cts.IDS_DIR / str('split_' + str(split_)) / 'non_VT_val.npy'))
+        ids_vp = list(np.load(cts.IDS_DIR / str('split_' + str(split_)) / 'VT_val.npy'))
         test_indices, train_indices = [], []
         for i, group in enumerate(groups):
 
-            if group in cts.ids_vn_2 + cts.ids_vp_2:
+            if group in ids_vn + ids_vp:
                 test_indices.append(i)
             else:
                 train_indices.append(i)

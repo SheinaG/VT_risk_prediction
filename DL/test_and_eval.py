@@ -10,7 +10,7 @@ from models.XceptoinTimeS import XceptionTime
 from models.Xception1D import Xception1D
 from data.dataset import one_set, overfit_set, t_ansamble_set, all_set
 
-win_len = 180
+win_len = 60
 model = 'Xception1D'
 device = 'cuda'
 gpu = ''
@@ -31,10 +31,10 @@ if model == 'XceptionTime':
 if model == 'TCN':
     model = TCN(c_in=1, c_out=2, conv_dropout=run_config.conv_dropout, fc_dropout=run_config.fc_dropout)
 if model == 'Xception1D':
-    model = Xception1D(input_channel=1, n_classes=2, ni=14, k=39, blocks=8,
+    model = Xception1D(input_channel=1, n_classes=2, ni=16, k=9, blocks=8,
                        p_fc_drop=0)
 
-model_path = str(MODELS_DIR / 'sleek-galaxy-1030_model_29')
+model_path = str(MODELS_DIR / 'stellar-dew-1032_model_29')
 model.load_state_dict(torch.load(model_path, map_location=device))
 model = model.to(device)
 model.eval()

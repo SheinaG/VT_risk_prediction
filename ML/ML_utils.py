@@ -23,9 +23,6 @@ def create_part_dataset(ids, y=[], path='', model=0, features_name='features_nd.
         except:
             print(id_)
 
-        if multiply:
-            if id_ in cts.ids_VT:
-                new_p = matlib.repmat(new_p, multiply, 1)
 
         new_p = new_p[:, 1:]
         new_p = choose_right_features(new_p)
@@ -148,18 +145,18 @@ def norm_rms(ecg):
     return ecg
 
 
-def split_ids(tr_uv_p, tr_uv_n):
-    ids_train = cts.ids_VT[:tr_uv_p] + cts.ids_rbdb_VT + cts.ids_no_VT[:tr_uv_n] + cts.ids_rbdb_no_VT
-    y_train = np.concatenate(
-        [np.ones([1, len(cts.ids_VT[:tr_uv_p] + cts.ids_rbdb_VT)]),
-         np.zeros([1, len(cts.ids_no_VT[:tr_uv_n] + cts.ids_rbdb_no_VT)])],
-        axis=1).squeeze()
-
-    ids_test = cts.ids_VT[tr_uv_p:] + cts.ids_no_VT[tr_uv_n:]
-    y_test = np.concatenate([np.ones([1, len(cts.ids_VT[tr_uv_p:])]), np.zeros([1, len(cts.ids_no_VT[tr_uv_n:])])],
-                            axis=1).squeeze()
-
-    return ids_train, ids_test, y_train, y_test
+# def split_ids(tr_uv_p, tr_uv_n):
+#     ids_train = cts.ids_VT[:tr_uv_p] + cts.ids_rbdb_VT + cts.ids_no_VT[:tr_uv_n] + cts.ids_rbdb_no_VT
+#     y_train = np.concatenate(
+#         [np.ones([1, len(cts.ids_VT[:tr_uv_p] + cts.ids_rbdb_VT)]),
+#          np.zeros([1, len(cts.ids_no_VT[:tr_uv_n] + cts.ids_rbdb_no_VT)])],
+#         axis=1).squeeze()
+#
+#     ids_test = cts.ids_VT[tr_uv_p:] + cts.ids_no_VT[tr_uv_n:]
+#     y_test = np.concatenate([np.ones([1, len(cts.ids_VT[tr_uv_p:])]), np.zeros([1, len(cts.ids_no_VT[tr_uv_n:])])],
+#                             axis=1).squeeze()
+#
+#     return ids_train, ids_test, y_train, y_test
 
 
 def features_mrmr(X, features_model, features_mrmr, remove=0):
@@ -272,23 +269,23 @@ def split_to_group(ids_group, split=41):
     return cv_groups
 
 
-def split_to_group_old(ids_group, list_ids_vt=cts.ids_tp, list_ids_no_VT=cts.ids_tn + cts.ids_vn, n_vt=12):
-    cv_groups = []
-    ratio = len(list_ids_no_VT) // len(list_ids_vt)
-    max_ind = ratio * len(list_ids_vt)
-    for id in ids_group:
-        if id in list_ids_vt:
-            indx = list_ids_vt.index(id)
-            cv_groups.append(np.floor(indx / n_vt))
-        if id in list_ids_no_VT:
-            indx = list_ids_no_VT.index(id)
-            if indx < max_ind:
-                indx = np.floor(indx / (ratio * n_vt))
-                cv_groups.append(indx)
-            else:
-                indx = np.floor((indx - max_ind) / n_vt)
-                cv_groups.append(indx)
-    return cv_groups
+# def split_to_group_old(ids_group, list_ids_vt=cts.ids_tp, list_ids_no_VT=cts.ids_tn + cts.ids_vn, n_vt=12):
+#     cv_groups = []
+#     ratio = len(list_ids_no_VT) // len(list_ids_vt)
+#     max_ind = ratio * len(list_ids_vt)
+#     for id in ids_group:
+#         if id in list_ids_vt:
+#             indx = list_ids_vt.index(id)
+#             cv_groups.append(np.floor(indx / n_vt))
+#         if id in list_ids_no_VT:
+#             indx = list_ids_no_VT.index(id)
+#             if indx < max_ind:
+#                 indx = np.floor(indx / (ratio * n_vt))
+#                 cv_groups.append(indx)
+#             else:
+#                 indx = np.floor((indx - max_ind) / n_vt)
+#                 cv_groups.append(indx)
+#     return cv_groups
 
 
 def choose_right_features(X, num_leads=1):
@@ -296,10 +293,10 @@ def choose_right_features(X, num_leads=1):
     return X_out
 
 
-def set_path(algo, dataset, typ, results_dir):
-    if not os.path.exists(results_dir / "logo_cv" / dataset / str(algo + '_' + str(typ))):
-        os.makedirs(results_dir / "logo_cv" / dataset / str(algo + '_' + str(typ)))
-    return results_dir / "logo_cv" / dataset / str(algo + '_' + str(typ))
+def set_path(algo, dataset, typ, results_dir, split):
+    if not os.path.exists(results_dir / "logo_cv" / dataset / str('split_' + str(split)) / str(algo + '_' + str(typ))):
+        os.makedirs(results_dir / "logo_cv" / dataset / str('split_' + str(split)) / str(algo + '_' + str(typ)))
+    return results_dir / "logo_cv" / dataset / str('split_' + str(split)) / str(algo + '_' + str(typ))
 
 
 def maximize_f_beta(probas, y_true, beta=1):

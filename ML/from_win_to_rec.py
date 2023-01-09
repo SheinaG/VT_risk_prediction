@@ -180,7 +180,7 @@ def opt_thresh_sp(proba, y_true_p, save_path, min_sp, task='train', algo='RF'):
 
 
 def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', methods=['mrmr'], win_len=60,
-                  features_name='features.xlsx'):
+                  features_name='features.xlsx', split=0):
     # load data for all models
     if win_len == 30:
         bad_bsqi_ids = cts.bad_bsqi
@@ -191,16 +191,25 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     if win_len == 10:
         bad_bsqi_ids = cts.bad_bsqi_10
 
+    ids_tp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_train.npy'))
+    ids_vp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_val.npy'))
+    ids_sp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_test.npy'))
+    ids_tn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_train.npy'))
+    ids_vn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_val.npy'))
+    ids_sn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_test.npy'))
+
+    ids_tn_part = ids_tn[:300]
+
     y_train_p = np.concatenate(
-        [np.ones([1, len(cts.ids_tp_2 + cts.ids_vp_2)]), np.zeros([1, len(cts.ids_tn_part_2 + cts.ids_vn_2)])],
+        [np.ones([1, len(ids_tp + ids_vp)]), np.zeros([1, len(ids_tn_part + ids_vn)])],
         axis=1).squeeze()
     x_train, y_train, train_ids_groups, n_win = create_dataset(
-        cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2, y_train_p,
+        ids_tp + ids_vp + ids_tn_part + ids_vn, y_train_p,
         path=DATA_PATH, model=0, return_num=True,
         features_name=features_name,
         bad_bsqi_ids=bad_bsqi_ids, n_pools=15)
-    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
-    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp_2 + cts.ids_sn_2, y_test_p, path=DATA_PATH,
+    y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp)]), np.zeros([1, len(cts.ids_sn)])], axis=1).squeeze()
+    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp + cts.ids_sn, y_test_p, path=DATA_PATH,
                                                                  model=0,
                                                                  return_num=True, features_name=features_name,
                                                                  bad_bsqi_ids=bad_bsqi_ids)
@@ -210,12 +219,12 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     columns = ['AUROC train', 'AUROC test']
     train_val = pd.DataFrame(columns=columns, index=range(1, cts.NM + 1))
     auroc_all = []
-    ids_train = cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2
-    ids_test = cts.ids_sp_2 + cts.ids_sn_2
+    ids_train = ids_tp + ids_vp + ids_tn_part + ids_vn
+    ids_test = ids_sp + ids_sn
     for id_ in bad_bsqi_ids:
-        if id_ in cts.ids_tn_part_2 + cts.ids_vn_2:
+        if id_ in ids_tn_part + cts.ids_vn:
             y_train_p = y_train_p[:-1]
-        if id_ in cts.ids_sn_2:
+        if id_ in ids_sn:
             y_test_p = y_test_p[:-1]
         if id_ in ids_train:
             ids_train.remove(id_)
@@ -227,13 +236,13 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
     for i in range(1, cts.NM + 1):
         # train
         features_model = list(model_features(features_list, i, with_dems=True)[0])
-        model_path = all_path / str(algo + '_' + str(i))
+        model_path = all_path / str('split_' + str(split)) / str(algo + '_' + str(i))
         opt = joblib.load(model_path / 'opt.pkl')
         x_train_model = model_features(x_train, i, with_dems=True)
         if feature_selection:
             features_str = str('features' + methods[0] + '.pkl')
             try:
-                StSc_fit = joblib.load(model_path / 'StSC.pkl')
+                StSc_fit = joblib.load(model_path / str('split_' + str(split)) / 'StSC.pkl')
                 x_train_model = StSc_fit.transform(x_train_model)
                 ff = 1
                 features = joblib.load(model_path / features_str)
@@ -269,7 +278,7 @@ def run_one_model(all_path, DATA_PATH, algo, feature_selection=0, method='LR', m
 
     if method == 'median':
         train_val = train_val.round(2)
-        train_val.to_excel(all_path / str('train_test_median' + algo + '.xlsx'))
+        train_val.to_excel(all_path / str('split_' + str(split)) / str('train_test_median' + algo + '.xlsx'))
     print(auroc_all)
     return
 
@@ -284,7 +293,8 @@ def plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=0, method
         bad_bsqi_ids = cts.bad_bsqi_120
     if win_len == 10:
         bad_bsqi_ids = cts.bad_bsqi_10
-    save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset
+    save_path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/results/logo_cv/') / dataset / str(
+        'split_' + str(split))
 
     # test
     y_test_p = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
@@ -348,13 +358,14 @@ if __name__ == '__main__':
     # DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
     DATA_PATH = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/ML_model/')
     win_len = 30
-    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'split_2_30_vs_mrmr'
-    dataset = 'split_2_30_vs_mrmr'
+    split = 0
+    all_path = cts.ML_RESULTS_DIR / 'logo_cv' / 'cn_mrmr' / str('split_' + str(split))
+    dataset = 'cn_mrmr'
     algo = 'XGB'
-    # run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
-    #               features_name='features_nd.xlsx')
-    # plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=win_len,
-    #           features_name='features_nd.xlsx')
+    run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='median', methods=['mrmr'], win_len=win_len,
+                  features_name='features_nd.xlsx')
+    plot_test(dataset, DATA_PATH, algo, method='median', feature_selection=1, methods=['mrmr'], win_len=win_len,
+              features_name='features_nd.xlsx')
     run_one_model(all_path, DATA_PATH, algo, feature_selection=1, method='LR', methods=['mrmr'], win_len=win_len,
                   features_name='features_nd.xlsx')
     plot_test(dataset, DATA_PATH, algo, method='LR', feature_selection=1, methods=['mrmr'], win_len=win_len,

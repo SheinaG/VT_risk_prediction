@@ -34,23 +34,32 @@ def train_by_V_ratio():
 
 
 def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods='', feature_selection=0, n_jobs=10,
-                           algo='RF', features_name='features_nd.xlsx', bad_bsqi_ids=cts.bad_bsqi, fs_dataset=''):
+                           algo='RF', features_name='features_nd.xlsx', bad_bsqi_ids=cts.bad_bsqi, fs_dataset='',
+                           split=0):
     features_model = list(model_features(features_list, model_type, with_dems=True)[0])
     f_n = cts.num_selected_features_model[model_type - 1]
 
+    ids_tp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_train.npy'))
+    ids_vp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_val.npy'))
+    ids_sp = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'VT_test.npy'))
+    ids_tn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_train.npy'))
+    ids_vn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_val.npy'))
+    ids_sn = list(np.load(cts.IDS_DIR / str('split_' + str(split)) / 'non_VT_test.npy'))
+    ids_tn_part = ids_tn[:300]
+
     y_train = np.concatenate(
-        [np.ones([1, len(cts.ids_tp_2 + cts.ids_vp_2)]), np.zeros([1, len(cts.ids_tn_part_2 + cts.ids_vn_2)])],
+        [np.ones([1, len(ids_tp + ids_vp)]), np.zeros([1, len(ids_tn_part + ids_vn)])],
         axis=1).squeeze()
-    y_test = np.concatenate([np.ones([1, len(cts.ids_sp_2)]), np.zeros([1, len(cts.ids_sn_2)])], axis=1).squeeze()
+    y_test = np.concatenate([np.ones([1, len(ids_sp)]), np.zeros([1, len(ids_sn)])], axis=1).squeeze()
 
     # create dataset ( VT each grop)
-    x_train, y_train, train_ids_groups = create_dataset(cts.ids_tp_2 + cts.ids_vp_2 + cts.ids_tn_part_2 + cts.ids_vn_2,
+    x_train, y_train, train_ids_groups = create_dataset(ids_tp + ids_vp + ids_tn_part + ids_vn,
                                                         y_train,
                                                         path=DATA_PATH,
                                                         model=0, features_name=features_name, bad_bsqi_ids=bad_bsqi_ids)
     x_train = model_features(x_train, model_type, with_dems=True)
     # train_groups = split_to_group(train_ids_groups, split=383)
-    x_test, y_test, test_ids_groups, n_win_test = create_dataset(cts.ids_sp_2 + cts.ids_sn_2, y_test, path=DATA_PATH,
+    x_test, y_test, test_ids_groups, n_win_test = create_dataset(ids_sp + ids_sn, y_test, path=DATA_PATH,
                                                                  model=0,
                                                                  features_name=features_name, bad_bsqi_ids=bad_bsqi_ids,
                                                                  return_num=True)
@@ -58,7 +67,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 
     if feature_selection:
         dataset = dataset + '_' + '_'.join(methods)
-        path = set_path(algo, dataset, model_type, results_dir)
+        path = set_path(algo, dataset, model_type, results_dir, split)
         features_all = features_model
         if len(fs_dataset) == 0:
             StSC = StandardScaler()
@@ -80,7 +89,7 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
                 features_all = features_new
 
         else:
-            fs_dataset_path = set_path(algo, fs_dataset, model_type, results_dir)
+            fs_dataset_path = set_path(algo, fs_dataset, model_type, results_dir, split)
             StSC = joblib.load(fs_dataset_path / 'StSC.pkl')
             X_stsc_train = StSC.transform(x_train)
             x_test = StSC.transform(x_test)
@@ -97,9 +106,10 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
             joblib.dump(features_new, f)
         print(features_new)
 
-    path = set_path(algo, dataset, model_type, results_dir)
+    path = set_path(algo, dataset, model_type, results_dir, split)
     opt = bs.bayesianCV(x_train, y_train, algo, normalize=1, groups=train_ids_groups,
-                        weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset)
+                        weighting=True, n_jobs=n_jobs, typ=model_type, results_dir=results_dir, dataset=dataset,
+                        split_=split)
 
     with open((path / 'opt.pkl'), 'wb') as f:
         joblib.dump(opt, f)
@@ -116,10 +126,12 @@ def train_prediction_model(DATA_PATH, results_dir, model_type, dataset, methods=
 if __name__ == "__main__":
     # train_by_V_ratio()
     warnings.filterwarnings('ignore')
+    n_splits = 10
     # path = pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/win_len/win_len_120/')
     path = cts.ML_path
     for i in range(1, cts.NM + 1):
-        train_prediction_model(path, cts.ML_RESULTS_DIR, model_type=i, dataset='split_2_30_vs',
-                               methods=['mrmr'], features_name='features_nd.xlsx',
-                               n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi,
-                               fs_dataset='')
+        for j in range(n_splits):
+            train_prediction_model(path, cts.ML_RESULTS_DIR, model_type=i, dataset='cn',
+                                   methods=['mrmr'], features_name='features_nd.xlsx',
+                                   n_jobs=15, feature_selection=1, algo='XGB', bad_bsqi_ids=cts.bad_bsqi,
+                                   fs_dataset='', split=j)

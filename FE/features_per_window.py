@@ -154,7 +154,7 @@ if __name__ == '__main__':
     algo = 'RF'
     missing_ids = ['UVA2643', 'UVA0978', 'UVA2135', 'UVA1267', 'UVA0429', 'UVA0704', 'UVA0102', 'UVA1581', 'UVA2437',
                    'UVA1867']
-    features_per_window(dataset, ['3B209611'], ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
+    features_per_window(dataset, cts.vt_ids, ML_path, features_path, pvc_path, vt_wins=0, win_len=win_len)
     # features_per_window(dataset, cts.ext_test_vt, ML_path, features_path, pvc_path, vt_wins=1, win_len=win_len)
     # bad_ids = features_per_window('rbdb', cts.ids_tn + cts.ids_sn + cts.ids_vn, ML_path, features_path, features_path,
     #                               vt_wins=0,

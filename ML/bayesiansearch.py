@@ -5,7 +5,7 @@ from ML.cv_methods import *
 
 
 def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=False,
-               weighting=True, n_jobs=20, typ=1, dataset='both', results_dir=cts.ML_RESULTS_DIR):
+               weighting=True, n_jobs=20, typ=1, dataset='both', results_dir=cts.ML_RESULTS_DIR, split_=0):
     if normalize:
         standartization = StandardScaler()
     logo = LeaveOneGroupOut()
@@ -33,13 +33,12 @@ def bayesianCV(train_pat_features, train_pat_labels, algo, groups, normalize=Fal
         # },
         scoring=rc_scorer,
         n_iter=50,
-        cv=Ocv.split(train_pat_features, train_pat_labels, groups=groups),
+        cv=Ocv.split(train_pat_features, train_pat_labels, groups=groups, split_=split_),
         return_train_score=True, verbose=1, n_jobs=n_jobs, refit=True)
 
     opt.fit(train_pat_features, train_pat_labels)  # callback=on_step
     delattr(opt, 'cv')
     # save your model or results
-    path = set_path(algo, dataset, typ, results_dir)
 
     plt.show()
 

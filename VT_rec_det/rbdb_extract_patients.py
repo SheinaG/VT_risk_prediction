@@ -5,7 +5,6 @@ from parsing.base_VT_parser import *
 from utils.plot_ecg import plot_ecg_fig_MD
 
 
-
 def create_segments_array(plot=1):
     db = VtParser()
     segments_array = pd.DataFrame(columns=['holter_id', 'start', 'end', 'len'])
@@ -363,30 +362,91 @@ def rhythms_array(ids):
     start_events, end_events = [], []
     for id_ in ids:
         path = '/MLAIM/AIMLab/Sheina/databases/VTdb/rean_rbdb/'
-        txt_file = path + id_ + '_ecg_start_0_end_3_n_leads_3_rhythms.txt'
-        try:
-            with open(txt_file) as f:
+        txt_file3 = path + id_ + '_ecg_start_0_end_3_n_leads_3_rhythms.txt'
+        txt_file2 = path + id_ + '_ecg_start_0_end_2_n_leads_2_rhythms.txt'
+        if os.path.exists(txt_file3):
+            found = 1
+            with open(txt_file3) as f:
                 lines = f.readlines()
-        except FileNotFoundError:
-            txt_file = path + id_ + '_ecg_start_0_end_2_n_leads_2_rhythms.txt'
-            with open(txt_file) as f:
+
+        elif os.path.exists(txt_file2):
+            found = 1
+            with open(txt_file2) as f:
                 lines = f.readlines()
-        f = 0
-        for line in lines:
-            if line == 'Beginning\tEnd\t\tClass\n':
-                f = 1
-            elif f == 1:
-                split_line = line.split('\t')
-                start_events.append(split_line[0])
-                end_events.append(split_line[1])
-                segments_array = segments_array.append(
-                    pd.DataFrame([[id_, split_line[0], split_line[1]]], columns=segments_array.columns))
-                i += 1
-    segments_array.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/segments_array_rbdb')
+        else:
+            found = 0
+
+        if not found:
+            continue
+        else:
+            f = 0
+            for line in lines:
+                if line == 'Beginning\tEnd\t\tClass\n':
+                    f = 1
+                elif f == 1:
+                    split_line = line.split('\t')
+                    start_events.append(split_line[0])
+                    end_events.append(split_line[1])
+                    segments_array = segments_array.append(
+                        pd.DataFrame([[id_, split_line[0], split_line[1]]], columns=segments_array.columns))
+                    i += 1
+        segments_array.to_excel('/MLAIM/AIMLab/Sheina/databases/VTdb/VTp/segments_array_rbdb.xlsx')
+
+
+def nested_random_split(n_splits, IDS_path):
+    VT_ids_Holters = list(np.load(IDS_path / 'all_VT_holter.npy'))
+    VT_ids_patients = list(np.load(IDS_path / 'all_VT_patient.npy'))
+
+    non_VT_ids_Holters = list(np.load(IDS_path / 'all_non_VT_holter.npy'))
+    non_VT_ids_patients = list(np.load(IDS_path / 'all_non_VT_patient.npy'))
+
+    for j in range(n_splits):
+        VT_test = []
+        VT_val = []
+        VT_train = []
+        non_VT_test = []
+        non_VT_val = []
+        non_VT_train = []
+        VT_ids_patients_uniqe = list(set(VT_ids_patients))
+        random.shuffle(VT_ids_patients_uniqe)
+        VT_test_pat = VT_ids_patients_uniqe[:10]
+        VT_val_pat = VT_ids_patients_uniqe[10:20]
+        VT_train_pat = VT_ids_patients_uniqe[20:]
+        non_VT_ids_patients_uniqe = list(set(non_VT_ids_patients))
+        random.shuffle(non_VT_ids_patients_uniqe)
+        non_VT_test_pat = non_VT_ids_patients_uniqe[:130]
+        non_VT_val_pat = non_VT_ids_patients_uniqe[130:260]
+        non_VT_train_pat = non_VT_ids_patients_uniqe[260:]
+
+        for i, id_p in enumerate(VT_ids_patients):
+            if id_p in VT_test_pat:
+                VT_test.append(VT_ids_Holters[i])
+            if id_p in VT_val_pat:
+                VT_val.append(VT_ids_Holters[i])
+            if id_p in VT_train_pat:
+                VT_train.append(VT_ids_Holters[i])
+
+        for i, id_p in enumerate(non_VT_ids_patients):
+            if id_p in non_VT_test_pat:
+                non_VT_test.append(non_VT_ids_Holters[i])
+            if id_p in non_VT_val_pat:
+                non_VT_val.append(non_VT_ids_Holters[i])
+            if id_p in non_VT_train_pat:
+                non_VT_train.append(non_VT_ids_Holters[i])
+
+        if not os.path.exists(IDS_path / str('split_' + str(j))):
+            os.makedirs(IDS_path / str('split_' + str(j)))
+        np.save(IDS_path / str('split_' + str(j)) / 'VT_test', VT_test)
+        np.save(IDS_path / str('split_' + str(j)) / 'VT_val', VT_val)
+        np.save(IDS_path / str('split_' + str(j)) / 'VT_train', VT_train)
+        np.save(IDS_path / str('split_' + str(j)) / 'non_VT_test', non_VT_test)
+        np.save(IDS_path / str('split_' + str(j)) / 'non_VT_val', non_VT_val)
+        np.save(IDS_path / str('split_' + str(j)) / 'non_VT_train', non_VT_train)
 
 
 if __name__ == '__main__':
-    # rhythms_array(cts.ids_conf + cts.ids_sp)
+    # nested_random_split(10, pathlib.PurePath('/MLAIM/AIMLab/Sheina/databases/VTdb/IDS/new/'))
+    rhythms_array(cts.vt_ids)
     # split_train_to_k_folders(k_folders=38, split_way=3)
     # train_val_test_split()
-    rbdb_new_dem(cts.ids_vp + cts.ids_vn + cts.ids_tp + cts.ids_tn + cts.ids_sp + cts.ids_sn)
+    # rbdb_new_dem(cts.ids_vp + cts.ids_vn + cts.ids_tp + cts.ids_tn + cts.ids_sp + cts.ids_sn)
